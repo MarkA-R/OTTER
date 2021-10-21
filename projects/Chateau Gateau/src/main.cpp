@@ -27,6 +27,7 @@ int main() {
 	entt::registry registry;
 	entt::entity entity = registry.create();
 	registry.emplace<Camera>(entity);
+	//hah
 	
 	return 0;
 	
