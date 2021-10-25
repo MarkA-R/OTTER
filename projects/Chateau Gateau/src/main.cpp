@@ -72,10 +72,14 @@ int main() {
 	entt::registry registry;
 	entt::entity entity = registry.create();
 	registry.emplace<Camera>(entity);
+<<<<<<< HEAD
 
 	int activeScene = 0;
 	std::vector<Scene> gameScenes = std::vector<Scene>();
 	gameScenes.push_back(MainMenuScene());//scene setup should be done in constuctor of scene
+=======
+	//hah
+>>>>>>> ChateauGateau
 	
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
