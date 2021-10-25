@@ -78,7 +78,8 @@ const glm::mat4& Camera::GetViewProjection() const {
 void Camera::__CalculateProjection()
 {
 	// TODO: Calculate projection matrix
-	if (_isOrtho) { float w = (_orthoVerticalScale * _aspectRatio) / 2.0f; 
+	if (_isOrtho) { 
+	float w = (_orthoVerticalScale * _aspectRatio) / 2.0f; 
 	float h = (_orthoVerticalScale / 2.0f); 
 	_projection = glm::ortho(-w, w, -h, h, _nearPlane, _farPlane);
 	}
