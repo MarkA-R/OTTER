@@ -14,3 +14,15 @@
  void Scene::Setup()
  {
  }
+
+ void Scene::setMainCamera(int)
+ {
+
+ }
+
+ int Scene::getMainCamera()
+ {
+	 return 0;
+ }
+
+ 

@@ -86,6 +86,7 @@ glm::mat4 Camera::getProjection()
 
 glm::mat4 Camera::getViewProjection()
 {
+	isDirty = false;
 	return projection * view;
 }
 
@@ -96,7 +97,7 @@ float Camera::getOrthographicVerticalScale()
 
 bool Camera::isOrthoEnabled()
 {
-	return isOrthoEnabled;
+	return isOrthographic;
 }
 
 void Camera::calculateProjection()
@@ -110,8 +111,11 @@ void Camera::calculateProjection()
 	{
 		projection = glm::perspective(fov, aspect, nearPlane, farPlane);
 	}
+	isDirty = true;
 }
 
 void Camera::calculateView()
 {
+	view = glm::lookAt(pos, pos + normal, up);
+	isDirty = true;
 }

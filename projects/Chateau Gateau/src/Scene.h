@@ -6,6 +6,8 @@ public:
 	~Scene();
 	void Update(float deltaTime);
 	void Setup();
+	void setMainCamera(int);
+	int getMainCamera();
 
 };
 

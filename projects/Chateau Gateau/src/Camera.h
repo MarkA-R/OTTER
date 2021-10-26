@@ -1,4 +1,5 @@
 #pragma once
+#include "globalHeaders.h"
 class Camera
 {
 public:
