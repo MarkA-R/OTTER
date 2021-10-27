@@ -21,7 +21,8 @@ public:
 	glm::mat4 getViewProjection();
 	float getOrthographicVerticalScale();
 	bool isOrthoEnabled();
-
+	void calculateProjection();
+	void calculateView();
 
 private:
 	glm::vec3 pos;
@@ -37,8 +38,7 @@ private:
 	float fov;
 	bool isOrthographic;
 	bool isDirty;
-	void calculateProjection();
-	void calculateView();
+	
 
 
 };

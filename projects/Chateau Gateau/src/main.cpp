@@ -119,6 +119,14 @@ int main() {
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	
+	// Handle for our mvp
+	GLuint matrixMVP = glGetUniformLocation(shader_program, "MVP");
+
+	//lec 5 - uniform variable
+
+	//GLuint matrixModel = glGetUniformLocation(shader_program, "Model");
+	//GLuint lightPosID = glGetUniformLocation(shader_program, "lightPos");
+	//GLuint cameraPosID = glGetUniformLocation(shader_program, "cameraPos");
 
 	entt::registry registry;
 	entt::entity entity = registry.create();
@@ -126,8 +134,8 @@ int main() {
 
 
 	int activeScene = 0;
-	std::vector<Scene> gameScenes = std::vector<Scene>();
-	gameScenes.push_back(MainMenuScene());//scene setup should be done in constuctor of scene
+	std::vector<Scene*> gameScenes = std::vector<Scene*>();
+	gameScenes.push_back(new MainMenuScene());//scene setup should be done in constuctor of scene
 
 	
 	while (!glfwWindowShouldClose(window)) {
@@ -136,7 +144,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		double dt = glfwGetTime();
-		gameScenes[activeScene].Update(dt);
+		gameScenes[activeScene]->Update(dt);
 
 
 		glfwSwapBuffers(window);
