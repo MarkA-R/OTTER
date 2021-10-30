@@ -35,6 +35,7 @@ protected:
 	glm::vec3 scale = glm::vec3(1);
 	VAO entityVAO;
 	Shader entityShader;
+	void setValues();
 
 };
 

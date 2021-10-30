@@ -1,3 +1,7 @@
+#include "..\..\..\projects\Chateau_Gateau\src\Transform.h"
+#include "..\..\..\projects\Chateau_Gateau\src\Transform.h"
+#include "..\..\..\projects\Chateau_Gateau\src\Transform.h"
+#include "..\..\..\projects\Chateau_Gateau\src\Transform.h"
 /*
 NOU Framework - Created for INFR 2310 at Ontario Tech.
 (c) Samantha Stahlke 2020
@@ -22,6 +26,8 @@ namespace nou
 
 		m_global = glm::mat4(1.0f);
 	}
+
+	
 
 	Transform::~Transform()
 	{

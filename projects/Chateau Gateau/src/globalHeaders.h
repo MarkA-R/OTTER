@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "GLincludes.h"
+#include <entt.hpp>
 #include <Camera.h>
 #include <Scene.h>
 #include <MainMenuScene.h>

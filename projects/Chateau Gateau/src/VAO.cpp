@@ -133,7 +133,7 @@ void VAO::loadData(std::string filename)
 		glm::vec3 position = positions[attribs.x];
 		glm::vec3 normal = normals[attribs.x];//add in normals and UVs into vertex data
 		glm::vec2 uv = uvs[attribs.x];
-		glm::vec4 color = glm::vec4(0.5f, 0.5f, 0.5f,1.f);// Add the vertex to the mesh 
+		glm::vec4 color = glm::vec4(0.5f, 0.5f, 0.5f,0.5);// Add the vertex to the mesh 
 		vertexData.push_back(Vertex(position, normal, uv, color));
 	}
 
@@ -170,34 +170,34 @@ void VAO::loadData(std::string filename)
 
 
 	
-	GLuint posVBO;
+	GLuint posVBO =0;
 	glGenBuffers(1, &posVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, posVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(pos),&pos[0] , GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pos.size() * sizeof(float),&pos[0] , GL_STATIC_DRAW);
 	glEnableVertexArrayAttrib(posVBO, 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	
 
-	GLuint normVBO;
+	GLuint normVBO = 1;
 	glGenBuffers(1, &normVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, normVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(norm), &norm[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, norm.size() * sizeof(float), &norm[0], GL_STATIC_DRAW);
 	glEnableVertexArrayAttrib(normVBO, 1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	
 
-	GLuint uvVBO;
+	GLuint uvVBO = 2;
 	glGenBuffers(1, &uvVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, uvVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(uv), &uv[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, uv.size() * sizeof(float), &uv[0], GL_STATIC_DRAW);
 	glEnableVertexArrayAttrib(uvVBO, 2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 	
 
-	GLuint colourVBO;
+	GLuint colourVBO = 3;
 	glGenBuffers(1, &colourVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colourVBO), &col[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, col.size() * sizeof(float), &col[0], GL_STATIC_DRAW);
 	glEnableVertexArrayAttrib(colourVBO, 3);
 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
@@ -224,7 +224,7 @@ void VAO::Draw(glm::mat4 projection, glm::mat4 view, glm::mat4 model, Shader usi
 	//Model = glm::rotate(Model, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
 	for (int i = 0; i < 4; i++) {
 		for (int u = 0; u < 4; u++) {
-			std::cout << view[i][u] << " ";
+			std::cout << model[i][u] << " ";
 		}
 		std::cout << std::endl;
 	}

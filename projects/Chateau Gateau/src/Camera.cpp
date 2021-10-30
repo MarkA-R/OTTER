@@ -14,6 +14,7 @@ Camera::Camera() {
 	 fov = glm::degrees(60.f);
 	 isOrthographic = false;
 	 isDirty = true;
+	 calculateProjection();
 }
 Camera::~Camera() {
 
@@ -22,41 +23,49 @@ Camera::~Camera() {
 void Camera::setPosition(glm::vec3 x)
 {
 	pos = x;
+	calculateView();
 }
 
 void Camera::setNormal(glm::vec3 x)
 {
 	normal = x;
+	calculateView();
 }
 
 void Camera::lookAt(glm::vec3 x)
 {
 	normal = glm::normalize(x - pos);
+	calculateView();
 }
 
 void Camera::setUp(glm::vec3 x)
 {
 	up = x;
+	calculateView();
 }
 
 void Camera::setWindowSize(int x, int y)
 {
 	aspect = x / y;
+	calculateProjection();
 }
 
 void Camera::setFOVRadians(float x)
 {
 	fov = x;
+	calculateProjection();
 }
 
 void Camera::setOrthographicVerticalScale(float x)
 {
 	orthographicVerticalScale = x;
+	calculateProjection();
 }
 
 void Camera::setOrthographicMode(bool x)
 {
 	isOrthographic = x;
+	calculateProjection();
 }
 
 glm::vec3 Camera::getPosition()

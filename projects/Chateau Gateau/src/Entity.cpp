@@ -1,20 +1,32 @@
 #include "Entity.h"
+
+void Entity::setValues() {
+	position = glm::vec3(0);
+	rotationAxis = glm::vec3(0,0,1);
+	rotationAngle = 0;
+	scale = glm::vec3(0);
+}
 Entity::Entity(entt::entity e, VAO shaderProgram) {
 	id = entt::registry().alive() + 1;
 	ent = e;
 	entityVAO = shaderProgram;
 	
 	//entityVAO.loadData(fileName);
+	setValues();
 }
 
 Entity::Entity(entt::entity e) {
 	id = entt::registry().alive() + 1;
 	ent = e;
+	setValues();
+
 }
 
 Entity::~Entity() {
 	//entt::registry().destroy(id - 1, id - 1);
 	//entt::registry().
+	//setValues();
+
 }
 
 void Entity::attatchShader(Shader s) {
@@ -78,7 +90,7 @@ glm::vec3 Entity::getScale()
 }
 
 void Entity::calculateProjection() {
-	projection = glm::scale(projection, scale) * glm::rotate(projection, rotationAngle, rotationAxis) * glm::translate(projection, position);
+	projection = glm::scale(glm::mat4(1.0f), scale) * glm::rotate(glm::mat4(1.0f), rotationAngle, rotationAxis) * glm::translate(glm::mat4(1.0f), position);
 
 }
 

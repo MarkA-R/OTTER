@@ -34,7 +34,7 @@ void MainMenuScene::Setup()
 	VAO monkeyVAO = VAO();
 	monkeyVAO.loadData("Chicken.obj");
 	Entity monkey = Entity(sceneECS.create(), monkeyVAO);
-	monkey.setPosition(glm::vec3(0));
+	monkey.setPosition(glm::vec3(1));
 	monkey.setScale(glm::vec3(0.05f, 0.05f, 0.05f));
 	renderingEntities.push_back(monkey);
 
@@ -43,9 +43,9 @@ void MainMenuScene::Setup()
 	sceneECS.emplace<Camera>(cam.getEntity());
 	setMainCamera(cam.getEntity());
 	
-	sceneECS.get<Camera>(cam.getEntity()).lookAt(glm::vec3(0,0,0));
-	sceneECS.get<Camera>(cam.getEntity()).setPosition(glm::vec3(0, 0, -2));
-
+	
+	sceneECS.get<Camera>(cam.getEntity()).setPosition(glm::vec3(0, 0, 2));
+	sceneECS.get<Camera>(cam.getEntity()).lookAt(glm::vec3(0, 0, 0));
 
 }
 
