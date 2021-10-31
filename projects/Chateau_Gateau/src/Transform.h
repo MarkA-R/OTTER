@@ -16,6 +16,7 @@ public:
 	glm::vec4 getQuaternion(glm::vec3, float);
 	glm::vec3 getRotationAxis();
 	float getAxisAngle();
+	glm::mat4 getMatrix();
 protected:
 	glm::vec3 pos;
 	glm::vec3 scale;

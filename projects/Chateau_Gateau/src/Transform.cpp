@@ -10,7 +10,7 @@ bool isZero(float f) {
 Transform::Transform() {
 	pos = glm::vec3(0);
 	scale = glm::vec3(1);
-	rotation = glm::vec4(getQuaternion(glm::vec3(0, 0, 1), glm::radians(1.f)));
+	rotation = glm::vec4(getQuaternion(glm::vec3(1, 0, 0), glm::radians(90.f)));
 }
 
 void Transform::setPosition(glm::vec3 x)
@@ -107,5 +107,12 @@ glm::vec3 Transform::getRotationAxis()
 float Transform::getAxisAngle()//its in radians
 {
 	return 2* acos(rotation.w);
+}
+
+glm::mat4 Transform::getMatrix()
+{
+	glm::mat4 model = glm::mat4(1.f);
+	model = glm::translate(model,pos) * glm::rotate(model, getAxisAngle(), getRotationAxis()) * glm::scale(model,scale);
+	return model;
 }
 
