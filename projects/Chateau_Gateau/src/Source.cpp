@@ -58,9 +58,10 @@ int main()
 	App::Init("Chateau Gateau", width, height);
 	App::SetClearColor(glm::vec4(0.0f, 0.27f, 0.4f, 1.0f));
 	gameWindow = glfwGetCurrentContext();
+	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	// Initialize ImGui
 	App::InitImgui();
-
+	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	// Load in our model/texture resources
 	LoadDefaultResources();
 	MaterialCreator registerMaterial = MaterialCreator();
@@ -115,7 +116,7 @@ int main()
 		rx = glm::degrees(rotEuler.x);
 		ry = glm::degrees(rotEuler.y);
 		rz = glm::degrees(rotEuler.z);
-		*/
+		
 		ImGui::Begin("Point Coordinates", &go, ImVec2(300, 300));
 
 		//This will tie the position of the selected 
@@ -131,7 +132,7 @@ int main()
 		
 
 		ImGui::End();
-		
+		*/
 		//Get User Inputs
 		GetInput();
 
@@ -216,7 +217,7 @@ void LoadDefaultResources()
 void getCursorData(GLFWwindow* window, double x, double y) {
 
 	//globalCameraEntity->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));;
-	
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	double deltaX = (x - xPos) * sensitivity;
 	double deltaY = (y - yPos) * sensitivity;
 	deltaX += cameraX;
@@ -239,7 +240,7 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	glfwSetCursorPos(gameWindow, width/2, height/2);
 	cameraX = deltaX;
 	cameraY = deltaY;
-
+	
 }
 
 void GetInput()
@@ -247,7 +248,7 @@ void GetInput()
 	
 	double xRot, yRot;
 
-	
+	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glfwGetCursorPos(gameWindow, &xPos, &yPos);
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	//glfwGetCursorPos(gameWindow, &xPos, &yPos);

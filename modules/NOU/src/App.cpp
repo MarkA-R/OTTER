@@ -55,7 +55,7 @@ namespace nou
 		//If you had multiple windows, you'd be calling this on each one before
 		//making draw calls each frame.
 		glfwMakeContextCurrent(m_window);
-		
+		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		//This tells GLFW what function we'd like to use to process its input messages.
 		//(In our case, a static function in the Input class.)
 		glfwSetKeyCallback(m_window, Input::GLFWInputCallback);
