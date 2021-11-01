@@ -25,7 +25,10 @@ std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 // Keep our main cleaner
 void LoadDefaultResources();
 
+// Function to handle user inputs
+void GetInput();
 
+// Templated LERP function
 template<typename T>
 T Lerp(const T& p0, const T& p1, float t)
 {
@@ -33,16 +36,26 @@ T Lerp(const T& p0, const T& p1, float t)
 }
 
 
+Entity* globalCameraEntity;
+GLFWwindow* gameWindow;
+//Mouse State
+bool firstMouse = true;
+float lastX = 800 / 2;
+float lastY = 600 / 2;
+
+float yaw = -90.0f;
+float pitch = 0.0f;
 int main()
 {
 	int width = 1280;
 	int height = 720;
 	// Create window and set clear color
-	App::Init("Chateau Gateau", width, height);
-	App::SetClearColor(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-	glfwGetCurrentContext();
-	
-	
+	App::Init("Chateau Gateau", 800, 600);
+	App::SetClearColor(glm::vec4(0.0f, 0.27f, 0.4f, 1.0f));
+
+	// Initialize ImGui
+	App::InitImgui();
+
 	// Load in our model/texture resources
 	LoadDefaultResources();
 	MaterialCreator registerMaterial = MaterialCreator();
@@ -56,6 +69,13 @@ int main()
 	cameraEntity.transform.m_pos = glm::vec3(0.0f, 0.0f, 0.0f);
 	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
+	// Creating duck entity
+	Entity ent_ducky = Entity::Create();
+	ent_ducky.Add<CMeshRenderer>(ent_ducky, *mesh_ducky, *mat_ducky);
+	ent_ducky.Add<CPathAnimator>(ent_ducky);
+	ent_ducky.transform.m_scale = glm::vec3(0.005f, 0.005f, 0.005f);
+	ent_ducky.transform.m_pos = glm::vec3(0.0f, -1.0f, 0.0f);
+	ent_ducky.transform.m_rotation = glm::angleAxis(glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	
 
@@ -96,6 +116,8 @@ int main()
 		ent_register.Get<CMeshRenderer>().Draw();
 
 
+		GetInput();
+		//Get User Inputs
 
 
 		// Draw everything we queued up to the screen
@@ -140,6 +162,72 @@ void LoadDefaultResources()
 
 	mat_line = std::make_unique<Material>(*prog_unlit);
 	mat_line->m_color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+void GetInput()
+{
+	double xPos, yPos;
+	if (Input::GetKeyDown(GLFW_KEY_SPACE))
+	{
+		std::cout << "SPACE\n";
+	}
+	if (Input::GetKey(GLFW_KEY_W))
+	{
+		globalCameraEntity->transform.m_rotation.x += 0.001;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_ENTER))
+	{
+		glfwGetCursorPos(gameWindow, &xPos, &yPos);
+		std::cout << xPos << " , " << yPos << "\n";
+	}	
+
+	if (Input::GetKey(GLFW_KEY_W))
+	{
+		globalCameraEntity->transform.m_rotation.x += 0.001f;
+		std::cout << globalCameraEntity->transform.m_rotation.x << " , " << globalCameraEntity->transform.m_rotation.y << " , " << globalCameraEntity->transform.m_rotation.z << "\n";
+	}
+	else if (Input::GetKey(GLFW_KEY_S))
+	{
+		globalCameraEntity->transform.m_rotation.x -= 0.001f;
+		std::cout << globalCameraEntity->transform.m_rotation.x << " , " << globalCameraEntity->transform.m_rotation.y << " , " << globalCameraEntity->transform.m_rotation.z << "\n";
+
+
+	}
+	else if (Input::GetKey(GLFW_KEY_A))
+	{
+		globalCameraEntity->transform.m_rotation.y+= 0.001f;
+
+	}
+	else if (Input::GetKey(GLFW_KEY_D))
+	{
+		globalCameraEntity->transform.m_rotation.y -= 0.001f;
+
+	}
+
+	glfwGetCursorPos(gameWindow, &xPos, &yPos);
+	if (firstMouse == true)
+	{
+		lastX = xPos;
+		lastY = yPos;
+		firstMouse = false;
+	}
+	float xOffset = xPos - lastX;
+	float yOffset = yPos - lastY;
+	lastX = xPos;
+	lastY = yPos;
+
+	float sensitivity = 0.001f;
+	xOffset *= sensitivity;
+	yOffset *= sensitivity;
+
+	
+		
+	globalCameraEntity->transform.m_rotation.y += xOffset;
+	globalCameraEntity->transform.m_rotation.x += yOffset;
+	
+
+	std::cout << globalCameraEntity->transform.m_rotation.x << " , " << globalCameraEntity->transform.m_rotation.y << " , " << globalCameraEntity->transform.m_rotation.z << "\n";
+
+}
 
 
 }
