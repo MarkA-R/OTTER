@@ -28,7 +28,7 @@ std::unique_ptr<Material> mat_ducky, mat_unselected, mat_selected, mat_line, mat
 
 std::unique_ptr<Mesh> CreateMesh(std::unique_ptr<Mesh> objectMesh, std::unique_ptr<Texture2D> objectTexture, std::string meshName, std::string textureName);
 
-std::unique_ptr<Material> CreateMaterial(std::unique_ptr<Material> objectMaterial, std::unique_ptr<Texture2D> objectTexture, std::unique_ptr<ShaderProgram> litShader);
+std::unique_ptr<Material> CreateMaterial(std::unique_ptr<Material> objectMaterial, std::unique_ptr<Texture2D> objectTexture, const std::unique_ptr<ShaderProgram> &litShader);
 
 void CreateObject(Entity ent_object, std::unique_ptr<Mesh> objectMesh, std::string objectMeshName, std::unique_ptr<Texture2D> objectTexture, std::string objectTextureString, std::unique_ptr<Material> objectMaterial, std::unique_ptr<ShaderProgram> litShader);
 
@@ -290,9 +290,9 @@ std::unique_ptr<Mesh> CreateMesh(std::unique_ptr<Mesh> objectMesh, std::unique_p
 	return objectMesh;
 }
 
-std::unique_ptr<Material> CreateMaterial(std::unique_ptr<Material> objectMaterial, std::unique_ptr<Texture2D> objectTexture, std::unique_ptr<ShaderProgram> litShader)
+std::unique_ptr<Material> CreateMaterial(std::unique_ptr<Material> objectMaterial, std::unique_ptr<Texture2D> objectTexture, const std::unique_ptr<ShaderProgram> &litShader  )
 {
-	objectMaterial = std::make_unique<Material>(litShader);
+	objectMaterial = std::make_unique<Material>(*litShader);
 	objectMaterial->AddTexture("albedo", *objectTexture);
 	return objectMaterial;
 }
