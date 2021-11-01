@@ -46,14 +46,14 @@ int main()
 	// Load in our model/texture resources
 	LoadDefaultResources();
 	MaterialCreator registerMaterial = MaterialCreator();
-	registerMaterial.createMaterial("bakery/models/chicken.gltf", "bakery/textures/chick.png", *prog_texLit);
+	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_texLit);
 	
 
 	// Create and set up camera
 	Entity cameraEntity = Entity::Create();
 	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
 	cam.Perspective(60.0f, (float) width/height, 0.1f, 100.0f);
-	cameraEntity.transform.m_pos = glm::vec3(4.0f, 0.0f, 0.0f);
+	cameraEntity.transform.m_pos = glm::vec3(0.0f, 0.0f, 0.0f);
 	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 
@@ -63,8 +63,9 @@ int main()
 	Entity ent_register = Entity::Create();
 	ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
 	ent_register.transform.m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
-	ent_register.transform.m_pos = glm::vec3(0.f, 0.f, 0.0f);
-	ent_register.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	ent_register.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ent_register.transform.m_pos = glm::vec3(-3.f, -3.f, 0.0f);
+	
 
 
 	App::Tick();
