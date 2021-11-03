@@ -8,6 +8,8 @@
 #include "NOU/Shader.h"
 #include "NOU/GLTFLoader.h"
 #include "MaterialCreator.h"
+#include "Raycast.h"
+#include "BoundingBox.h"
 
 #include <iostream>
 
@@ -20,7 +22,7 @@ using namespace nou;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.7f);
-
+glm::quat cameraQuat = glm::quat();
 
 double xPos, yPos;
 double cameraX = 0, cameraY = 0;
@@ -86,6 +88,9 @@ int main()
 	Entity ent_register = Entity::Create();
 	ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
 	ent_register.transform.m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
+	ent_register.Add<BoundingBox>(glm::vec3(2) , ent_register);
+
+	
 	ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ent_register.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
 	renderingEntities.push_back(&ent_register);
@@ -95,7 +100,7 @@ int main()
 	counter.transform.m_scale = glm::vec3(1.f, 0.5f, 0.5f);
 	counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	counter.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
-	renderingEntities.push_back(&counter);
+	//renderingEntities.push_back(&counter);
 
 
 
@@ -107,33 +112,8 @@ int main()
 	{
 
 		App::FrameStart();
-		App::StartImgui();
-		static bool go = true;
-		Transform* t = &counter.transform;
-		/*
-		float rx, ry, rz;
-		glm::vec3 rotEuler = glm::eulerAngles(t->m_rotation);
-		rx = glm::degrees(rotEuler.x);
-		ry = glm::degrees(rotEuler.y);
-		rz = glm::degrees(rotEuler.z);
 		
-		ImGui::Begin("Point Coordinates", &go, ImVec2(300, 300));
-
-		//This will tie the position of the selected 
-		//waypoint to input fields rendered with Imgui. 
-		ImGui::DragFloat("X", &(t->m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(t->m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(t->m_pos.z), 0.1f);
-
-		//ImGui::DragFloat("RX", &(rx), 0.1f);
-		//ImGui::DragFloat("RY", &(ry), 0.1f);
-		//ImGui::DragFloat("RZ", &(rz), 0.1f);
-
 		
-
-		ImGui::End();
-		*/
-		//Get User Inputs
 		GetInput();
 
 		// Update our LERP timers
@@ -146,8 +126,8 @@ int main()
 		// Update camera
 		cameraEntity.Get<CCamera>().Update();
 
-
-
+		Raycast r = Raycast(cameraEntity.transform.m_pos, glm::eulerAngles(cameraQuat),10.f);//needs to be after GetInput so cameraQuat is initialized;
+		std::vector<glm::vec3> raycastPoints = r.crossedPoints();
 		for each (Entity* e in renderingEntities) {
 			
 			e->transform.RecomputeGlobal();
@@ -155,6 +135,13 @@ int main()
 
 			// Draw register
 			e->Get<CMeshRenderer>().Draw();
+			for each (glm::vec3	pos in raycastPoints) {
+				if (e->Get<BoundingBox>().isColliding(pos)) {
+					std::cout << "A" << std::endl;
+					break;
+				}
+				
+			}
 		}
 		
 
@@ -164,7 +151,7 @@ int main()
 
 
 		
-		App::EndImgui();
+	
 
 		// Draw everything we queued up to the screen
 		App::SwapBuffers();
@@ -222,17 +209,15 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	double deltaY = (y - yPos) * sensitivity;
 	deltaX += cameraX;
 	deltaY += cameraY;
-	//std::cout << deltaX << " " << deltaY << std::endl;
-	//glm::quat yRot = glm::angleAxis(glm::radians((float)deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
-	//glm::quat xRot = glm::angleAxis(glm::radians((float)deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
+	
 
+	//BELOW FROM https://gamedev.stackexchange.com/questions/13436/glm-euler-angles-to-quaternion
 	glm::quat QuatAroundX = glm::angleAxis(glm::radians((float)deltaY), glm::vec3(1.0, 0.0, 0.0));
 	glm::quat QuatAroundY = glm::angleAxis(glm::radians((float)deltaX), glm::vec3(0.0, 1.0, 0.0));
 	glm::quat QuatAroundZ = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0, 0.0, 1.0));
 	glm::quat finalOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
-	//t->m_rotation = finalOrientation;
+	cameraQuat = finalOrientation;
 	globalCameraEntity->transform.m_rotation = finalOrientation;
-	//globalCameraEntity->transform.m_rotation = glm::angleAxis(glm::radians((float)deltaY), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	globalCameraEntity->transform.m_pos = cameraPos;
 
