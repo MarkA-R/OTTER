@@ -36,6 +36,9 @@ namespace nou
 
 		virtual ~Entity();
 
+		template<typename T>//thanks Kevin!
+		bool Has() { return ecs.has<T>(m_id); }
+
 		template<typename T, typename... Args>
 		T& Add(Args&&... args)
 		{

@@ -46,6 +46,8 @@ namespace nou
 
 		static void SetClearColor(const glm::vec4& clearColor);
 
+		static void setCursorVisible(bool v);
+
 		protected:
 
 		//Instantiating this class doesn't make sense, since all our functionality

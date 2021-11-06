@@ -5,7 +5,7 @@ Raycast::Raycast(glm::vec3 Origin, glm::vec3 Direction, float d, float s)
 	distance = d;
 	step = s;
 	origin = Origin;
-	direction = Direction;
+	direction = glm::normalize(Direction);
 }
 
 std::vector<glm::vec3> Raycast::crossedPoints()

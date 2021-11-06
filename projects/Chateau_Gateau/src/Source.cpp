@@ -59,6 +59,7 @@ int main()
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
 	App::SetClearColor(glm::vec4(0.0f, 0.27f, 0.4f, 1.0f));
+	App::setCursorVisible(false);
 	gameWindow = glfwGetCurrentContext();
 	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	// Initialize ImGui
@@ -77,6 +78,7 @@ int main()
 	Entity cameraEntity = Entity::Create();
 	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
 	cam.Perspective(60.0f, (float) width/height, 0.1f, 100.0f);
+	//cam.Perspective(100.f, (float) width/height, 0.1f, 100.0f);
 	cameraEntity.transform.m_pos = cameraPos;
 	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	globalCameraEntity = &cameraEntity;
@@ -88,7 +90,7 @@ int main()
 	Entity ent_register = Entity::Create();
 	ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
 	ent_register.transform.m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
-	ent_register.Add<BoundingBox>(glm::vec3(2) , ent_register);
+	ent_register.Add<BoundingBox>(glm::vec3(0.5,2.3,0.06) , ent_register);
 
 	
 	ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -100,8 +102,7 @@ int main()
 	counter.transform.m_scale = glm::vec3(1.f, 0.5f, 0.5f);
 	counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	counter.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
-	//renderingEntities.push_back(&counter);
-
+	renderingEntities.push_back(&counter);
 
 
 	App::Tick();
@@ -125,23 +126,48 @@ int main()
 		//std::cout << angle << std::endl;
 		// Update camera
 		cameraEntity.Get<CCamera>().Update();
+		glm::quat cameraRotEuler = cameraQuat;
+		glm::vec3 cameraFacingVector = glm::vec3(0);
+		glm::vec3 up = glm::vec3(0);
+	
+		glm::vec3 left = glm::vec3(0);
+		
+		//https://www.gamedev.net/forums/topic/56471-extracting-direction-vectors-from-quaternion/
 
-		Raycast r = Raycast(cameraEntity.transform.m_pos, glm::eulerAngles(cameraQuat),10.f);//needs to be after GetInput so cameraQuat is initialized;
+		left.x = 1 - 2 * (cameraRotEuler.y * cameraRotEuler.y + cameraRotEuler.z * cameraRotEuler.z);
+		left.y = 2 * (cameraRotEuler.x * cameraRotEuler.y + cameraRotEuler.w * cameraRotEuler.z);
+		left.z = 2 * (cameraRotEuler.x * cameraRotEuler.z - cameraRotEuler.w * cameraRotEuler.y);
+	
+		
+		up.x = 2 * (cameraRotEuler.x * cameraRotEuler.y - cameraRotEuler.w * cameraRotEuler.z);
+		up.y = 1 - 2 * (cameraRotEuler.x * cameraRotEuler.x + cameraRotEuler.z * cameraRotEuler.z);
+		up.z = 2 * (cameraRotEuler.y * cameraRotEuler.z + cameraRotEuler.w * cameraRotEuler.x);
+	
+		cameraFacingVector = glm::cross(left, -up);
+		
+
+		Raycast r = Raycast(cameraEntity.transform.m_pos, cameraFacingVector,10.f);//needs to be after GetInput so cameraQuat is initialized;
 		std::vector<glm::vec3> raycastPoints = r.crossedPoints();
+		//std::cout << cameraRotEuler.x << " " << cameraRotEuler.y << " " << cameraRotEuler.z << std::endl;
 		for each (Entity* e in renderingEntities) {
 			
 			e->transform.RecomputeGlobal();
 
 
-			// Draw register
+			
 			e->Get<CMeshRenderer>().Draw();
-			for each (glm::vec3	pos in raycastPoints) {
-				if (e->Get<BoundingBox>().isColliding(pos)) {
-					std::cout << "A" << std::endl;
-					break;
-				}
+			if (e->Has<BoundingBox>()) {
 				
+				for each (glm::vec3	pos in raycastPoints) {
+					
+					if (e->Get<BoundingBox>().isColliding(pos)) {
+						std::cout << "A" << std::endl;
+						break;
+					}
+
+				}
 			}
+			
 		}
 		
 
