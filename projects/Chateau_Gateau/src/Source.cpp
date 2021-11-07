@@ -11,6 +11,9 @@
 #include "Raycast.h"
 #include "BoundingBox.h"
 #include "Machine.h"
+#include "Fridge.h"
+#include "Oven.h"
+#include "bakeryUtils.h"
 
 #include <iostream>
 
@@ -94,6 +97,12 @@ int main()
 	MaterialCreator crossantMat = MaterialCreator();
 	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_texLit);
 
+	MaterialCreator doughMat = MaterialCreator();
+	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_texLit);
+
+	MaterialCreator ovenMat = MaterialCreator();
+	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit);
+
 	// Create and set up camera
 	Entity cameraEntity = Entity::Create();
 	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
@@ -161,6 +170,15 @@ int main()
 	fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 2.0f);
 	renderingEntities.push_back(&fridge);
 
+	Entity oven = Entity::Create();
+	oven.Add<CMeshRenderer>(oven, *ovenMat.getMesh(), *ovenMat.getMaterial());
+	oven.Add<BoundingBox>(glm::vec3(0.67, 2, 0.5), oven);
+	oven.Add<Machine>();
+	oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
+	oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	oven.transform.m_pos = glm::vec3(1.f, -1.5f, 2.0f);
+	renderingEntities.push_back(&oven);
+
 
 	App::Tick();
 
@@ -223,33 +241,36 @@ int main()
 
 						if (e->Get<BoundingBox>().isColliding(pos)) {
 							if (e->Has<Machine>()) {//check for fridge tomorrow
-								//std::cout << "A" << std::endl;
-								if (isClicking) {
-									int slot = getFirstTraySlot();
-									if (slot >= 0) {
-										trayPastry[slot] = Entity::Allocate();
-										
-										
-										
-										trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *crossantMat.getMesh(), *crossantMat.getMaterial());
-										trayPastry[slot]->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
-										trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-										
-										//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl;
-										
-										trayPastry[slot]->transform.m_pos = traySlot[slot].m_pos;
-										trayPastry[slot]->transform.SetParent(&globalCameraEntity->transform);
-										addedSlot = slot;
-										//std::cout << "B" << std::endl;
-										
+								if (e->Has<Fridge>()) {
+									//std::cout << "A" << std::endl;
+									if (isClicking) {
+										int slot = getFirstTraySlot();
+										if (slot >= 0) {
+											trayPastry[slot] = Entity::Allocate();
+
+
+
+											trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *doughMat.getMesh(), *doughMat.getMaterial());
+											trayPastry[slot]->transform.m_scale = glm::vec3(0.09f, 0.09f, 0.09f);
+											trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+											//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl;
+
+											trayPastry[slot]->transform.m_pos = traySlot[slot].m_pos;
+											trayPastry[slot]->transform.SetParent(&globalCameraEntity->transform);
+											addedSlot = slot;
+											//std::cout << "B" << std::endl;
+
+										}
+										else
+										{
+											std::cout << "Tray full!" << std::endl;
+										}
+
+
 									}
-									else
-									{
-										std::cout << "Tray full!" << std::endl;
-									}
-									
-									
 								}
+								
 								
 									
 								
