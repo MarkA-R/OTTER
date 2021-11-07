@@ -1,85 +1,56 @@
 #pragma once
 class bakeryUtils
 {
+    
 public:
-	enum pastryType {
+ //https://www.modernescpp.com/index.php/c-core-guidelines-rules-for-enumerations
+    //this is why theyre a enum class
+    enum class pastryType {
         DOUGH,//uncooked < 10 seconds
         CROISSANT,
         COOKIE,
         CUPCAKE,
         CAKE,
         BURNT
-	};
+    };
 
-    enum toppingType {
+    enum class toppingType {
         NONE,
         CREAM,
         SPRINKLE,
         STRAWBERRY
     };
 
-    enum fillType {
+    enum class fillType {
         NONE,
         JAM,
         CUSTARD,
         CREAM
     };
 
-     float returnCroissantTime()
-    {
-        return timeToCroissant;
-    }
-     float returnCookieTime()
-    {
-        return timeToCookie;
-    }
-     float returnCupcakeTime()
-    {
-        return timeToCupcake;
-    }
-     float returnCakeTime()
-    {
-        return timeToCake;
-    }
-     float returnBurnTime()
-    {
-        return timeToBurn;
-    }
+    static float returnCroissantTime();
 
-     float returnBakeTime(pastryType t)
-     {
-         if ((int)t == (int)DOUGH)
-         {
-             return 0.f;
-         }
-         else if ((int)t == (int)CROISSANT)
-         {
-             return returnCroissantTime();
-         }
-         else if ((int)t == (int)COOKIE)
-         {
-             return returnCookieTime();
-         }
-         else if ((int)t == (int)CUPCAKE)
-         {
-             return returnCupcakeTime();
-         }
-         else if ((int)t == (int)CAKE)
-         {
-             return returnCakeTime();
-         }
-         else if ((int)t == (int)BURNT)
-         {
-             return returnBurnTime();
-         }
-         return returnBurnTime();
-     }
+    static float returnCookieTime();
+
+    static float returnCupcakeTime();
+
+    static float returnCakeTime();
+
+    static float returnBurnTime();
+
+    static float returnBakeTime(bakeryUtils::pastryType t);
+
+    bakeryUtils();
 
 protected:
-    const float timeToCroissant = 10;
-    const float timeToCookie = 20;
-    const float timeToCupcake = 30;
-    const float timeToCake = 50;
-    const float timeToBurn = 60;
+    inline static float timeToCroissant = 10;
+    inline static float timeToCookie = 20;
+    inline static float timeToCupcake = 30;
+    inline static float timeToCake = 50;
+    inline static float timeToBurn = 60;
+
+     
+    
+
 };
 

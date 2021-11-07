@@ -288,7 +288,7 @@ int main()
 		}
 		
 
-	
+		std::cout << bakeryUtils::returnBakeTime(bakeryUtils::pastryType::CROISSANT) << std::endl;
 	
 		if (addedSlot >= 0) {
 			renderingEntities.push_back(trayPastry[addedSlot].get());
