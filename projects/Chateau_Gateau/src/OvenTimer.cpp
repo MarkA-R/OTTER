@@ -50,7 +50,7 @@ void OvenTimer::setFill(float x)
 	fill = x;
 }
 
-void OvenTimer::setMaterial(MaterialCreator t)
+void OvenTimer::setMaterial(MaterialCreator& t)
 {
 	tile.get()->Remove<CMeshRenderer>();
 	tile.get()->Add<CMeshRenderer>(*tile, *t.getMesh(), *t.getMaterial());

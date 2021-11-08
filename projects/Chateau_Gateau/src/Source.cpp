@@ -50,7 +50,9 @@ float lastX = width / 2;
 float lastY = height / 2;
 std::vector<Entity*> renderingEntities = std::vector<Entity*>();
 Transform traySlot[4] = {};
-std::unique_ptr<Entity> trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
+Entity* trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
+
+
 
 
 
@@ -69,9 +71,15 @@ void GetInput();
 
 
 MaterialCreator crossantMat = MaterialCreator();
-
-
 MaterialCreator doughMat = MaterialCreator();
+
+MaterialCreator croissantTile = MaterialCreator();
+MaterialCreator doughTile = MaterialCreator();
+MaterialCreator cookieTile = MaterialCreator();
+MaterialCreator cupcakeTile = MaterialCreator();
+MaterialCreator cakeTile = MaterialCreator();
+MaterialCreator nothingTile = MaterialCreator();
+//burnt tile???
 
 // Templated LERP function
 template<typename T>
@@ -114,8 +122,7 @@ int main()
 	MaterialCreator ovenMat = MaterialCreator();
 	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit);
 
-	MaterialCreator croissantTile = MaterialCreator();
-	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
+	
 
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
@@ -125,6 +132,14 @@ int main()
 
 	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_texLit);
 	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_texLit);
+
+	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
+	doughTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/doughTile.png", *prog_texLit);
+	cookieTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cookieTile.png", *prog_texLit);
+	cupcakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cupcakeTile.png", *prog_texLit);
+	cakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cakeTile.png", *prog_texLit);
+	nothingTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/nothingTile.png", *prog_texLit);
+
 
 	// Create and set up camera
 	Entity cameraEntity = Entity::Create();
@@ -208,7 +223,7 @@ int main()
 	slot1Transform.m_pos.x += 0.95;
 	slot1Transform.m_pos.y += 0.55;
 	slot1Transform.m_pos.z += 0.6;
-	OvenTimer slot1 = OvenTimer(croissantTile,arrowMat, timerMat, slot1Transform);
+	OvenTimer slot1 = OvenTimer(nothingTile,arrowMat, timerMat, slot1Transform);
 	renderingEntities.push_back(slot1.getArrow());
 	renderingEntities.push_back(slot1.getCircle());
 	renderingEntities.push_back(slot1.getTile());
@@ -217,7 +232,7 @@ int main()
 	slot2Transform.m_pos.x += 0.35;
 	slot2Transform.m_pos.y += 0.55;
 	slot2Transform.m_pos.z += 0.6;
-	OvenTimer slot2 = OvenTimer(croissantTile, arrowMat, timerMat, slot2Transform);
+	OvenTimer slot2 = OvenTimer(nothingTile, arrowMat, timerMat, slot2Transform);
 	renderingEntities.push_back(slot2.getArrow());
 	renderingEntities.push_back(slot2.getCircle());
 	renderingEntities.push_back(slot2.getTile());
@@ -227,7 +242,7 @@ int main()
 	slot3Transform.m_pos.x += 0.95;
 	slot3Transform.m_pos.y += 0.30;
 	slot3Transform.m_pos.z += 0.6;
-	OvenTimer slot3 = OvenTimer(croissantTile, arrowMat, timerMat, slot3Transform);
+	OvenTimer slot3 = OvenTimer(nothingTile, arrowMat, timerMat, slot3Transform);
 	renderingEntities.push_back(slot3.getArrow());
 	renderingEntities.push_back(slot3.getCircle());
 	renderingEntities.push_back(slot3.getTile());
@@ -236,12 +251,21 @@ int main()
 	slot4Transform.m_pos.x += 0.35;
 	slot4Transform.m_pos.y += 0.30;
 	slot4Transform.m_pos.z += 0.6;
-	OvenTimer slot4 = OvenTimer(croissantTile, arrowMat, timerMat, slot4Transform);
+	OvenTimer slot4 = OvenTimer(nothingTile, arrowMat, timerMat, slot4Transform);
 	renderingEntities.push_back(slot4.getArrow());
 	renderingEntities.push_back(slot4.getCircle());
 	renderingEntities.push_back(slot4.getTile());
 
+	std::vector<MaterialCreator*> tiles = std::vector<MaterialCreator*>();
+	tiles.push_back(&nothingTile);
+	tiles.push_back(&doughTile);
+	tiles.push_back(&croissantTile);
+	tiles.push_back(&cookieTile);
+	tiles.push_back(&cupcakeTile);
+	tiles.push_back(&cakeTile);
+
 	oven.Get<Oven>().setup(&slot1, &slot2, &slot3, &slot4, &oven.transform);
+	oven.Get<Oven>().setMaterials(tiles);
 	App::Tick();
 
 	float angle = 0;
@@ -327,7 +351,7 @@ int main()
 									if (isClicking) {
 										int slot = getFirstTraySlot();
 										if (slot >= 0) {
-											trayPastry[slot] = Entity::Allocate();
+											trayPastry[slot] = Entity::Allocate().release();
 
 
 
@@ -354,29 +378,61 @@ int main()
 									}
 								}
 								else if (e->Has<Oven>()) {
+									int wantedSlot = -1;
 									if (Input::GetKeyDown(GLFW_KEY_1)) {
-										std::cout << "A" << std::endl;
+										wantedSlot = 0;
+									}
+									if (Input::GetKeyDown(GLFW_KEY_2)) {
+										wantedSlot = 1;
+									}
+									if (Input::GetKeyDown(GLFW_KEY_3)) {
+										wantedSlot = 2;
+									}
+									if (Input::GetKeyDown(GLFW_KEY_4)) {
+										wantedSlot = 3;
+									}
+									if (wantedSlot >= 0) {
+										//std::cout << "A" << std::endl;
 										
-										
-										if (!trayPastry[0]->Get<Pastry>().isInOven() && trayPastry[0]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH) {
-											if (trayPastry[0] != nullptr) {
-												std::cout << "B" << std::endl;
-												ovenScript->canAdd(trayPastry[0].get(), 0);
-												trayPastry[0]->Get<Pastry>().setInOven(true);
+										bool putInOven = false;
+										if (trayPastry[wantedSlot] != nullptr) {
+											if (!ovenScript->isSlotFull(wantedSlot)) {
+												if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
+												{
+													if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
+														putInOven = true;
+													}
+												}
 											}
+										}
+										if (putInOven) {
+											
+												//std::cout << "B" << std::endl;
+												ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
+												
+												trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
+												trayPastry[wantedSlot] = nullptr;
 											
 										}
 										else
 										{
-											std::cout << "C" << std::endl;
-											if (ovenScript->canRemove(0)) {
-												std::cout << "D" << std::endl;
-												trayPastry[0]->transform.m_pos = traySlot[0].m_pos;
-												trayPastry[0]->transform.SetParent(&globalCameraEntity->transform);
-												trayPastry[0]->Get<Pastry>().setInOven(false);
+											//std::cout << "C" << std::endl;
+											int newSlot = getFirstTraySlot();
+											
+											if (ovenScript->canRemove(wantedSlot)) {
+												std::cout << newSlot << std::endl;
+												trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
 
-												ovenScript->removeFromSlot(0);
-												setPastryMesh(trayPastry[0].get(), trayPastry[0]->Get<Pastry>().getPastryType());
+												trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
+												trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
+												trayPastry[newSlot]->Get<Pastry>().setInOven(false);
+												setPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
+
+												if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
+												{
+													trayPastry[newSlot]->Get<Pastry>().setCookedSeconds(wantedSlot);//should it reset seconds if not completed?
+												}
+												ovenScript->removeFromSlot(wantedSlot);
 											}
 										}
 										
@@ -403,7 +459,7 @@ int main()
 		//std::cout << bakeryUtils::returnBakeTime(bakeryUtils::pastryType::CROISSANT) << std::endl;
 	
 		if (addedSlot >= 0) {
-			renderingEntities.push_back(trayPastry[addedSlot].get());
+			renderingEntities.push_back(trayPastry[addedSlot]);
 		}
 
 

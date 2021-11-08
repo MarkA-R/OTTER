@@ -11,7 +11,7 @@ public:
 	void addFill(float);
 	float getFill();
 	void setFill(float);
-	void setMaterial(MaterialCreator);
+	void setMaterial(MaterialCreator&);
 	Entity* getTile();
 	Entity* getArrow();
 	Entity* getCircle();

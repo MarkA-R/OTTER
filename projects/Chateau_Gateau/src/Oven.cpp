@@ -11,15 +11,20 @@ void Oven::setup(OvenTimer* a, OvenTimer* b, OvenTimer* c, OvenTimer* d, Transfo
 	insideOven = *t;
 }
 
+void Oven::setMaterials(std::vector<MaterialCreator*> a)
+{
+	materials = a;
+}
+
 void Oven::update(float dt)
 {
 	secondCounter += dt;
-	if (secondCounter >= 1) {
+	if (secondCounter >= updateTime) {
 		
 
 		for (int i = 0; i < std::size(inOven); i++) {
 			if (inOven[i] != nullptr) {
-				std::cout << "COUNTED" << std::endl;
+				//std::cout << "COUNTED" << std::endl;
 				Pastry* currentPastry = &inOven[i]->Get<Pastry>();
 				float timeLeft =
 					1 - ((currentPastry->getCookedSeconds() - currentPastry->getCurrentCookedTime())
@@ -27,12 +32,16 @@ void Oven::update(float dt)
 						(currentPastry->getNextCookTime() - currentPastry->getCurrentCookedTime()));
 				ovenTimers[i]->setFill(timeLeft);
 				ovenTimers[i]->updateArrow();
-				currentPastry->addCookedSeconds(1);
+				currentPastry->addCookedSeconds(updateTime);
+				//std::cout << currentPastry->getCookedSeconds() << std::endl;
 				currentPastry->updateType();
+				int pastryIndex = ((int)currentPastry->getPastryType()) + 1;//cause nothing tile
+				ovenTimers[i]->setMaterial(*materials[pastryIndex]);
+
 
 			}
 		}
-		secondCounter -= 1;
+		secondCounter -= updateTime;
 	}
 }
 
@@ -69,7 +78,19 @@ void Oven::removeFromSlot(int slot)
 {
 	if (slot >= 0 && slot < std::size(inOven)) {
 		inOven[slot] = nullptr;
+		ovenTimers[slot]->setFill(0);
+		ovenTimers[slot]->updateArrow();
+		ovenTimers[slot]->setMaterial(*materials[0]);
+
 	}
+}
+
+bool Oven::isSlotFull(int slot)
+{
+	if(inOven[slot] == nullptr) {
+		return false;
+	}
+	return true;
 }
 
 
