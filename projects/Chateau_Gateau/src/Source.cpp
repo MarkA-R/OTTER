@@ -16,6 +16,10 @@
 #include "bakeryUtils.h"
 #include "OvenTimer.h"
 
+
+#include "Scene.h"
+#include "GameScene.h"
+
 #include <iostream>
 
 #include "imgui.h"
@@ -23,6 +27,9 @@
 #include <memory>
 
 using namespace nou;
+
+std::vector<Scene*> gameScenes = std::vector<Scene*>();
+int activeScene = 0;
 
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
@@ -90,6 +97,8 @@ T Lerp(const T& p0, const T& p1, float t)
 
 
 
+
+
 int main()
 {
 	
@@ -106,6 +115,11 @@ int main()
 	LoadDefaultResources();
 	glfwSetMouseButtonCallback(gameWindow, mouse_button_callback);
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
+
+
+	gameScenes.push_back(&GameScene());
+	gameScenes[activeScene]->Setup();
+
 	//glfwSetKeyCallback(gameWindow, key_callback);
 	MaterialCreator registerMaterial = MaterialCreator();
 	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_texLit);
