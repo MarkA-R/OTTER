@@ -25,7 +25,7 @@ namespace nou
 
 	Transform::~Transform()
 	{
-		//SetParent(nullptr);??? why does this throw an error lol when you can just get rid of it...
+		//SetParent(nullptr);//??? why does this throw an error lol when you can just get rid of it...
 	}
 
 	void Transform::DoFK()

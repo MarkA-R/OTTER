@@ -128,3 +128,13 @@ int Pastry::getCookedSeconds()
         type = bakeryUtils::pastryType::BURNT;
     }
 }
+
+ void Pastry::setInOven(bool in)
+ {
+     inOven = in;
+ }
+
+ bool Pastry::isInOven()
+ {
+     return inOven;
+ }
