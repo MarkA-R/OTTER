@@ -14,9 +14,11 @@ public:
 	const std::unique_ptr<Mesh>& getMesh();
 	const std::unique_ptr<Texture2D>& getTexture();
 	const std::unique_ptr<Material>& getMaterial();
+	const std::unique_ptr<ShaderProgram>& getShader();
 protected:
 	std::unique_ptr<Mesh> mesh;
 	std::unique_ptr<Texture2D> texture;
 	std::unique_ptr<Material> material;
+	std::unique_ptr<ShaderProgram> shade;
 };
 

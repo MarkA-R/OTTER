@@ -1,15 +1,20 @@
 #include "Pastry.h"
 
-int Pastry::getCookedSeconds()
+float Pastry::getCookedSeconds()
 {
     return secondsCooked;
 
 }
 
- void Pastry::addCookedSeconds(int i)
+ void Pastry::addCookedSeconds(float i)
 {
     secondsCooked += i;
 }
+
+ void Pastry::setCookedSeconds(float i)
+ {
+     secondsCooked = i;
+ }
 
  void Pastry::setType(bakeryUtils::pastryType t)
 {
@@ -105,21 +110,21 @@ int Pastry::getCookedSeconds()
     {
         type = bakeryUtils::pastryType::DOUGH;
     }
-    else if (secondsCooked == bakeryUtils::returnCroissantTime())
+    else if (secondsCooked >= bakeryUtils::returnCroissantTime() && secondsCooked <= bakeryUtils::returnCookieTime())
     {
         //Debug.Log("UPDATED");
         type = bakeryUtils::pastryType::CROISSANT;
     }
-    else if (secondsCooked == bakeryUtils::returnCookieTime())
+    else if (secondsCooked >= bakeryUtils::returnCookieTime() && secondsCooked <= bakeryUtils::returnCupcakeTime())
     {
         //Debug.Log("UPDATED AGAIN");
         type = bakeryUtils::pastryType::COOKIE;
     }
-    else if (secondsCooked == bakeryUtils::returnCupcakeTime())
+    else if (secondsCooked >= bakeryUtils::returnCupcakeTime() && secondsCooked <= bakeryUtils::returnCakeTime())
     {
         type = bakeryUtils::pastryType::CUPCAKE;
     }
-    else if (secondsCooked == bakeryUtils::returnCakeTime())
+    else if (secondsCooked >= bakeryUtils::returnCakeTime() && secondsCooked <= bakeryUtils::returnBurnTime())
     {
         type = bakeryUtils::pastryType::CAKE;
     }
@@ -128,3 +133,13 @@ int Pastry::getCookedSeconds()
         type = bakeryUtils::pastryType::BURNT;
     }
 }
+
+ void Pastry::setInOven(bool in)
+ {
+     inOven = in;
+ }
+
+ bool Pastry::isInOven()
+ {
+     return inOven;
+ }
