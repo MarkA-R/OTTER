@@ -14,15 +14,12 @@
 #include "Fridge.h"
 #include "Oven.h"
 #include "bakeryUtils.h"
-<<<<<<< HEAD
 #include "Order.h"
-=======
 #include "OvenTimer.h"
 
 
 #include "Scene.h"
 #include "GameScene.h"
->>>>>>> NOU
 
 #include <iostream>
 
@@ -32,7 +29,7 @@
 
 using namespace nou;
 
-std::vector<Scene*> gameScenes = std::vector<Scene*>();
+//std::vector<Scene*> gameScenes = std::vector<Scene*>();
 int activeScene = 0;
 
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit;
@@ -61,14 +58,11 @@ float lastX = width / 2;
 float lastY = height / 2;
 std::vector<Entity*> renderingEntities = std::vector<Entity*>();
 Transform traySlot[4] = {};
-<<<<<<< HEAD
+
 std::unique_ptr<Entity> trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 std::vector<Order> orders; //new Mithunan
-=======
 Entity* trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 
-
->>>>>>> NOU
 
 
 
@@ -126,8 +120,8 @@ int main()
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 
 
-	gameScenes.push_back(&GameScene());
-	gameScenes[activeScene]->Setup();
+	//gameScenes.push_back(&GameScene());
+	//gameScenes[activeScene]->Setup();
 
 	//glfwSetKeyCallback(gameWindow, key_callback);
 	MaterialCreator registerMaterial = MaterialCreator();
@@ -374,7 +368,7 @@ int main()
 									if (isClicking) {
 										int slot = getFirstTraySlot();
 										if (slot >= 0) {
-											trayPastry[slot] = Entity::Allocate().release();
+											//trayPastry[slot] = Entity::Allocate().release();
 
 
 
@@ -431,7 +425,7 @@ int main()
 										if (putInOven) {
 											
 												//std::cout << "B" << std::endl;
-												ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
+												//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
 												
 												trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
 												trayPastry[wantedSlot] = nullptr;
@@ -444,12 +438,12 @@ int main()
 											
 											if (ovenScript->canRemove(wantedSlot)) {
 												std::cout << newSlot << std::endl;
-												trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
+												//trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
 
 												trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
 												trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
 												trayPastry[newSlot]->Get<Pastry>().setInOven(false);
-												setPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
+												//setPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
 
 												if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
 												{
@@ -482,7 +476,7 @@ int main()
 		//std::cout << bakeryUtils::returnBakeTime(bakeryUtils::pastryType::CROISSANT) << std::endl;
 	
 		if (addedSlot >= 0) {
-			renderingEntities.push_back(trayPastry[addedSlot]);
+			//renderingEntities.push_back(trayPastry[addedSlot]);
 		}
 
 
