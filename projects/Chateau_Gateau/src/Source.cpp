@@ -14,6 +14,7 @@
 #include "Fridge.h"
 #include "Oven.h"
 #include "bakeryUtils.h"
+#include "Order.h"
 
 #include <iostream>
 
@@ -44,6 +45,7 @@ float lastY = height / 2;
 std::vector<Entity*> renderingEntities = std::vector<Entity*>();
 Transform traySlot[4] = {};
 std::unique_ptr<Entity> trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
+std::vector<Order> orders; //new Mithunan
 
 
 
