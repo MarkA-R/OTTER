@@ -19,5 +19,6 @@ public:
 	Entity& getEntity(int slot);
 	void removeFromSlot(int slot);
 	bool isSlotFull(int slot);
+	int getFirstEmpty();
 };
 

@@ -93,4 +93,13 @@ bool Oven::isSlotFull(int slot)
 	return true;
 }
 
+int Oven::getFirstEmpty() {
+	for (int i = 0; i < std::size(inOven); i++) {
+		if (!isSlotFull(i)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 

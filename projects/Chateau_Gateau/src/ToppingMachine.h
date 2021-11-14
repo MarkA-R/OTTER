@@ -4,15 +4,17 @@
 #include "NOU/CMeshRenderer.h"
 #include "bakeryUtils.h"
 #include "MaterialCreator.h"
+using namespace nou;
 class ToppingMachine
 {
 protected:
 	Entity* inTopping;
 	Entity* toppingPlane;
-	Transform topTransform0;
-	Transform topTransform1;
+	Transform topTransformL;
+	Transform topTransformR;
 	Transform particleTransform;
-	float toppingT;
+	float toppingT = 0.5;
+	float totalDistanceTravelled = 0;
 	int selectedTopping = 0;
 	MaterialCreator* planeDesigns[3];
 	Material* particleDesigns[3];
@@ -29,6 +31,7 @@ public:
 	void updatePlane();
 	void setup(MaterialCreator*, MaterialCreator*, MaterialCreator*);
 	void setupParticles(Material*, Material*, Material*);
+	void moveTopping(float);
 	Material* getParticleMaterial(int);
 	glm::vec3 getParticleColour(int);
 	void setupParticleColours(glm::vec3, glm::vec3, glm::vec3);
@@ -37,5 +40,7 @@ public:
 	void removeFromTopping();
 	void putInTopping(Entity*);
 	int getSelectedNumber();
+	void addDistance(float t);
+	float getDistance();
 };
 

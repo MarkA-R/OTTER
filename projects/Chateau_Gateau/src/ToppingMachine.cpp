@@ -1,10 +1,17 @@
 #include "ToppingMachine.h"
 #include <iostream>
 
-void ToppingMachine::setTransform(Transform& a, Transform& b)
+// Templated LERP function
+template<typename T>
+T Lerp(const T& p0, const T& p1, float t)
 {
-	topTransform0 = a;
-	topTransform1 = b;
+	return (1.0f - t) * p0 + t * p1;
+}
+
+void ToppingMachine::setTransform(Transform& l, Transform& r)
+{
+	topTransformL = l;
+	topTransformR = r;
 
 }
 
@@ -30,6 +37,7 @@ bakeryUtils::toppingType ToppingMachine::getTopping()
 
 void ToppingMachine::addTopNum(int x)
 {
+	//int prevSelected = selectedTopping;
 	int prevSelected = selectedTopping;
 	int adder = 0;
 	if (x < 0) {
@@ -40,7 +48,9 @@ void ToppingMachine::addTopNum(int x)
 		adder = 1;
 	}
 	selectedTopping = (prevSelected + adder) % 3;
-	std::cout << selectedTopping << " " << adder << std::endl;
+	//selectedTopping += x;
+	//std::cout << x << " " << adder << std::endl;
+	//std::cout << selectedTopping << std::endl;
 }
 
 void ToppingMachine::setTopPlane(Entity* e)
@@ -71,6 +81,11 @@ void ToppingMachine::setupParticles(Material* pecan, Material* sprinkle, Materia
 	particleDesigns[1] = sprinkle;
 	particleDesigns[2] = strawberry;
 
+}
+
+void ToppingMachine::moveTopping(float t)
+{
+	inTopping->transform.m_pos = Lerp(topTransformL.m_pos, topTransformR.m_pos, t);
 }
 
 Material* ToppingMachine::getParticleMaterial(int i)
@@ -107,16 +122,27 @@ Entity* ToppingMachine::getFromTopping()
 void ToppingMachine::removeFromTopping()
 {
 	inTopping = nullptr;
+	totalDistanceTravelled = 0.f;
 }
 
 void ToppingMachine::putInTopping(Entity* e)
 {
 	inTopping = e;
-	//e->transform.m_pos = fillingTransform.m_pos;
-	//e->transform.SetParent(nullptr);
+	e->transform.m_pos = Lerp(topTransformL.m_pos, topTransformR.m_pos, toppingT);
+	e->transform.SetParent(nullptr);
 }
 
 int ToppingMachine::getSelectedNumber()
 {
 	return selectedTopping;
+}
+
+void ToppingMachine::addDistance(float t)
+{
+	totalDistanceTravelled += abs(t);
+}
+
+float ToppingMachine::getDistance()
+{
+	return totalDistanceTravelled;
 }

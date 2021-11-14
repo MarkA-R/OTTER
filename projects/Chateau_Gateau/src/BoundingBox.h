@@ -10,6 +10,7 @@ public:
 	BoundingBox(glm::vec3, Entity&);
 	BoundingBox(float, float, float, Entity&);
 	glm::vec3 getOrigin();
+	void setOrigin(glm::vec3);
 	bool isColliding(glm::vec3); //returns if the point is in the bounding box
 	float reachX;//how far the X will go FROM THE ORIGIN
 	float reachY;
@@ -17,5 +18,6 @@ public:
 	
 protected:
 	Entity* owner;
+	glm::vec3 origin;
 };
 

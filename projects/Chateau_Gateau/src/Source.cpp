@@ -84,13 +84,16 @@ bool isSlotEmpty(int i);
 void setPastryMesh(Entity* e, bakeryUtils::pastryType type);
 void setPastryFilling(Entity* e, bakeryUtils::fillType type);
 void setPastryTopping(Entity* e, bakeryUtils::toppingType type);
-
+int getWantedSlot();
+float getTrayRaise(bakeryUtils::pastryType type);
 // Function to handle user inputs
 void GetInput();
 
 
 MaterialCreator crossantMat = MaterialCreator();
 MaterialCreator doughMat = MaterialCreator();
+MaterialCreator cookieMat = MaterialCreator();
+MaterialCreator cupcakeMat = MaterialCreator();
 
 MaterialCreator croissantTile = MaterialCreator();
 MaterialCreator doughTile = MaterialCreator();
@@ -110,16 +113,10 @@ MaterialCreator stawberryTopping = MaterialCreator();
 
 std::unique_ptr<Material> pecanParticle;
 std::unique_ptr<Material> sprinkleParticle;
-std::unique_ptr<Material> sprinkleParticleColour;
 std::unique_ptr<Material> strawberryParticle;
 //burnt tile???
 
-// Templated LERP function
-template<typename T>
-T Lerp(const T& p0, const T& p1, float t)
-{
-	return (1.0f - t) * p0 + t * p1;
-}
+
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -193,6 +190,8 @@ int main()
 
 	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_texLit);
 	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_texLit);
+	cookieMat.createMaterial("bakery/models/cookie.gltf", "bakery/textures/cookie.png", *prog_texLit);
+	cupcakeMat.createMaterial("bakery/models/cupcake.gltf", "bakery/textures/cupcake.png", *prog_texLit);
 
 	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
 	doughTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/doughTile.png", *prog_texLit);
@@ -218,13 +217,11 @@ int main()
 	strawberryParticle = std::make_unique<Material>(*prog_particles);
 	strawberryParticle->AddTexture("albedo", *strawberryTex);
 
-	std::unique_ptr<Texture2D> sprinkleTex = std::make_unique<Texture2D>("bakery/textures/sprinkleParticleMono.png");
+	std::unique_ptr<Texture2D> sprinkleTex = std::make_unique<Texture2D>("bakery/textures/sprinkleParticle.png");
 	sprinkleParticle = std::make_unique<Material>(*prog_particles);
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
 
-	std::unique_ptr<Texture2D> sprinkleColTex = std::make_unique<Texture2D>("bakery/textures/sprinkleParticle.png");
-	sprinkleParticleColour = std::make_unique<Material>(*prog_particles);
-	sprinkleParticleColour->AddTexture("albedo", *sprinkleColTex);
+	
 
 
 	Entity cursor = Entity::Create();
@@ -249,41 +246,45 @@ int main()
 		Entity ent_register = Entity::Create();
 		ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
 		ent_register.transform.m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
-		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);
+		
 
 		
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		ent_register.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
+		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);
 		renderingEntities.push_back(&ent_register);
 
 		Entity fridge = Entity::Create();
 		fridge.Add<CMeshRenderer>(fridge, *fridgeMat.getMesh(), *fridgeMat.getMaterial());
-		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
+		
 		fridge.Add<Machine>();
 		fridge.Add<Fridge>();
 		fridge.transform.m_scale = glm::vec3(0.5f, 1.f, 0.5f);
 		fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 2.0f);
+		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
 		renderingEntities.push_back(&fridge);
 
 		Entity oven = Entity::Create();
 		oven.Add<CMeshRenderer>(oven, *ovenMat.getMesh(), *ovenMat.getMaterial());
-		oven.Add<BoundingBox>(glm::vec3(0.67, 2, 0.5), oven);
+		
 		oven.Add<Machine>();
 		oven.Add<Oven>();
 		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 2.0f);
+		oven.Add<BoundingBox>(glm::vec3(0.67, 2, 0.5), oven);
 		renderingEntities.push_back(&oven);
 	
 		Entity filling = Entity::Create();
 		filling.Add<CMorphMeshRenderer>(filling, *fillingMat1.getMesh(), *fillingMat1.getMaterial());
-		filling.Add<BoundingBox>(glm::vec3(1, 2, 1), filling);
+		
 		filling.Add<Machine>();
 		filling.Add<FillingMachine>();
 		filling.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
 		filling.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		filling.transform.m_pos = glm::vec3(0.f, -1.0f, 2.0f);
+		filling.Add<BoundingBox>(glm::vec3(0.5, 2, 1), filling);
 		renderingEntities.push_back(&filling);
 
 		auto& animator = filling.Add<CMorphAnimator>(filling);
@@ -318,7 +319,7 @@ int main()
 		particleData.endColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 		particleData.startSize = 0.1f;
 		particleData.maxParticles = 200;
-		particleData.emissionRate = 50.0f;
+		particleData.emissionRate = 10.0f;
 		particleData.tanTheta = glm::tan(glm::radians(25.0f));
 
 
@@ -328,12 +329,22 @@ int main()
 
 		Entity topping = Entity::Create();
 		topping.Add<CMeshRenderer>(topping, *toppingMat.getMesh(), *toppingMat.getMaterial());
-		topping.Add<BoundingBox>(glm::vec3(0.67, 2, 0.5), topping);
+		
 		topping.Add<Machine>();
 		topping.Add<ToppingMachine>();
 		topping.transform.m_scale = glm::vec3(0.4f, 1.f, 0.4f);
 		topping.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		topping.transform.m_pos = glm::vec3(-1.2, -1.0f, 2.0f);
+		topping.Add<BoundingBox>(glm::vec3(0.4f, 2, 0.5), topping);
+		std::cout << topping.Get<BoundingBox>().getOrigin().x << " " <<
+			topping.Get<BoundingBox>().getOrigin().y << " " <<
+			topping.Get<BoundingBox>().getOrigin().z << std::endl;
+		glm::vec3 tempTopPos = topping.transform.m_pos;
+		//tempTopPos.x += 0.0;
+		//topping.Get<BoundingBox>().setOrigin(tempTopPos);
+		std::cout << topping.Get<BoundingBox>().getOrigin().x << " " <<
+			topping.Get<BoundingBox>().getOrigin().y << " " <<
+			topping.Get<BoundingBox>().getOrigin().z << std::endl;
 		renderingEntities.push_back(&topping);
 
 		Transform topParticleTransform = topping.transform;
@@ -343,11 +354,11 @@ int main()
 		topping.Get<ToppingMachine>().setParticleTransform(topParticleTransform);
 
 		Transform toppingTL = topping.transform;
-		toppingTL.m_pos.y += 0.2;
+		toppingTL.m_pos.y -= 0.5;
 		toppingTL.m_pos.x -= 0.2;
 
 		Transform toppingTR = topping.transform;
-		toppingTR.m_pos.y += 0.2;
+		toppingTR.m_pos.y -= 0.5;
 		toppingTR.m_pos.x += 0.2;
 
 		topping.Get<ToppingMachine>().setup(&pecanTopping, &sprinkleTopping, &stawberryTopping);
@@ -356,18 +367,18 @@ int main()
 		glm::vec3 sprinkleColour = glm::vec3(0.654, 0.858, 0.078);
 		glm::vec3 strawberryColour = glm::vec3(0.945, 0.254, 0.333);
 		topping.Get<ToppingMachine>().setupParticleColours(pecanColour, sprinkleColour, strawberryColour);
-		topping.Get<ToppingMachine>().setupParticles(pecanParticle.get(), sprinkleParticleColour.get(), strawberryParticle.get());
+		topping.Get<ToppingMachine>().setupParticles(pecanParticle.get(), sprinkleParticle.get(), strawberryParticle.get());
 		
-			int selected = topping.Get<ToppingMachine>().getSelectedNumber();
-			particleData.startColor = glm::vec4(topping.Get<ToppingMachine>().getParticleColour(selected), 1.f);
-			particleData.endColor = glm::vec4(topping.Get<ToppingMachine>().getParticleColour(selected), 0.f);;
+			int selectedt = topping.Get<ToppingMachine>().getSelectedNumber();
+			particleData.startColor = glm::vec4(topping.Get<ToppingMachine>().getParticleColour(selectedt), 1.f);
+			particleData.endColor = glm::vec4(topping.Get<ToppingMachine>().getParticleColour(selectedt), 0.f);;
 			
 			
 		
 		
 		Entity particleEntity = Entity::Create();
 		particleEntity.transform.m_pos = topParticleTransform.m_pos;
-		particleEntity.Add<CParticleSystem>(particleEntity, *particleMat, particleData);
+		particleEntity.Add<CParticleSystem>(particleEntity, *topping.Get<ToppingMachine>().getParticleMaterial(selectedt), particleData);
 		renderingEntities.push_back(&particleEntity);
 		
 
@@ -615,19 +626,8 @@ int main()
 				}
 				else if (e->Has<Oven>()) {
 					//log("A");
-					int wantedSlot = -1;
-					if (Input::GetKeyDown(GLFW_KEY_1)) {
-						wantedSlot = 0;
-					}
-					if (Input::GetKeyDown(GLFW_KEY_2)) {
-						wantedSlot = 1;
-					}
-					if (Input::GetKeyDown(GLFW_KEY_3)) {
-						wantedSlot = 2;
-					}
-					if (Input::GetKeyDown(GLFW_KEY_4)) {
-						wantedSlot = 3;
-					}
+					int wantedSlot = getWantedSlot();
+					int addingSlot = wantedSlot;
 					if (wantedSlot >= 0) {
 						//std::cout << "A" << std::endl;
 
@@ -641,11 +641,27 @@ int main()
 									}
 								}
 							}
+							else
+							{
+								int firstEmpty = ovenScript->getFirstEmpty();
+								if (firstEmpty >= 0) {
+									
+									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
+									{
+										if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
+											putInOven = true;
+											
+											addingSlot = firstEmpty;
+										}
+									}
+								}
+								
+							}
 						}
 						if (putInOven) {
 
 							//std::cout << "B" << std::endl;
-							ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
+							ovenScript->canAdd(trayPastry[wantedSlot], addingSlot);
 
 							trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
 							trayPastry[wantedSlot] = nullptr;
@@ -662,6 +678,7 @@ int main()
 								trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
 
 								trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
+								trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
 								trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
 								trayPastry[newSlot]->Get<Pastry>().setInOven(false);
 								setPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
@@ -696,6 +713,7 @@ int main()
 								if (wantedSlot >= 0) {
 									trayPastry[wantedSlot] = fillingScript.getFromFilling();
 									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
 									trayPastry[wantedSlot]->Get<Pastry>().setInFilling(false);
 									fillingScript.removeFromFilling();
@@ -724,19 +742,7 @@ int main()
 					}
 					else
 					{
-						int wantedSlot = -1;
-						if (Input::GetKeyDown(GLFW_KEY_1)) {
-							wantedSlot = 0;
-						}
-						if (Input::GetKeyDown(GLFW_KEY_2)) {
-							wantedSlot = 1;
-						}
-						if (Input::GetKeyDown(GLFW_KEY_3)) {
-							wantedSlot = 2;
-						}
-						if (Input::GetKeyDown(GLFW_KEY_4)) {
-							wantedSlot = 3;
-						}
+						int wantedSlot = getWantedSlot();
 						if (wantedSlot >= 0) {
 							bool putinFill = false;
 							if (trayPastry[wantedSlot] != nullptr) {
@@ -769,6 +775,7 @@ int main()
 									//std::cout << newSlot << std::endl;
 									trayPastry[wantedSlot] = fillingScript.getFromFilling();
 									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
 									trayPastry[wantedSlot]->Get<Pastry>().setInFilling(false);
 									fillingScript.removeFromFilling();
@@ -792,9 +799,35 @@ int main()
 
 				}
 				else if (e->Has<ToppingMachine>()) {
-				ToppingMachine toppingScript = e->Get<ToppingMachine>();
+				ToppingMachine& toppingScript = e->Get<ToppingMachine>();
+				
 					if (isLeftButtonHeld) {
+						if (toppingScript.isToppingFull()) {
+							float xChange = (currentPoint.x - lastPoint.x) * 1.5;//the 1.25 is the shortness scale
+							toppingScript.setT(abs(toppingScript.getT() + xChange));
+							toppingScript.moveTopping(toppingScript.getT());
+							toppingScript.addDistance(xChange);
+							//std::cout << toppingScript.getDistance() << std::endl;
+							if (toppingScript.getDistance() >= 5.0f) {//in case 1.0 wont work lol
+								toppingScript.getFromTopping()->Get<Pastry>().setTopping(toppingScript.getTopping());
+								//put into tray now
+								int wantedSlot = getFirstTraySlot();
 
+								if (wantedSlot >= 0) {
+									trayPastry[wantedSlot] = toppingScript.getFromTopping();
+									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
+									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
+									toppingScript.removeFromTopping();
+									//UPDATE FILLING HERE
+									setPastryTopping(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping());
+								}
+
+							}
+							//std::cout << (int)fillingScript.getFromFilling()->Get<Pastry>().getPastryFilling() << std::endl;
+						}
 					}
 					else if (scrollY != 0) {
 						toppingScript.addTopNum(scrollY);
@@ -809,15 +842,61 @@ int main()
 					}
 					else
 					{
+						int wantedSlot = getWantedSlot();
+						if (wantedSlot >= 0) {
+							bool putinTop = false;
+							if (trayPastry[wantedSlot] != nullptr) {
+								if (!toppingScript.isToppingFull()) {
+									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
+										&& trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping() == bakeryUtils::toppingType::NONE)
+									{
+										if (!trayPastry[wantedSlot]->Get<Pastry>().isInTopping()) {
+											putinTop = true;
+										}
+									}
+								}
+							}
+							if (putinTop) {
 
+								//std::cout << "B" << std::endl;
+								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
+								toppingScript.putInTopping(trayPastry[wantedSlot]);
+								trayPastry[wantedSlot]->Get<Pastry>().setInTopping(true);
+								trayPastry[wantedSlot] = nullptr;
+
+							}
+							else
+							{
+								//put in tray slot
+								//std::cout << "C" << std::endl;
+								//int newSlot = wantedSlot();
+								//std::cout << newSlot << std::endl;
+								if (toppingScript.isToppingFull() && wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
+									//std::cout << newSlot << std::endl;
+									trayPastry[wantedSlot] = toppingScript.getFromTopping();
+									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
+									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
+									toppingScript.removeFromTopping();
+									//dont set texture here cause they just removed it
+
+
+								}
+							}
+						}
+					}
+					if (toppingScript.isToppingFull())
+					{
+						particleEntity.transform.RecomputeGlobal();
+						particleEntity.Get<CParticleSystem>().Update(deltaTime);
+
+						glDisable(GL_DEPTH_TEST);
+						particleEntity.Get<CParticleSystem>().Draw();
+						glEnable(GL_DEPTH_TEST);
 					}
 				
-				particleEntity.transform.RecomputeGlobal();
-				particleEntity.Get<CParticleSystem>().Update(deltaTime);
-				
-				glDisable(GL_DEPTH_TEST);
-				particleEntity.Get<CParticleSystem>().Draw();
-				glEnable(GL_DEPTH_TEST);
 				}
 
 
@@ -984,7 +1063,22 @@ void GetInput()
 	//std::cout << globalCameraEntity->transform.m_rotation.x << " , " << globalCameraEntity->transform.m_rotation.y << " , " << globalCameraEntity->transform.m_rotation.z << "\n";
 
 }
-
+int getWantedSlot() {
+	int wantedSlot = -1;
+	if (Input::GetKeyDown(GLFW_KEY_1)) {
+		wantedSlot = 0;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_2)) {
+		wantedSlot = 1;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_3)) {
+		wantedSlot = 2;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_4)) {
+		wantedSlot = 3;
+	}
+	return wantedSlot;
+}
 void outputCameraFacing(glm::vec3 cf) {
 	glm::vec3 cameraFacingVector = glm::vec3(0);
 	cameraFacingVector = cf;
@@ -1042,6 +1136,23 @@ void setPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 		e->Add<CMeshRenderer>(*e, *crossantMat.getMesh(), *crossantMat.getMaterial());
 		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	}
+	if (type == bakeryUtils::pastryType::COOKIE) {
+		e->Remove<CMeshRenderer>();
+		e->Add<CMeshRenderer>(*e, *cookieMat.getMesh(), *cookieMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
+	}
+	if (type == bakeryUtils::pastryType::CUPCAKE) {
+		e->Remove<CMeshRenderer>();
+		e->Add<CMeshRenderer>(*e, *cupcakeMat.getMesh(), *cupcakeMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.15f, 0.15f, 0.15f);
+	}
+}
+float getTrayRaise(bakeryUtils::pastryType type) {
+	float raise = 0;
+	if (type == bakeryUtils::pastryType::CUPCAKE) {
+		raise = 0.13;
+	}
+	return raise;
 }
 
 void setPastryFilling(Entity* e, bakeryUtils::fillType type)
