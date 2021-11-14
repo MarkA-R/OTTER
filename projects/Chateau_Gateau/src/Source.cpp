@@ -98,9 +98,20 @@ MaterialCreator cookieTile = MaterialCreator();
 MaterialCreator cupcakeTile = MaterialCreator();
 MaterialCreator cakeTile = MaterialCreator();
 MaterialCreator nothingTile = MaterialCreator();
+
+
 MaterialCreator custardFilling = MaterialCreator();
 MaterialCreator nutellaFilling = MaterialCreator();
 MaterialCreator strawberryFilling = MaterialCreator();
+
+MaterialCreator pecanTopping = MaterialCreator();
+MaterialCreator sprinkleTopping = MaterialCreator();
+MaterialCreator stawberryTopping = MaterialCreator();
+
+std::unique_ptr<Material> pecanParticle;
+std::unique_ptr<Material> sprinkleParticle;
+std::unique_ptr<Material> sprinkleParticleColour;
+std::unique_ptr<Material> strawberryParticle;
 //burnt tile???
 
 // Templated LERP function
@@ -194,6 +205,27 @@ int main()
 	nutellaFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/nutellaFilling.png", *prog_texLit);
 	strawberryFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/strawberryFilling.png", *prog_texLit);
 
+	pecanTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/pecanTopping.png", *prog_texLit);
+	stawberryTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/strawberryTopping.png", *prog_texLit);
+	sprinkleTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/sprinkleTopping.png", *prog_texLit);
+
+
+	std::unique_ptr<Texture2D> pecanTex = std::make_unique<Texture2D>("bakery/textures/pecanParticle.png");
+	pecanParticle = std::make_unique<Material>(*prog_particles);
+	pecanParticle->AddTexture("albedo", *pecanTex);
+
+	std::unique_ptr<Texture2D> strawberryTex = std::make_unique<Texture2D>("bakery/textures/strawberryParticle.png");
+	strawberryParticle = std::make_unique<Material>(*prog_particles);
+	strawberryParticle->AddTexture("albedo", *strawberryTex);
+
+	std::unique_ptr<Texture2D> sprinkleTex = std::make_unique<Texture2D>("bakery/textures/sprinkleParticleMono.png");
+	sprinkleParticle = std::make_unique<Material>(*prog_particles);
+	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
+
+	std::unique_ptr<Texture2D> sprinkleColTex = std::make_unique<Texture2D>("bakery/textures/sprinkleParticle.png");
+	sprinkleParticleColour = std::make_unique<Material>(*prog_particles);
+	sprinkleParticleColour->AddTexture("albedo", *sprinkleColTex);
+
 
 	Entity cursor = Entity::Create();
 	cursor.Add<CMeshRenderer>(cursor, *cursorMat.getMesh(), *cursorMat.getMaterial());
@@ -281,13 +313,13 @@ int main()
 
 		//Setting up our particle system.
 		ParticleParam particleData;
-		particleData.lifetime = 1.5f;
+		particleData.lifetime = 0.8f;
 		particleData.startColor = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
 		particleData.endColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 		particleData.startSize = 0.1f;
 		particleData.maxParticles = 200;
 		particleData.emissionRate = 50.0f;
-		particleData.tanTheta = glm::tan(glm::radians(30.0f));
+		particleData.tanTheta = glm::tan(glm::radians(25.0f));
 
 
 
@@ -305,16 +337,50 @@ int main()
 		renderingEntities.push_back(&topping);
 
 		Transform topParticleTransform = topping.transform;
-		topParticleTransform.m_pos.y -= 0.2;
-		topParticleTransform.m_pos.x += 0;
-		//fillTransform.m_pos.z += 0.3;
+		topParticleTransform.m_pos.y += 0.11;
+		//topParticleTransform.m_pos.x -= 0.05;
+		//topParticleTransform.m_pos.z += 1.0;
 		topping.Get<ToppingMachine>().setParticleTransform(topParticleTransform);
 
+		Transform toppingTL = topping.transform;
+		toppingTL.m_pos.y += 0.2;
+		toppingTL.m_pos.x -= 0.2;
 
+		Transform toppingTR = topping.transform;
+		toppingTR.m_pos.y += 0.2;
+		toppingTR.m_pos.x += 0.2;
+
+		topping.Get<ToppingMachine>().setup(&pecanTopping, &sprinkleTopping, &stawberryTopping);
+		topping.Get<ToppingMachine>().setTransform(toppingTL, toppingTR);
+		glm::vec3 pecanColour = glm::vec3(0.811, 0.647, 0.235);
+		glm::vec3 sprinkleColour = glm::vec3(0.654, 0.858, 0.078);
+		glm::vec3 strawberryColour = glm::vec3(0.945, 0.254, 0.333);
+		topping.Get<ToppingMachine>().setupParticleColours(pecanColour, sprinkleColour, strawberryColour);
+		topping.Get<ToppingMachine>().setupParticles(pecanParticle.get(), sprinkleParticleColour.get(), strawberryParticle.get());
+		
+			int selected = topping.Get<ToppingMachine>().getSelectedNumber();
+			particleData.startColor = glm::vec4(topping.Get<ToppingMachine>().getParticleColour(selected), 1.f);
+			particleData.endColor = glm::vec4(topping.Get<ToppingMachine>().getParticleColour(selected), 0.f);;
+			
+			
+		
+		
 		Entity particleEntity = Entity::Create();
 		particleEntity.transform.m_pos = topParticleTransform.m_pos;
 		particleEntity.Add<CParticleSystem>(particleEntity, *particleMat, particleData);
 		renderingEntities.push_back(&particleEntity);
+		
+
+		Entity toppingPlane = Entity::Create();
+		toppingPlane.Add<CMeshRenderer>(toppingPlane, *pecanTopping.getMesh(), *pecanTopping.getMaterial());
+		toppingPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+		toppingPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
+		glm::vec3 topPos = topping.transform.m_pos;
+		toppingPlane.transform.m_pos = glm::vec3(topPos.x - 0.1, topPos.y + 0.8, topPos.z - 0.5);
+		renderingEntities.push_back(&toppingPlane);
+		topping.Get<ToppingMachine>().setTopPlane(&toppingPlane);
+
 
 	Entity counter = Entity::Create();
 	counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
@@ -726,6 +792,26 @@ int main()
 
 				}
 				else if (e->Has<ToppingMachine>()) {
+				ToppingMachine toppingScript = e->Get<ToppingMachine>();
+					if (isLeftButtonHeld) {
+
+					}
+					else if (scrollY != 0) {
+						toppingScript.addTopNum(scrollY);
+						toppingScript.updatePlane();
+						
+						int selected = toppingScript.getSelectedNumber();
+						particleData.startColor = glm::vec4(toppingScript.getParticleColour(selected), 1.f);
+						particleData.endColor = glm::vec4(toppingScript.getParticleColour(selected), 0.f);;
+						//particleEntity
+						particleEntity.Remove<CParticleSystem>();
+						particleEntity.Add<CParticleSystem>(particleEntity, *toppingScript.getParticleMaterial(selected), particleData);
+					}
+					else
+					{
+
+					}
+				
 				particleEntity.transform.RecomputeGlobal();
 				particleEntity.Get<CParticleSystem>().Update(deltaTime);
 				

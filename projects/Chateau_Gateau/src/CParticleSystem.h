@@ -95,10 +95,12 @@ namespace nou
 
 		CParticleSystem(CParticleSystem&&) = default;
 		CParticleSystem& operator=(CParticleSystem&&) = default;
+		
 		float ySpeed = -1;
 		void Update(float deltaTime);
 		void Draw();
 		void setYSpeed(float);
+		
 
 	private:
 

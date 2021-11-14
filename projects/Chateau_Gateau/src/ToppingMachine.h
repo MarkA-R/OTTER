@@ -15,6 +15,8 @@ protected:
 	float toppingT;
 	int selectedTopping = 0;
 	MaterialCreator* planeDesigns[3];
+	Material* particleDesigns[3];
+	glm::vec3 particleColours[3];
 public:
 	void setTransform(Transform&, Transform&);
 	void setParticleTransform(Transform&);
@@ -26,9 +28,14 @@ public:
 	Entity* getToppingPlane();
 	void updatePlane();
 	void setup(MaterialCreator*, MaterialCreator*, MaterialCreator*);
+	void setupParticles(Material*, Material*, Material*);
+	Material* getParticleMaterial(int);
+	glm::vec3 getParticleColour(int);
+	void setupParticleColours(glm::vec3, glm::vec3, glm::vec3);
 	bool isToppingFull();
 	Entity* getFromTopping();
 	void removeFromTopping();
 	void putInTopping(Entity*);
+	int getSelectedNumber();
 };
 

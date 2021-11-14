@@ -85,6 +85,7 @@ namespace nou
 	{
 		count = numParticles;
 		param = startParam;
+		
 
 		pos.resize(count);
 		viewPos.resize(count);
@@ -223,6 +224,8 @@ namespace nou
 	{
 		ySpeed = x;
 	}
+
+	
 
 	void CParticleSystem::Emit()
 	{
