@@ -146,5 +146,5 @@ Pastry Order::toPastry()
 
 void Order::update(float deltaTime)
 {
-	timePassed = deltaTime;
+	timePassed += deltaTime;
 }

@@ -16,6 +16,16 @@
     ],
     "nodes" : [
         {
+            "mesh" : 0,
+            "name" : "Cube",
+            "rotation" : [
+                0.3535534143447876,
+                -0.14644663035869598,
+                -0.3535534143447876,
+                0.8535534739494324
+            ]
+        },
+        {
             "name" : "Light",
             "rotation" : [
                 0.16907575726509094,
@@ -42,34 +52,24 @@
                 4.958309173583984,
                 6.925790786743164
             ]
-        },
-        {
-            "mesh" : 0,
-            "name" : "Cube.001",
-            "rotation" : [
-                0.7071068286895752,
-                0,
-                0,
-                0.7071067094802856
-            ]
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Default OBJ",
+            "name" : "Material",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
                 },
                 "metallicFactor" : 0,
-                "roughnessFactor" : 0.5
+                "roughnessFactor" : 0.4000000059604645
             }
         }
     ],
     "meshes" : [
         {
-            "name" : "Cube.001",
+            "name" : "Cube",
             "primitives" : [
                 {
                     "attributes" : {
@@ -92,66 +92,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "chick",
-            "uri" : "chick.png"
+            "name" : "Untitled",
+            "uri" : "Untitled.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 351,
+            "count" : 24,
             "max" : [
                 1,
-                2.033097982406616,
+                1,
                 1
             ],
             "min" : [
                 -1,
-                -2.9459969997406006,
-                -1.7755000591278076
+                -1,
+                -1
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 351,
+            "count" : 24,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 351,
+            "count" : 24,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 414,
+            "count" : 36,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 4212,
+            "byteLength" : 288,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 4212,
-            "byteOffset" : 4212
+            "byteLength" : 288,
+            "byteOffset" : 288
         },
         {
             "buffer" : 0,
-            "byteLength" : 2808,
-            "byteOffset" : 8424
+            "byteLength" : 192,
+            "byteOffset" : 576
         },
         {
             "buffer" : 0,
-            "byteLength" : 828,
-            "byteOffset" : 11232
+            "byteLength" : 72,
+            "byteOffset" : 768
         }
     ],
     "samplers" : [
@@ -162,8 +162,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 12060,
-            "uri" : "chicken.bin"
+            "byteLength" : 840,
+            "uri" : "cursor.bin"
         }
     ]
 }

@@ -15,13 +15,20 @@ public:
 	float getNextCookTime();
 	float getCurrentCookedTime();
 	void updateType();
-	void setInOven(bool in);
 	bool isInOven();
+	void setInOven(bool in);
+	bool isInFilling();
+	void setInFilling(bool in);
+	bool isInTopping();
+	void setInTopping(bool in);
+	bool isInAnything();
 protected:
 	float secondsCooked = 0;
 	bakeryUtils::fillType filling = bakeryUtils::fillType::NONE;
 	bakeryUtils::toppingType topping = bakeryUtils::toppingType::NONE;
 	bakeryUtils::pastryType type = bakeryUtils::pastryType::DOUGH;
 	bool inOven = false;
+	bool inFilling = false;
+	bool inTopping = false;
 };
 

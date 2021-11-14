@@ -11,7 +11,7 @@ public:
 	float startTime = 0;
 	float workTime = 0;
 	float maxEndTime = 0;
-	
+
 	std::string s_topping;
 	std::string s_filling;
 	std::string s_type;
@@ -27,7 +27,7 @@ public:
 	bool validateOrder(Pastry p);
 
 	bool returnSatisfied();
-	
+
 	bool isOnTime();
 
 	Pastry toPastry();
@@ -37,4 +37,3 @@ protected:
 	bool isSatisfied = false;
 	bool hasStarted = false;
 };
-

@@ -143,3 +143,33 @@ float Pastry::getCookedSeconds()
  {
      return inOven;
  }
+
+ bool Pastry::isInFilling()
+ {
+     return inFilling;
+ }
+
+ void Pastry::setInFilling(bool in)
+ {
+     inFilling = in;
+ }
+
+ bool Pastry::isInTopping()
+ {
+     return inTopping;
+ }
+
+ void Pastry::setInTopping(bool in)
+ {
+     inTopping = in;
+ }
+
+ bool Pastry::isInAnything()
+ {
+     if (!inOven && !inFilling && !inTopping) {
+         return false;
+     }
+     return true;
+ }
+
+ 
