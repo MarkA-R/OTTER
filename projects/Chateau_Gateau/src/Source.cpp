@@ -183,6 +183,9 @@ int main()
 	
 	MaterialCreator arrowMat = MaterialCreator();
 	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_texLit);
+	
+	MaterialCreator bakeryMat = MaterialCreator();
+	bakeryMat.createMaterial("bakery/models/bakery.gltf", "bakery/textures/bakeryTexture.png", *prog_texLit);
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
@@ -221,7 +224,12 @@ int main()
 	sprinkleParticle = std::make_unique<Material>(*prog_particles);
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
 
-	
+	Entity bakery = Entity::Create();
+	bakery.Add<CMeshRenderer>(bakery, *bakeryMat.getMesh(), *bakeryMat.getMaterial());
+	bakery.transform.m_scale = glm::vec3(0.7, 0.7, 0.7);
+	bakery.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	bakery.transform.m_pos = glm::vec3(-2.4, -1.9, -1.2);
+	renderingEntities.push_back(&bakery);
 
 
 	Entity cursor = Entity::Create();
@@ -245,14 +253,19 @@ int main()
 		//Creating Cash Register Entity
 		Entity ent_register = Entity::Create();
 		ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
-		ent_register.transform.m_scale = glm::vec3(0.5f, 0.5f, 0.5f);
-		
-
-		
+		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		ent_register.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
-		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);
+		ent_register.transform.m_pos = glm::vec3(-1.f, -2.4, -2.99f);
+		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
 		renderingEntities.push_back(&ent_register);
+
+		Entity counter = Entity::Create();
+		counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
+		counter.transform.m_scale = glm::vec3(1.f, 0.4f, 0.4f);
+		counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		counter.transform.m_pos = glm::vec3(-1.f, -2.4, -2.99f);
+		renderingEntities.push_back(&counter);
+
 
 		Entity fridge = Entity::Create();
 		fridge.Add<CMeshRenderer>(fridge, *fridgeMat.getMesh(), *fridgeMat.getMaterial());
@@ -393,18 +406,12 @@ int main()
 		topping.Get<ToppingMachine>().setTopPlane(&toppingPlane);
 
 
-	Entity counter = Entity::Create();
-	counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
-	counter.transform.m_scale = glm::vec3(1.f, 0.5f, 0.5f);
-	counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	counter.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
-	renderingEntities.push_back(&counter);
-
+	
 	Entity tray = Entity::Create();
 	tray.Add<CMeshRenderer>(tray, *trayMat.getMesh(), *trayMat.getMaterial());
 	tray.transform.m_scale = glm::vec3(0.53f, 0.35f, 0.35f);
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.2, cameraPos.y, cameraPos.z - 0.45);
+	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.2, cameraPos.y, cameraPos.z - 0.45);//1.15
 	tray.transform.SetParent(&cameraEntity.transform);
 	renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
@@ -487,6 +494,7 @@ int main()
 	bool raycastHit = false;
 	Entity* hitEntity = nullptr;
 	// Main loop
+	//float sc = 1;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		bool keepCheckingRaycast = true;
@@ -514,15 +522,18 @@ int main()
 		//slot1.addFill(0.01);
 		//slot1.updateArrow();
 		// Update camera
+		
 		/*
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		App::StartImgui();
-		ImGui::DragFloat("X", &(slot1.getCircle()->transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(slot1.getCircle()->transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(slot1.getCircle()->transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("X", &(bakery.transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(bakery.transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(bakery.transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 		
 		App::EndImgui();
+		bakery.transform.m_scale = glm::vec3(sc);
 		*/
 		cameraEntity.Get<CCamera>().Update();
 		glm::quat cameraRotEuler = cameraQuat;
