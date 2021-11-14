@@ -21,6 +21,7 @@
 #include "CMorphAnimator.h"
 #include "FillingMachine.h"
 #include "ToppingMachine.h"
+
 #include <ctime>
 
 
@@ -29,6 +30,7 @@
 #include "imgui.h"
 
 #include <memory>
+#include <OrderBubble.h>
 
 using namespace nou;
 
@@ -101,6 +103,7 @@ MaterialCreator cookieTile = MaterialCreator();
 MaterialCreator cupcakeTile = MaterialCreator();
 MaterialCreator cakeTile = MaterialCreator();
 MaterialCreator nothingTile = MaterialCreator();
+MaterialCreator burntTile = MaterialCreator();
 
 
 MaterialCreator custardFilling = MaterialCreator();
@@ -111,12 +114,25 @@ MaterialCreator pecanTopping = MaterialCreator();
 MaterialCreator sprinkleTopping = MaterialCreator();
 MaterialCreator stawberryTopping = MaterialCreator();
 
+MaterialCreator plusTile = MaterialCreator();
+MaterialCreator bubbleTile = MaterialCreator();
+
 std::unique_ptr<Material> pecanParticle;
 std::unique_ptr<Material> sprinkleParticle;
 std::unique_ptr<Material> strawberryParticle;
+
+
+Transform customerBubbleLocation;
+
 //burnt tile???
 
+MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
+MaterialCreator* getFillingTile(bakeryUtils::fillType x);
+MaterialCreator* getToppingTile(bakeryUtils::toppingType x);
 
+float currentGameTime = 0;
+int difficulty = 1;
+std::vector<Order> currentOrders = std::vector<Order>();
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -202,6 +218,7 @@ int main()
 	cupcakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cupcakeTile.png", *prog_texLit);
 	cakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cakeTile.png", *prog_texLit);
 	nothingTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/nothingTile.png", *prog_texLit);
+	burntTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/burntTile.png", *prog_texLit);
 
 	custardFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/custardFilling.png", *prog_texLit);
 	nutellaFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/nutellaFilling.png", *prog_texLit);
@@ -210,6 +227,9 @@ int main()
 	pecanTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/pecanTopping.png", *prog_texLit);
 	stawberryTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/strawberryTopping.png", *prog_texLit);
 	sprinkleTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/sprinkleTopping.png", *prog_texLit);
+	
+	plusTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/plusTile.png", *prog_texLit);
+	bubbleTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/bubbleTile.png", *prog_texLit);
 
 
 	std::unique_ptr<Texture2D> pecanTex = std::make_unique<Texture2D>("bakery/textures/pecanParticle.png");
@@ -258,6 +278,12 @@ int main()
 		ent_register.transform.m_pos = glm::vec3(-1.f, -2.4, -2.99f);
 		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
 		renderingEntities.push_back(&ent_register);
+
+		customerBubbleLocation = ent_register.transform;
+		customerBubbleLocation.m_pos.x -= 1.75;
+		customerBubbleLocation.m_pos.y += 2.0;
+		customerBubbleLocation.m_pos.z -= 1.0;
+
 
 		Entity counter = Entity::Create();
 		counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
@@ -349,15 +375,11 @@ int main()
 		topping.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		topping.transform.m_pos = glm::vec3(-1.2, -1.0f, 2.0f);
 		topping.Add<BoundingBox>(glm::vec3(0.4f, 2, 0.5), topping);
-		std::cout << topping.Get<BoundingBox>().getOrigin().x << " " <<
-			topping.Get<BoundingBox>().getOrigin().y << " " <<
-			topping.Get<BoundingBox>().getOrigin().z << std::endl;
+		
 		glm::vec3 tempTopPos = topping.transform.m_pos;
 		//tempTopPos.x += 0.0;
 		//topping.Get<BoundingBox>().setOrigin(tempTopPos);
-		std::cout << topping.Get<BoundingBox>().getOrigin().x << " " <<
-			topping.Get<BoundingBox>().getOrigin().y << " " <<
-			topping.Get<BoundingBox>().getOrigin().z << std::endl;
+		
 		renderingEntities.push_back(&topping);
 
 		Transform topParticleTransform = topping.transform;
@@ -495,8 +517,29 @@ int main()
 	Entity* hitEntity = nullptr;
 	// Main loop
 	//float sc = 1;
+	//bakeryUtils::addToGameTime(1);
+	currentOrders.push_back(Order());
+	currentOrders.back().createOrder(1);//bakeryUtils::getDifficulty()
+	currentOrders.back().startOrder();
+	
+
+	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2);
+	
+	OrderBubble firstOrder(&customerTimer);
+	//firstOrder.setTransform(customerBubbleLocation);
+	firstOrder.setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping));
+	firstOrder.setup(&bubbleTile, &plusTile);
+	firstOrder.create(currentOrders.back());
+	for each(Entity* foe in firstOrder.returnRenderingEntities()) {
+		renderingEntities.push_back(foe);
+		//std::cout << "A";
+	}
+	
+	
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
+		
 		bool keepCheckingRaycast = true;
 		 isClicking = false;
 		 isRightClicking = false;
@@ -513,7 +556,7 @@ int main()
 
 		// Update our LERP timers
 		float deltaTime = App::GetDeltaTime();
-
+		bakeryUtils::addToGameTime(deltaTime);
 		ovenScript->update(deltaTime);
 		//cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
 		//angle++;
@@ -523,18 +566,18 @@ int main()
 		//slot1.updateArrow();
 		// Update camera
 		
-		/*
+		
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		App::StartImgui();
-		ImGui::DragFloat("X", &(bakery.transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(bakery.transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(bakery.transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("Scale", &(sc), 0.1f);
+		ImGui::DragFloat("X", &(firstOrder.getTransform()->m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(firstOrder.getTransform()->m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(firstOrder.getTransform()->m_pos.z), 0.1f);
+		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 		
 		App::EndImgui();
-		bakery.transform.m_scale = glm::vec3(sc);
-		*/
+		//bakery.transform.m_scale = glm::vec3(sc);
+		
 		cameraEntity.Get<CCamera>().Update();
 		glm::quat cameraRotEuler = cameraQuat;
 		glm::vec3 cameraFacingVector = glm::vec3(0);
@@ -1180,6 +1223,57 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	scrollX = xoffset;
 	scrollY = yoffset;
 	//std::cout << scrollX << " " << scrollY << std::endl;
+}
+
+MaterialCreator* getPastryTile(bakeryUtils::pastryType x) {
+	if (x == bakeryUtils::pastryType::CROISSANT) {
+		return &croissantTile;
+	}
+	if (x == bakeryUtils::pastryType::COOKIE) {
+		return &cookieTile;
+	}
+	if (x == bakeryUtils::pastryType::CUPCAKE) {
+		return &cupcakeTile;
+	}
+	if (x == bakeryUtils::pastryType::CAKE) {
+		return &cakeTile;
+	}
+	if (x == bakeryUtils::pastryType::DOUGH) {
+		return &doughTile;
+	}
+	return nullptr;
+	
+}
+
+MaterialCreator* getFillingTile(bakeryUtils::fillType x) {
+	if (x == bakeryUtils::fillType::CHOCOLATE) {
+		return &nutellaFilling;
+	}
+	if (x == bakeryUtils::fillType::CUSTARD) {
+		return &custardFilling;
+	}
+	if (x == bakeryUtils::fillType::JAM) {
+		return &strawberryFilling;
+	}
+	
+	return nullptr;
+
+}
+
+
+MaterialCreator* getToppingTile(bakeryUtils::toppingType x) {
+	if (x == bakeryUtils::toppingType::PECAN) {
+		return &pecanTopping;
+	}
+	if (x == bakeryUtils::toppingType::SPRINKLE) {
+		return &sprinkleTopping;
+	}
+	if (x == bakeryUtils::toppingType::STRAWBERRY) {
+		return &stawberryTopping;
+	}
+
+	return nullptr;
+
 }
 
 

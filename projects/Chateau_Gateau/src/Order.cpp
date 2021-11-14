@@ -17,9 +17,27 @@ bool Order::orderStarted()
 
 void Order::createOrder(int difficulty)
 {
-	type = static_cast<bakeryUtils::pastryType>((rand() % difficulty) + 1);
-	topping = static_cast<bakeryUtils::toppingType>((rand() % 3) + 1);
-	filling = static_cast<bakeryUtils::fillType>((rand() & 3) + 1);
+	int random = rand() % difficulty + 1;
+	if (difficulty == 1) {
+		random--;
+	}
+	type =bakeryUtils::pastryType((random) + 1);
+	if (difficulty > 2) {
+		topping = bakeryUtils::toppingType((random % 3) + 1);
+	}
+	else
+	{
+		topping = bakeryUtils::toppingType::NONE;
+	}
+	if (difficulty > 1) {
+		filling = bakeryUtils::fillType((random & 3) + 1);
+	}
+	else
+	{
+		filling = bakeryUtils::fillType::NONE;
+	}
+	
+	
 	float orderSeconds = (60 / (difficulty + 1)) + bakeryUtils::returnBakeTime(type);
 	workTime = orderSeconds;
 	hasStarted = false;
@@ -27,73 +45,69 @@ void Order::createOrder(int difficulty)
 
 void Order::translate(bakeryUtils::toppingType topping, bakeryUtils::fillType filling, bakeryUtils::pastryType type)
 {
-	switch (topping)
+	if (topping == bakeryUtils::toppingType::NONE)
 	{
-	case bakeryUtils::toppingType::NONE:
 		s_topping = "NONE";
-		break;
-	case bakeryUtils::toppingType::CREAM:
-		s_topping = "CREAM";
-		break;
-	case bakeryUtils::toppingType::SPRINKLE:
-		s_topping = "SPRINKLE";
-		break;
-	case bakeryUtils::toppingType::STRAWBERRY:
+	}
+	else if (topping == bakeryUtils::toppingType::PECAN)
+	{
+		s_topping = "PECAN";
+	}
+	else if (topping == bakeryUtils::toppingType::STRAWBERRY)
+	{
 		s_topping = "STRAWBERRY";
-		break;
-	default:
-		break;
 	}
-
-	switch (filling)
+	else if (topping == bakeryUtils::toppingType::SPRINKLE)
 	{
-	case bakeryUtils::fillType::NONE:
+		s_topping = "SPRINKLE";
+	}
+		
+	
+
+	if (filling == bakeryUtils::fillType::NONE)
+	{
 		s_filling = "NONE";
-		break;
-	case bakeryUtils::fillType::JAM:
-		s_filling = "JAM";
-		break;
-	case bakeryUtils::fillType::CUSTARD:
+	}
+	else if (filling == bakeryUtils::fillType::CHOCOLATE)
+	{
+		s_filling = "CHOCOLATE";
+	}
+	else if (filling == bakeryUtils::fillType::CUSTARD)
+	{
 		s_filling = "CUSTARD";
-		break;
-	case bakeryUtils::fillType::CREAM:
-		s_filling = "CREAM";
-		break;
-	default:
-		break;
+	}
+	else if (filling == bakeryUtils::fillType::JAM)
+	{
+		s_filling = "JAM";
 	}
 
-	switch (type)
+	if(type == bakeryUtils::pastryType::CROISSANT)
 	{
-	case bakeryUtils::pastryType::DOUGH:
-		s_type = "DOUGH";
-		break;
-	case bakeryUtils::pastryType::CROISSANT:
 		s_type = "CROISSANT";
-		break;
-	case bakeryUtils::pastryType::COOKIE:
-		s_type = "COOKIE";
-		break;
-	case bakeryUtils::pastryType::CUPCAKE:
-		s_type = "CUPCAKE";
-		break;
-	case bakeryUtils::pastryType::CAKE:
-		s_type = "CAKE";
-		break;
-	case bakeryUtils::pastryType::BURNT:
-		s_type = "BURNT";
-		break;
-	default:
-		break;
 	}
+	else if (type == bakeryUtils::pastryType::COOKIE)
+	{
+		s_type = "COOKIE";
+	}
+	else if (type == bakeryUtils::pastryType::CUPCAKE)
+	{
+		s_type = "CUPCAKE";
+	}
+	else if (type == bakeryUtils::pastryType::CAKE)
+	{
+		s_type = "CAKE";
+	}
+	
 }
 
 void Order::startOrder()
 {
 	setStarted(true);
-	std::cout << "I want a " + s_type + " filled with " + s_filling + " and topped with " + s_topping + ".";
-	startTime = timePassed; //bakeryStats.getGameTime();
+	translate(topping,filling,type);
+	std::cout << "I want a " << s_type << " filled with " << s_filling << " and topped with " << s_topping << "." << std::endl;
+	startTime = bakeryUtils::getTime(); //bakeryStats.getGameTime();
 	maxEndTime = startTime + workTime;
+	//std::cout << "START" << startTime << std::endl;
 }
 
 bool Order::validateOrder(Pastry p)

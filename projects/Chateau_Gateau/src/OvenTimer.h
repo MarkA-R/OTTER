@@ -6,7 +6,7 @@ using namespace nou;
 class OvenTimer
 {
 public:
-	OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c, Transform& pos);
+	OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c, Transform& pos, float multiplier = 0.3f);
 	//Timer(MaterialCreator right, MaterialCreator left, Transform pos);
 	void addFill(float);
 	float getFill();
@@ -16,6 +16,9 @@ public:
 	Entity* getArrow();
 	Entity* getCircle();
 	void updateArrow();
+	Transform& getTransform();
+	void setTransform(Transform&);
+	void setPosition(glm::vec3);
 
 protected:
 	float fill = 0;

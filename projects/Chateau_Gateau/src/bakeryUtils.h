@@ -16,7 +16,7 @@ public:
 
     enum class toppingType {
         NONE,
-        CREAM,
+        PECAN,
         SPRINKLE,
         STRAWBERRY
     };
@@ -25,7 +25,7 @@ public:
         NONE,
         JAM,
         CUSTARD,
-        CREAM
+        CHOCOLATE
     };
 
     static float bakeryUtils::returnCroissantTime()
@@ -77,6 +77,22 @@ public:
         }
         return returnBurnTime();
     }
+
+   static void addToGameTime(float dt) {
+        gameTime += dt;
+    }
+
+    static float getTime() {
+        return gameTime;
+    }
+
+    static void addToDifficulty(int d) {
+        difficulty += d;
+    }
+
+    static int getDifficulty() {
+        return difficulty;
+    }
     
 
 protected:
@@ -85,6 +101,8 @@ protected:
     inline static float timeToCupcake = 30;
     inline static float timeToCake = 50;
     inline static float timeToBurn = 60;
+    inline static float gameTime = 0;
+    inline static int difficulty = 1;
 
      
     

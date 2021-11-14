@@ -1,9 +1,9 @@
 #include "OvenTimer.h"
 #include <iostream>
-OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c, Transform& pos)
+OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c, Transform& pos, float multiplier)
 {
 	fill = 0;
-	float transformScale = 0.3;
+	float transformScale = multiplier;
 	tile = Entity::Allocate();
 	tile.get()->Add<CMeshRenderer>(*tile, *t.getMesh(), *t.getMaterial());
 	position = pos;
@@ -80,6 +80,27 @@ void OvenTimer::updateArrow()
 	//std::cout << fill << std::endl;
 	float angle = 360 * fill;
 	arrow.get()->transform.m_rotation = glm::angleAxis(glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+}
+
+Transform& OvenTimer::getTransform()
+{
+	// TODO: insert return statement here
+	return position;
+}
+
+void OvenTimer::setTransform(Transform& x)
+{
+	position = x;
+	tile.get()->transform.SetParent(&position);
+	circle.get()->transform.SetParent(&position);
+	arrow.get()->transform.SetParent(&position);
+}
+
+void OvenTimer::setPosition(glm::vec3 x)
+{
+	tile.get()->transform.m_pos = x;
+	circle.get()->transform.m_pos = x;
+	arrow.get()->transform.m_pos = x;
 }
 
 
