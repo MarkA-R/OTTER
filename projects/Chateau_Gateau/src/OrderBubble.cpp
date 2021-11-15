@@ -14,12 +14,22 @@ void OrderBubble::setFill(float x)
 
 void OrderBubble::addFill(float x)
 {
-    timer->addFill(x);
+    float realFill = 0;
+    float totalSeconds = (order.startTime + order.workTime) - order.startTime;
+    float secondsPassed = bakeryUtils::getTime() - order.startTime;
+  
+    realFill = secondsPassed / totalSeconds;
+    //std::cout << realFill << std::endl;
+    if (realFill > 1.f) {
+        realFill = 1.f;
+    }
+    timer->setFill(realFill);
+    timer->updateArrow();
 }
 
 bool OrderBubble::isOrderExpired()
 {
-    return order.isOnTime();
+    return !order.isOnTime();
 }
 
 bool OrderBubble::isOrderCompleted(Pastry& p)
@@ -45,10 +55,12 @@ void OrderBubble::setup(MaterialCreator* bubble, MaterialCreator* plus)
     plusTile = plus;
 }
 
-void OrderBubble::setupTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c)
+void OrderBubble::setupTimer(OvenTimer* t)
 {
     //timer = OvenTimer(t, a, c, bubbleTransform);
-    
+   timer = t;
+
+  
 }
 
 void OrderBubble::create(Order& o)
@@ -71,16 +83,19 @@ void OrderBubble::create(Order& o)
         hasTopping = true;
     }
     float width = (scaleX*(scaleAll-0.05)) * 2;
-    std::cout << "W " << width << std::endl;
+    //std::cout << "W " << width << std::endl;
     
     float sectionWidth = (width / totalEnties);
-    std::cout << "SECW " << sectionWidth << std::endl;
+    //std::cout << "SECW " << sectionWidth << std::endl;
 
     toRender.push_back(timer->getArrow());
     toRender.push_back(timer->getCircle());
     toRender.push_back(timer->getTile());
+    timer->setFill(0);
+    timer->updateArrow();
     glm::vec3 timerPos = bubbleTransform.m_pos;
     timerPos.y -= 0.3;
+   // std::cout << timerPos.y << std::endl;
     timer->setPosition(timerPos);
     timer->setTransform(bubbleTransform);
    
@@ -99,54 +114,25 @@ void OrderBubble::create(Order& o)
     glm::vec3 bubblePos = bubbleTransform.m_pos;
 
 
-    std::cout << "SECWPLACE " << sectionWidth * place << std::endl;
-    std::cout << "SECW/2 " << sectionWidth / 2 << std::endl;
-    std::cout << "BPOS " << bubblePos.x << std::endl;
-    std::cout << "FINAL " << (bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place) << std::endl;
-
-    pastryTile = Entity::Allocate();
-    pastryTile.get()->Add<CMeshRenderer>(*pastryTile, *orderTiles[0]->getMesh(), *orderTiles[0]->getMaterial());
-    pastryTile.get()->transform.SetParent(&bubbleTransform);
-    pastryTile.get()->transform.m_rotation =
-        glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-        glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-        
-       // * glm::angleAxis(glm::radians(45.f), glm::vec3(0.0f, 0.0f, 1.0f));// *
-    pastryTile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.3f;
-   
-    pastryTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width/2)) + ((sectionWidth/2)*place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-    toRender.push_back(pastryTile.get());
-    place++;
-    if (hasFilling) {
-
-        plusL = Entity::Allocate();
-        plusL.get()->Add<CMeshRenderer>(*plusL, *plusTile->getMesh(), *plusTile->getMaterial());
-        plusL.get()->transform.SetParent(&bubbleTransform);
-        plusL.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        plusL.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.1f;
-
-       
-        plusL.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-        toRender.push_back(plusL.get());
-        place++;
-
-        fillingTile = Entity::Allocate();
-        fillingTile.get()->Add<CMeshRenderer>(*fillingTile, *orderTiles[1]->getMesh(), *orderTiles[1]->getMaterial());
-        fillingTile.get()->transform.SetParent(&bubbleTransform);
-        fillingTile.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        fillingTile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.3f;
-
-
-        fillingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-        toRender.push_back(fillingTile.get());
-        place++;
-    }
+  //  std::cout << "SECWPLACE " << sectionWidth * place << std::endl;
+   // std::cout << "SECW/2 " << sectionWidth / 2 << std::endl;
+   // std::cout << "BPOS " << bubblePos.x << std::endl;
+    //std::cout << "FINAL " << (bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place) << std::endl;
 
     if (hasTopping) {
+
+        toppingTile = Entity::Allocate();
+        toppingTile.get()->Add<CMeshRenderer>(*toppingTile, *orderTiles[2]->getMesh(), *orderTiles[2]->getMaterial());
+        toppingTile.get()->transform.SetParent(&bubbleTransform);
+        toppingTile.get()->transform.m_rotation =
+            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+        toppingTile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.3f;
+
+
+        toppingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+        toRender.push_back(toppingTile.get());
+        place++;
 
         plusR = Entity::Allocate();
         plusR.get()->Add<CMeshRenderer>(*plusR, *plusTile->getMesh(), *plusTile->getMaterial());
@@ -161,19 +147,56 @@ void OrderBubble::create(Order& o)
         toRender.push_back(plusR.get());
         place++;
 
-        toppingTile = Entity::Allocate();
-        toppingTile.get()->Add<CMeshRenderer>(*toppingTile, *orderTiles[2]->getMesh(), *orderTiles[2]->getMaterial());
-        toppingTile.get()->transform.SetParent(&bubbleTransform);
-        toppingTile.get()->transform.m_rotation =
+       
+    }
+
+    if (hasFilling) {
+
+        fillingTile = Entity::Allocate();
+        fillingTile.get()->Add<CMeshRenderer>(*fillingTile, *orderTiles[1]->getMesh(), *orderTiles[1]->getMaterial());
+        fillingTile.get()->transform.SetParent(&bubbleTransform);
+        fillingTile.get()->transform.m_rotation =
             glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
             glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        toppingTile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.3f;
+        fillingTile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.3f;
 
 
-        toppingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-        toRender.push_back(toppingTile.get());
+        fillingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+        toRender.push_back(fillingTile.get());
         place++;
+
+        plusL = Entity::Allocate();
+        plusL.get()->Add<CMeshRenderer>(*plusL, *plusTile->getMesh(), *plusTile->getMaterial());
+        plusL.get()->transform.SetParent(&bubbleTransform);
+        plusL.get()->transform.m_rotation =
+            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+        plusL.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.1f;
+
+
+        plusL.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+        toRender.push_back(plusL.get());
+        place++;
+
+        
     }
+
+    pastryTile = Entity::Allocate();
+    pastryTile.get()->Add<CMeshRenderer>(*pastryTile, *orderTiles[0]->getMesh(), *orderTiles[0]->getMaterial());
+    pastryTile.get()->transform.SetParent(&bubbleTransform);
+    pastryTile.get()->transform.m_rotation =
+        glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+        
+       // * glm::angleAxis(glm::radians(45.f), glm::vec3(0.0f, 0.0f, 1.0f));// *
+    pastryTile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.3f;
+   
+    pastryTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width/2)) + ((sectionWidth/2)*place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+    toRender.push_back(pastryTile.get());
+  
+   
+
+    
 
     
 
@@ -187,6 +210,11 @@ Entity* OrderBubble::getBubble()
 std::vector<Entity*> OrderBubble::returnRenderingEntities()
 {
     return toRender;
+}
+
+void OrderBubble::clearRenderingEntities()
+{
+    toRender.clear();
 }
 
 Transform* OrderBubble::getTransform()

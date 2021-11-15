@@ -17,20 +17,28 @@ bool Order::orderStarted()
 
 void Order::createOrder(int difficulty)
 {
-	int random = rand() % difficulty + 1;
-	if (difficulty == 1) {
-		random--;
+	if (difficulty > 4) {
+		difficulty = 4;
 	}
+	int random = rand() % difficulty + 1;
+	int fillingRand = (rand() % 3) + 1;
+	int toppingRand = (rand() % 3) + 1;
+	//std::cout << fillingRand << " " << toppingRand << std::endl;
+	int usingPastryInt = random;
+	if (difficulty == 1) {
+		random = 0;
+	}
+	
 	type =bakeryUtils::pastryType((random) + 1);
 	if (difficulty > 2) {
-		topping = bakeryUtils::toppingType((random % 3) + 1);
+		topping = bakeryUtils::toppingType(toppingRand);
 	}
 	else
 	{
 		topping = bakeryUtils::toppingType::NONE;
 	}
 	if (difficulty > 1) {
-		filling = bakeryUtils::fillType((random & 3) + 1);
+		filling = bakeryUtils::fillType(fillingRand);
 	}
 	else
 	{
@@ -38,7 +46,8 @@ void Order::createOrder(int difficulty)
 	}
 	
 	
-	float orderSeconds = (60 / (difficulty + 1)) + bakeryUtils::returnBakeTime(type);
+	float orderSeconds = (60 / (difficulty )) + bakeryUtils::returnBakeTime(type);
+	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;
 }
@@ -136,7 +145,7 @@ bool Order::isOnTime()
 	if (hasStarted)
 	{
 		//std::cout << timePassed << " " << maxEndTime;
-		if (timePassed <= maxEndTime)
+		if (bakeryUtils::getTime() <= maxEndTime)
 		{
 			return true;
 		}

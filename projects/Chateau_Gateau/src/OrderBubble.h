@@ -28,13 +28,15 @@ public:
 	void addFill(float);
 	bool isOrderExpired();
 	bool isOrderCompleted(Pastry&);
-	void setTransform(Transform& t);//DEPRICIATED
+	void setTransform(Transform& t);
 	void setTiles(MaterialCreator*, MaterialCreator*, MaterialCreator*);//2
 	void setup(MaterialCreator*, MaterialCreator*);//3
-	void setupTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c);//DEPRICIATED
+	void setupTimer(OvenTimer*);
+	
 	void create(Order& o);
 	Entity* getBubble();
 	std::vector<Entity*> returnRenderingEntities();
+	void clearRenderingEntities();
 	Transform* getTransform();
 };
 

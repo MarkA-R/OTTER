@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+#include <iostream>
+
 class bakeryUtils
 {
     
@@ -23,9 +26,10 @@ public:
 
     enum class fillType {
         NONE,
-        JAM,
         CUSTARD,
-        CHOCOLATE
+        CHOCOLATE,
+        JAM
+        
     };
 
     static float bakeryUtils::returnCroissantTime()
@@ -94,7 +98,60 @@ public:
         return difficulty;
     }
     
-
+    static std::string getToppingName(bakeryUtils::toppingType type) {
+        if (type == bakeryUtils::toppingType::NONE)
+        {
+            return "NONE";
+        }
+        else if (type == bakeryUtils::toppingType::PECAN)
+        {
+            return "PECAN";
+        }
+        else if (type == bakeryUtils::toppingType::STRAWBERRY)
+        {
+            return "STRAWBERRY";
+        }
+        else if (type == bakeryUtils::toppingType::SPRINKLE)
+        {
+            return "SPRINKLE";
+        }
+    }
+    static std::string getFillingName(bakeryUtils::fillType filling) {
+        if (filling == bakeryUtils::fillType::NONE)
+        {
+            return "NONE";
+        }
+        else if (filling == bakeryUtils::fillType::CHOCOLATE)
+        {
+            return "CHOCOLATE";
+        }
+        else if (filling == bakeryUtils::fillType::CUSTARD)
+        {
+            return "CUSTARD";
+        }
+        else if (filling == bakeryUtils::fillType::JAM)
+        {
+            return "JAM";
+        }
+    }
+   static std::string getPastryName(bakeryUtils::pastryType type) {
+        if (type == bakeryUtils::pastryType::CROISSANT)
+        {
+           return "CROISSANT";
+        }
+        else if (type == bakeryUtils::pastryType::COOKIE)
+        {
+            return "COOKIE";
+        }
+        else if (type == bakeryUtils::pastryType::CUPCAKE)
+        {
+            return "CUPCAKE";
+        }
+        else if (type == bakeryUtils::pastryType::CAKE)
+        {
+            return "CAKE";
+        }
+    }
 protected:
     inline static float timeToCroissant = 10;
     inline static float timeToCookie = 20;

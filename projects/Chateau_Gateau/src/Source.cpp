@@ -21,6 +21,9 @@
 #include "CMorphAnimator.h"
 #include "FillingMachine.h"
 #include "ToppingMachine.h"
+#include "Register.h"
+#include "TrashCan.h"
+#include <algorithm>
 
 #include <ctime>
 
@@ -30,7 +33,8 @@
 #include "imgui.h"
 
 #include <memory>
-#include <OrderBubble.h>
+#include "OrderBubble.h"
+#include "Register.h"
 
 using namespace nou;
 
@@ -70,6 +74,10 @@ Transform traySlot[4] = {};
 
 //std::unique_ptr<Entity> trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 std::vector<Order> orders; //new Mithunan
+std::vector<OrderBubble*> orderBubbles;
+std::vector<Transform*> orderBubbleTransform;
+std::vector<OvenTimer*> orderBubbleTimers;
+std::vector<int> orderBubblesToRemove;
 Entity* trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 std::vector<Mesh*> fillingFrames = std::vector<Mesh*>();
 
@@ -129,6 +137,10 @@ Transform customerBubbleLocation;
 MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
 MaterialCreator* getFillingTile(bakeryUtils::fillType x);
 MaterialCreator* getToppingTile(bakeryUtils::toppingType x);
+void removeFromRendering(Entity* e);
+glm::vec3 trayScale;
+glm::vec3 cursorScale;
+void createNewOrder(int i, bool addDifficulty);
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -140,7 +152,7 @@ void log(std::string s) {
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-
+bool isPaused = false;
 int main()
 {
 	srand(static_cast<unsigned int>(time(0)));
@@ -178,6 +190,9 @@ int main()
 
 	MaterialCreator fridgeMat = MaterialCreator();
 	fridgeMat.createMaterial("bakery/models/fridge.gltf", "bakery/textures/fridge.png", *prog_texLit);
+
+	MaterialCreator binMat = MaterialCreator();
+	binMat.createMaterial("bakery/models/trash.gltf", "bakery/textures/trash.png", *prog_texLit);
 
 	MaterialCreator ovenMat = MaterialCreator();
 	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit);
@@ -254,7 +269,8 @@ int main()
 
 	Entity cursor = Entity::Create();
 	cursor.Add<CMeshRenderer>(cursor, *cursorMat.getMesh(), *cursorMat.getMaterial());
-	cursor.transform.m_scale = glm::vec3(0.001f, 0.001f, 0.001f);
+	cursorScale = glm::vec3(0.001f, 0.001f, 0.001f);
+	cursor.transform.m_scale = cursorScale;
 	cursor.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	cursor.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
 	renderingEntities.push_back(&cursor);
@@ -273,6 +289,7 @@ int main()
 		//Creating Cash Register Entity
 		Entity ent_register = Entity::Create();
 		ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
+		ent_register.Add<Register>();
 		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		ent_register.transform.m_pos = glm::vec3(-1.f, -2.4, -2.99f);
@@ -293,6 +310,18 @@ int main()
 		renderingEntities.push_back(&counter);
 
 
+		Entity bin = Entity::Create();
+		bin.Add<CMeshRenderer>(bin, *binMat.getMesh(), *binMat.getMaterial());
+		bin.Add<Machine>();
+		bin.Add<TrashCan>();
+		bin.transform.m_scale = glm::vec3(0.2f, 0.5f, 0.2f);
+		bin.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		bin.transform.m_pos = glm::vec3(-3.f, -1.3, -1.3);
+		bin.Add<BoundingBox>(glm::vec3(0.2, 1, 0.3), bin);
+		renderingEntities.push_back(&bin);
+		std::cout << bin.Get<BoundingBox>().getOrigin().x << " " << bin.Get<BoundingBox>().getOrigin().y <<
+			" " << bin.Get<BoundingBox>().getOrigin().z << std::endl;
+		
 		Entity fridge = Entity::Create();
 		fridge.Add<CMeshRenderer>(fridge, *fridgeMat.getMesh(), *fridgeMat.getMaterial());
 		
@@ -301,7 +330,7 @@ int main()
 		fridge.transform.m_scale = glm::vec3(0.5f, 1.f, 0.5f);
 		fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 2.0f);
-		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
+		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.3), fridge);
 		renderingEntities.push_back(&fridge);
 
 		Entity oven = Entity::Create();
@@ -431,7 +460,8 @@ int main()
 	
 	Entity tray = Entity::Create();
 	tray.Add<CMeshRenderer>(tray, *trayMat.getMesh(), *trayMat.getMaterial());
-	tray.transform.m_scale = glm::vec3(0.53f, 0.35f, 0.35f);
+	trayScale = glm::vec3(0.53f, 0.35f, 0.35f);
+	tray.transform.m_scale = trayScale;
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.2, cameraPos.y, cameraPos.z - 0.45);//1.15
 	tray.transform.SetParent(&cameraEntity.transform);
@@ -519,20 +549,21 @@ int main()
 	//float sc = 1;
 	//bakeryUtils::addToGameTime(1);
 	currentOrders.push_back(Order());
-	currentOrders.back().createOrder(1);//bakeryUtils::getDifficulty()
+	currentOrders.back().createOrder(bakeryUtils::getDifficulty());//bakeryUtils::getDifficulty()
 	currentOrders.back().startOrder();
 	
 
 	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2);
-	
+	orderBubbleTimers.push_back(&customerTimer);
 	OrderBubble firstOrder(&customerTimer);
 	//firstOrder.setTransform(customerBubbleLocation);
 	firstOrder.setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping));
 	firstOrder.setup(&bubbleTile, &plusTile);
 	firstOrder.create(currentOrders.back());
+	orderBubbles.push_back(&firstOrder);
+	orderBubbleTransform.push_back(&customerBubbleLocation);
 	for each(Entity* foe in firstOrder.returnRenderingEntities()) {
 		renderingEntities.push_back(foe);
-		//std::cout << "A";
 	}
 	
 	
@@ -547,17 +578,51 @@ int main()
 		 raycastHit = false;
 		 
 		App::FrameStart();
+		float deltaTime = App::GetDeltaTime();
+		if (Input::GetKeyDown(GLFW_KEY_SPACE)) {
+			isPaused = !isPaused;
+
+			if (isPaused) {
+				removeFromRendering(&tray);
+				removeFromRendering(&cursor);
+				App::setCursorVisible(true);
+			}
+			else
+			{
+				renderingEntities.push_back(&tray);
+				renderingEntities.push_back(&cursor);
+				App::setCursorVisible(false);
+				
+			}
+			
+		}
+		if (!isPaused) {
+			//std::cout << isPaused << std::endl;
+			GetInput();
+
+			// Update our LERP timers
 		
+			bakeryUtils::addToGameTime(deltaTime);
+			ovenScript->update(deltaTime);
+
+			int timesDone = 0;
+			for (int i = 0; i < orderBubbles.size(); i++) {
+				OrderBubble* ob = orderBubbles[i];
+				ob->addFill(deltaTime);
+				timesDone++;
+				if (ob->isOrderExpired()) {
+					createNewOrder(i, false);
+				}
+			}
+
+			cameraEntity.Get<CCamera>().Update();
+		}
 		
-		
-		GetInput();
 		
 		
 
-		// Update our LERP timers
-		float deltaTime = App::GetDeltaTime();
-		bakeryUtils::addToGameTime(deltaTime);
-		ovenScript->update(deltaTime);
+		
+		
 		//cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
 		//angle++;
 		//std::cout << angle << std::endl;
@@ -566,7 +631,7 @@ int main()
 		//slot1.updateArrow();
 		// Update camera
 		
-		
+		/*
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		App::StartImgui();
 		ImGui::DragFloat("X", &(firstOrder.getTransform()->m_pos.x), 0.1f);
@@ -577,8 +642,8 @@ int main()
 		
 		App::EndImgui();
 		//bakery.transform.m_scale = glm::vec3(sc);
+		*/
 		
-		cameraEntity.Get<CCamera>().Update();
 		glm::quat cameraRotEuler = cameraQuat;
 		glm::vec3 cameraFacingVector = glm::vec3(0);
 		glm::vec3 up = glm::vec3(0);
@@ -603,7 +668,11 @@ int main()
 		std::vector<glm::vec3> raycastPoints = r.crossedPoints();
 		//std::cout << cameraRotEuler.x << " " << cameraRotEuler.y << " " << cameraRotEuler.z << std::endl;
 		cursor.transform.m_pos = raycastPoints[5];
-		cursor.transform.m_rotation = cameraEntity.transform.m_rotation;
+		
+			cursor.transform.m_rotation = cameraEntity.transform.m_rotation;
+		
+		
+		
 		
 		hitEntity = nullptr;
 		for each (Entity* e in renderingEntities) {
@@ -621,7 +690,7 @@ int main()
 			
 			
 			
-			if (keepCheckingRaycast) {
+			if (keepCheckingRaycast && !isPaused) {
 				if (e->Has<BoundingBox>()) {
 
 					for each (glm::vec3	pos in raycastPoints) {
@@ -773,6 +842,7 @@ int main()
 									fillingScript.removeFromFilling();
 									//UPDATE FILLING HERE
 									setPastryFilling(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling());
+									//std::cout << bakeryUtils::getFillingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling()) << std::endl;
 								}
 								
 							}
@@ -877,6 +947,8 @@ int main()
 									toppingScript.removeFromTopping();
 									//UPDATE FILLING HERE
 									setPastryTopping(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping());
+									//std::cout << bakeryUtils::getToppingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping()) << std::endl;
+
 								}
 
 							}
@@ -952,11 +1024,45 @@ int main()
 					}
 				
 				}
+				else if (e->Has<TrashCan>()) {
+				//std::cout << "HERE" << std::endl;
+				int wantedSlot = getWantedSlot();
+				if (wantedSlot >= 0) {
+					if (trayPastry[wantedSlot] != nullptr) {
+						renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[wantedSlot]), renderingEntities.end());
+						trayPastry[wantedSlot] = nullptr;
+					}
+
+				}
+			}
 
 
 
 
 			}
+			else if (e->Has<Register>()) {
+				//check if order is complete here
+				if (isClicking) {
+					for (int i = 0; i < currentOrders.size(); i++) {
+						Order& o = currentOrders[i];
+						for (int i = 0; i < std::size(trayPastry); i++) {
+							Entity* tray = trayPastry[i];
+							if (tray != nullptr) {
+								if (o.validateOrder(tray->Get<Pastry>())) {
+									renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), tray), renderingEntities.end());
+									trayPastry[i] = nullptr;
+									
+									createNewOrder(i,true);
+								}
+							}
+							
+							
+						}
+					}
+				}
+			}
+
+
 		}
 		
 
@@ -966,7 +1072,28 @@ int main()
 			renderingEntities.push_back(trayPastry[addedSlot]);
 		}
 
+		if (orderBubblesToRemove.size() > 0) {
+			for (int i = 0; i < orderBubblesToRemove.size(); i++) {
+				std::cout << "S " << renderingEntities.size() << std::endl;
+				for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
+					renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
+					
+				}
+				std::cout << "S " << renderingEntities.size() << std::endl;
+				//std::cout << orderBubbleTransform[i]->m_pos.x << std::endl;
+				orderBubbles[i]->clearRenderingEntities();
+				orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
+				orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
+				orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping));
+				orderBubbles[i]->setup(&bubbleTile, &plusTile);
+				orderBubbles[i]->create(currentOrders.back());
 
+				for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
+					renderingEntities.push_back(foe);
+				}
+			}
+		}
+		orderBubblesToRemove.clear();
 		//std::cout << (currentPoint.x - lastPoint.x) << " " << (currentPoint.y - lastPoint.y) << " " << (currentPoint.z - lastPoint.z) << std::endl;
 		lastPoint = currentPoint;
 		scrollX = 0;
@@ -980,6 +1107,11 @@ int main()
 	App::Cleanup();
 
 	return 0;
+}
+
+void removeFromRendering(Entity* e) {
+	renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), e), renderingEntities.end());
+
 }
 
 void LoadDefaultResources()
@@ -1086,14 +1218,20 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	glm::quat QuatAroundZ = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0, 0.0, 1.0));
 	glm::quat finalOrientation = QuatAroundY * QuatAroundX * QuatAroundZ;
 	cameraQuat = finalOrientation;
-	globalCameraEntity->transform.m_rotation = finalOrientation;
+	
+	if (!isPaused) {
+		globalCameraEntity->transform.m_rotation = finalOrientation;
+		globalCameraEntity->transform.m_pos = cameraPos;
 
-	globalCameraEntity->transform.m_pos = cameraPos;
+		glfwSetCursorPos(gameWindow, width / 2, height / 2);
+		cameraX = deltaX;
+		cameraY = deltaY;
+	}
+	
 
-
-	glfwSetCursorPos(gameWindow, width/2, height/2);
-	cameraX = deltaX;
-	cameraY = deltaY;
+	
+	
+	
 	
 }
 
@@ -1103,9 +1241,11 @@ void GetInput()
 	double xRot, yRot;
 
 	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	
+	if (!isPaused) {
 		glfwGetCursorPos(gameWindow, &xPos, &yPos);
 		glfwSetCursorPosCallback(gameWindow, getCursorData);
+	}
+		
 	
 	
 	//glfwGetCursorPos(gameWindow, &xPos, &yPos);
@@ -1273,6 +1413,20 @@ MaterialCreator* getToppingTile(bakeryUtils::toppingType x) {
 	}
 
 	return nullptr;
+
+}
+
+
+
+void createNewOrder(int i, bool addDifficulty) {
+	if (addDifficulty) {
+		bakeryUtils::addToDifficulty(1);
+	}
+	
+	currentOrders[i] = Order();
+	currentOrders[i].createOrder(bakeryUtils::getDifficulty());
+	
+	orderBubblesToRemove.push_back(i);
 
 }
 
