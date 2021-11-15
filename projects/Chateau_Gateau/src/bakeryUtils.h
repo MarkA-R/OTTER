@@ -152,6 +152,13 @@ public:
             return "CAKE";
         }
     }
+
+   static void addToRounds(int i) {
+       roundsLasted += i;
+   }
+   static int getRoundsLasted() {
+       return roundsLasted;
+   }
 protected:
     inline static float timeToCroissant = 10;
     inline static float timeToCookie = 20;
@@ -160,7 +167,7 @@ protected:
     inline static float timeToBurn = 60;
     inline static float gameTime = 0;
     inline static int difficulty = 1;
-
+    inline static int roundsLasted = 0;
      
     
 

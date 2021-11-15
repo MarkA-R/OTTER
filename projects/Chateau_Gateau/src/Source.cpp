@@ -131,6 +131,8 @@ std::unique_ptr<Material> strawberryParticle;
 
 
 Transform customerBubbleLocation;
+Transform upurrBubbleLocation1;
+Transform upurrBubbleLocation2;
 
 //burnt tile???
 
@@ -138,9 +140,10 @@ MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
 MaterialCreator* getFillingTile(bakeryUtils::fillType x);
 MaterialCreator* getToppingTile(bakeryUtils::toppingType x);
 void removeFromRendering(Entity* e);
+void resetBubble(int i);
 glm::vec3 trayScale;
 glm::vec3 cursorScale;
-void createNewOrder(int i, bool addDifficulty);
+void createNewOrder(int i, bool addDifficulty, bool remove = true);
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -300,6 +303,18 @@ int main()
 		customerBubbleLocation.m_pos.x -= 1.75;
 		customerBubbleLocation.m_pos.y += 2.0;
 		customerBubbleLocation.m_pos.z -= 1.0;
+
+
+		upurrBubbleLocation1 = ent_register.transform;
+		upurrBubbleLocation1.m_pos.x -= 1.75;
+		upurrBubbleLocation1.m_pos.y += 2.4;
+		upurrBubbleLocation1.m_pos.z -= 1.0;
+
+
+		upurrBubbleLocation2 = ent_register.transform;
+		upurrBubbleLocation2.m_pos.x -= 1.75;
+		upurrBubbleLocation2.m_pos.y += 2.8;
+		upurrBubbleLocation2.m_pos.z -= 1.0;
 
 
 		Entity counter = Entity::Create();
@@ -552,16 +567,32 @@ int main()
 	currentOrders.back().createOrder(bakeryUtils::getDifficulty());//bakeryUtils::getDifficulty()
 	currentOrders.back().startOrder();
 	
-
+	OvenTimer upurrTimer1 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
+	OvenTimer upurrTimer2 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
 	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2);
+
+	OrderBubble uprrBubble1(&upurrTimer1);
+	OrderBubble uprrBubble2(&upurrTimer2);
+
 	orderBubbleTimers.push_back(&customerTimer);
+	orderBubbleTimers.push_back(&upurrTimer1);
+	orderBubbleTimers.push_back(&upurrTimer2);
+
+
 	OrderBubble firstOrder(&customerTimer);
 	//firstOrder.setTransform(customerBubbleLocation);
 	firstOrder.setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping));
 	firstOrder.setup(&bubbleTile, &plusTile);
 	firstOrder.create(currentOrders.back());
+
 	orderBubbles.push_back(&firstOrder);
+	orderBubbles.push_back(&uprrBubble1);
+	orderBubbles.push_back(&uprrBubble2);
+
 	orderBubbleTransform.push_back(&customerBubbleLocation);
+	orderBubbleTransform.push_back(&upurrBubbleLocation1);
+	orderBubbleTransform.push_back(&upurrBubbleLocation2);
+	
 	for each(Entity* foe in firstOrder.returnRenderingEntities()) {
 		renderingEntities.push_back(foe);
 	}
@@ -605,13 +636,24 @@ int main()
 			bakeryUtils::addToGameTime(deltaTime);
 			ovenScript->update(deltaTime);
 
-			int timesDone = 0;
+			
 			for (int i = 0; i < orderBubbles.size(); i++) {
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
-				timesDone++;
+				
 				if (ob->isOrderExpired()) {
-					createNewOrder(i, false);
+					createNewOrder(i, false,false);
+					for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
+						renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
+
+					}
+
+					resetBubble(i);
+
+					for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
+						renderingEntities.push_back(foe);
+					}
+					
 				}
 			}
 
@@ -1043,16 +1085,17 @@ int main()
 			else if (e->Has<Register>()) {
 				//check if order is complete here
 				if (isClicking) {
-					for (int i = 0; i < currentOrders.size(); i++) {
-						Order& o = currentOrders[i];
+					for (int u = 0; u < currentOrders.size(); u++) {
+						Order& o = currentOrders[u];
 						for (int i = 0; i < std::size(trayPastry); i++) {
 							Entity* tray = trayPastry[i];
 							if (tray != nullptr) {
 								if (o.validateOrder(tray->Get<Pastry>())) {
 									renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), tray), renderingEntities.end());
 									trayPastry[i] = nullptr;
+									bakeryUtils::addToRounds(1);
 									
-									createNewOrder(i,true);
+									createNewOrder(u,true);
 								}
 							}
 							
@@ -1074,24 +1117,49 @@ int main()
 
 		if (orderBubblesToRemove.size() > 0) {
 			for (int i = 0; i < orderBubblesToRemove.size(); i++) {
-				std::cout << "S " << renderingEntities.size() << std::endl;
+				
 				for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
 					renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
 					
 				}
-				std::cout << "S " << renderingEntities.size() << std::endl;
-				//std::cout << orderBubbleTransform[i]->m_pos.x << std::endl;
-				orderBubbles[i]->clearRenderingEntities();
-				orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
-				orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
-				orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping));
-				orderBubbles[i]->setup(&bubbleTile, &plusTile);
-				orderBubbles[i]->create(currentOrders.back());
+				
+				resetBubble(i);
 
 				for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
 					renderingEntities.push_back(foe);
 				}
 			}
+
+
+			if (bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1) {
+			
+				//std::cout << "JJJ" << std::endl;
+				createNewOrder(1, false,false);
+				//orderBubbleTimers.push_back(&upurrTimer1);
+				resetBubble(1);
+				
+				
+				for each (Entity * foe in orderBubbles[1]->returnRenderingEntities()) {
+					renderingEntities.push_back(foe);
+				}
+			}
+
+
+			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
+			std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
+			if (bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2) {
+				//std::cout << "JJJ" << std::endl;
+				createNewOrder(2, false, false);
+				//orderBubbleTimers.push_back(&upurrTimer1);
+
+				resetBubble(2);
+
+
+				for each (Entity * foe in orderBubbles[2]->returnRenderingEntities()) {
+					renderingEntities.push_back(foe);
+				}
+			}
+
 		}
 		orderBubblesToRemove.clear();
 		//std::cout << (currentPoint.x - lastPoint.x) << " " << (currentPoint.y - lastPoint.y) << " " << (currentPoint.z - lastPoint.z) << std::endl;
@@ -1418,16 +1486,35 @@ MaterialCreator* getToppingTile(bakeryUtils::toppingType x) {
 
 
 
-void createNewOrder(int i, bool addDifficulty) {
+void createNewOrder(int i, bool addDifficulty, bool remove) {
 	if (addDifficulty) {
 		bakeryUtils::addToDifficulty(1);
 	}
 	
+	if (i >= currentOrders.size()) {
+		currentOrders.push_back(Order());
+	}
 	currentOrders[i] = Order();
 	currentOrders[i].createOrder(bakeryUtils::getDifficulty());
+	currentOrders[i].startOrder();
 	
-	orderBubblesToRemove.push_back(i);
+	
+	if (remove) {
+		orderBubblesToRemove.push_back(i);
+	}
+	
 
+}
+
+void resetBubble(int i) {
+	orderBubbles[i]->clearRenderingEntities();
+	orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
+	orderBubbleTimers[i]->setFill(0);
+	orderBubbleTimers[i]->updateArrow();
+	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
+	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping));
+	orderBubbles[i]->setup(&bubbleTile, &plusTile);
+	orderBubbles[i]->create(currentOrders[i]);
 }
 
 

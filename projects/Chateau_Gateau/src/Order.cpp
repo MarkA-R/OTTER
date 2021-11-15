@@ -20,7 +20,8 @@ void Order::createOrder(int difficulty)
 	if (difficulty > 4) {
 		difficulty = 4;
 	}
-	int random = rand() % difficulty + 1;
+	
+	int random = (rand() % (difficulty)) + 1;
 	int fillingRand = (rand() % 3) + 1;
 	int toppingRand = (rand() % 3) + 1;
 	//std::cout << fillingRand << " " << toppingRand << std::endl;
@@ -46,7 +47,7 @@ void Order::createOrder(int difficulty)
 	}
 	
 	
-	float orderSeconds = (60 / (difficulty )) + bakeryUtils::returnBakeTime(type);
+	float orderSeconds = (60 / (difficulty)) + bakeryUtils::returnBakeTime(type);//60
 	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;
@@ -118,6 +119,12 @@ void Order::startOrder()
 	maxEndTime = startTime + workTime;
 	//std::cout << "START" << startTime << std::endl;
 }
+
+void Order::setOver(bool)
+{
+}
+
+
 
 bool Order::validateOrder(Pastry p)
 {

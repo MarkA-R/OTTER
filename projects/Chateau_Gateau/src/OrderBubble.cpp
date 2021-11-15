@@ -87,12 +87,12 @@ void OrderBubble::create(Order& o)
     
     float sectionWidth = (width / totalEnties);
     //std::cout << "SECW " << sectionWidth << std::endl;
-
+    timer->setFill(0);
+    timer->updateArrow();
     toRender.push_back(timer->getArrow());
     toRender.push_back(timer->getCircle());
     toRender.push_back(timer->getTile());
-    timer->setFill(0);
-    timer->updateArrow();
+   
     glm::vec3 timerPos = bubbleTransform.m_pos;
     timerPos.y -= 0.3;
    // std::cout << timerPos.y << std::endl;
@@ -215,6 +215,10 @@ std::vector<Entity*> OrderBubble::returnRenderingEntities()
 void OrderBubble::clearRenderingEntities()
 {
     toRender.clear();
+    fillingTile = nullptr;
+    toppingTile = nullptr;
+    pastryTile = nullptr;
+    order.setOver(false);
 }
 
 Transform* OrderBubble::getTransform()

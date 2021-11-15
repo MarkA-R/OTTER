@@ -24,6 +24,8 @@ public:
 	void createOrder(int difficulty);
 	void translate(bakeryUtils::toppingType topping, bakeryUtils::fillType filling, bakeryUtils::pastryType type);
 	void startOrder();
+	void setOver(bool);
+
 	bool validateOrder(Pastry p);
 
 	bool returnSatisfied();
