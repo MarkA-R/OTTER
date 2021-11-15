@@ -30,8 +30,16 @@ void Oven::update(float dt)
 					1 - ((currentPastry->getCookedSeconds() - currentPastry->getCurrentCookedTime())
 						/
 						(currentPastry->getNextCookTime() - currentPastry->getCurrentCookedTime()));
-				ovenTimers[i]->setFill(timeLeft);
-				ovenTimers[i]->updateArrow();
+				if (currentPastry->getPastryType() != bakeryUtils::pastryType::BURNT) {
+					ovenTimers[i]->setFill(timeLeft);
+					ovenTimers[i]->updateArrow();
+				}
+				else
+				{
+					ovenTimers[i]->setFill(0);
+					ovenTimers[i]->updateArrow();
+				}
+				
 				currentPastry->addCookedSeconds(updateTime);
 				//std::cout << currentPastry->getCookedSeconds() << std::endl;
 				currentPastry->updateType();

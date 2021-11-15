@@ -60,7 +60,7 @@ float Pastry::getCookedSeconds()
     }
     else if (type == bakeryUtils::pastryType::CAKE)
     {
-        return bakeryUtils::returnBakeTime(type);
+        return bakeryUtils::returnBurnTime();
     }
     else if (type == bakeryUtils::pastryType::BURNT)
     {
@@ -128,7 +128,7 @@ float Pastry::getCookedSeconds()
     {
         type = bakeryUtils::pastryType::CAKE;
     }
-    else if (secondsCooked > bakeryUtils::returnBurnTime())
+    else if (secondsCooked >= bakeryUtils::returnBurnTime())
     {
         type = bakeryUtils::pastryType::BURNT;
     }

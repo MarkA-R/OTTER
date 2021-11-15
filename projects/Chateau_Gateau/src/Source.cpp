@@ -104,6 +104,8 @@ MaterialCreator crossantMat = MaterialCreator();
 MaterialCreator doughMat = MaterialCreator();
 MaterialCreator cookieMat = MaterialCreator();
 MaterialCreator cupcakeMat = MaterialCreator();
+MaterialCreator cakeMat = MaterialCreator();
+MaterialCreator burntMat = MaterialCreator();
 
 MaterialCreator croissantTile = MaterialCreator();
 MaterialCreator doughTile = MaterialCreator();
@@ -229,6 +231,8 @@ int main()
 	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_texLit);
 	cookieMat.createMaterial("bakery/models/cookie.gltf", "bakery/textures/cookie.png", *prog_texLit);
 	cupcakeMat.createMaterial("bakery/models/cupcake.gltf", "bakery/textures/cupcake.png", *prog_texLit);
+	cakeMat.createMaterial("bakery/models/cake.gltf", "bakery/textures/cake.png", *prog_texLit);
+	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_texLit);
 
 	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
 	doughTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/doughTile.png", *prog_texLit);
@@ -356,7 +360,7 @@ int main()
 		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 2.0f);
-		oven.Add<BoundingBox>(glm::vec3(0.67, 2, 0.5), oven);
+		oven.Add<BoundingBox>(glm::vec3(0.60, 2, 0.5), oven);
 		renderingEntities.push_back(&oven);
 	
 		Entity filling = Entity::Create();
@@ -367,7 +371,9 @@ int main()
 		filling.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
 		filling.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		filling.transform.m_pos = glm::vec3(0.f, -1.0f, 2.0f);
-		filling.Add<BoundingBox>(glm::vec3(0.5, 2, 1), filling);
+		filling.Add<BoundingBox>(glm::vec3(0.8, 2, 1), filling);
+		glm::vec3 fillingPos = filling.transform.m_pos;
+		filling.Get<BoundingBox>().setOrigin(glm::vec3(fillingPos.x + 0.4, fillingPos.y, fillingPos.z));
 		renderingEntities.push_back(&filling);
 
 		auto& animator = filling.Add<CMorphAnimator>(filling);
@@ -549,6 +555,7 @@ int main()
 	tiles.push_back(&cookieTile);
 	tiles.push_back(&cupcakeTile);
 	tiles.push_back(&cakeTile);
+	tiles.push_back(&burntTile);
 
 	oven.Get<Oven>().setup(&slot1, &slot2, &slot3, &slot4, &oven.transform);
 	oven.Get<Oven>().setMaterials(tiles);
@@ -760,9 +767,13 @@ int main()
 				if (e->Has<Fridge>()) {
 					//log("B");
 					//std::cout << "A" << std::endl;
+					int wantedSlot = getWantedSlot();
 					if (isClicking) {
-						int slot = getFirstTraySlot();
-						if (slot >= 0) {
+						wantedSlot = getFirstTraySlot();
+					}
+					if (wantedSlot >= 0) {
+						int slot = wantedSlot;
+						
 							trayPastry[slot] = Entity::Allocate().release();
 
 
@@ -780,14 +791,13 @@ int main()
 							addedSlot = slot;
 							//std::cout << "B" << std::endl;
 
-						}
-						else
-						{
-							std::cout << "Tray full!" << std::endl;
-						}
-
-
+						
+						
 					}
+						
+
+
+					
 				}
 				else if (e->Has<Oven>()) {
 					//log("A");
@@ -1096,14 +1106,14 @@ int main()
 									bakeryUtils::addToRounds(1);
 									std::cout << "HERE" << std::endl;
 									createNewOrder(u,true);
-									for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
+									for each (Entity * remover in orderBubbles[u]->returnRenderingEntities()) {
 										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
 
 									}
 
-									resetBubble(i);
+									resetBubble(u);
 
-									for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
+									for each (Entity * foe in orderBubbles[u]->returnRenderingEntities()) {
 										renderingEntities.push_back(foe);
 									}
 								}
@@ -1420,6 +1430,16 @@ void setPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *cupcakeMat.getMesh(), *cupcakeMat.getMaterial());
 		e->transform.m_scale = glm::vec3(0.15f, 0.15f, 0.15f);
+	}
+	if (type == bakeryUtils::pastryType::BURNT) {
+		e->Remove<CMeshRenderer>();
+		e->Add<CMeshRenderer>(*e, *burntMat.getMesh(), *burntMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.15f, 0.15f, 0.15f);
+	}
+	if (type == bakeryUtils::pastryType::CAKE) {
+		e->Remove<CMeshRenderer>();
+		e->Add<CMeshRenderer>(*e, *cakeMat.getMesh(), *cakeMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.1f, 0.1f, 0.1f);
 	}
 }
 float getTrayRaise(bakeryUtils::pastryType type) {
