@@ -22,15 +22,21 @@ void Order::createOrder(int difficulty)
 	}
 	
 	int random = (rand() % (difficulty)) + 1;
+	if (random > 4) {
+		random = 4;
+	}
+	if (random < 1) {
+		random = 1;
+	}
 	int fillingRand = (rand() % 3) + 1;
 	int toppingRand = (rand() % 3) + 1;
 	//std::cout << fillingRand << " " << toppingRand << std::endl;
 	int usingPastryInt = random;
 	if (difficulty == 1) {
-		random = 0;
+		random = 1;
 	}
 	
-	type =bakeryUtils::pastryType((random) + 1);
+	type =bakeryUtils::pastryType((random));
 	if (difficulty > 2) {
 		topping = bakeryUtils::toppingType(toppingRand);
 	}

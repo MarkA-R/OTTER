@@ -1094,8 +1094,18 @@ int main()
 									renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), tray), renderingEntities.end());
 									trayPastry[i] = nullptr;
 									bakeryUtils::addToRounds(1);
-									
+									std::cout << "HERE" << std::endl;
 									createNewOrder(u,true);
+									for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
+										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
+
+									}
+
+									resetBubble(i);
+
+									for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
+										renderingEntities.push_back(foe);
+									}
 								}
 							}
 							
@@ -1116,22 +1126,24 @@ int main()
 		}
 
 		if (orderBubblesToRemove.size() > 0) {
-			for (int i = 0; i < orderBubblesToRemove.size(); i++) {
+
+			for (int i = 0; i < orderBubblesToRemove.size(); i++) {//orderBubblesToRemove.size()
 				
-				for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
+				for each (Entity * remover in orderBubbles[orderBubblesToRemove[i]]->returnRenderingEntities()) {
 					renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
 					
 				}
 				
-				resetBubble(i);
+				resetBubble(orderBubblesToRemove[i]);
 
-				for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
+				for each (Entity * foe in orderBubbles[orderBubblesToRemove[i]]->returnRenderingEntities()) {
 					renderingEntities.push_back(foe);
 				}
 			}
 
 
-			if (bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1) {
+			if ((bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
+				|| currentOrders.size() == 1) {
 			
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(1, false,false);
@@ -1147,7 +1159,8 @@ int main()
 
 			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
 			std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
-			if (bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2) {
+			if ((bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
+				|| currentOrders.size() == 2) {
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(2, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1);
