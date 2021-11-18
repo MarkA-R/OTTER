@@ -159,6 +159,13 @@ public:
    static int getRoundsLasted() {
        return roundsLasted;
    }
+
+   static void addToFailed(int i) {
+       ordersFailed += i;
+   }
+   static int getOrdersFailed() {
+       return ordersFailed;
+   }
 protected:
     inline static float timeToCroissant = 10;
     inline static float timeToCookie = 20;
@@ -168,6 +175,7 @@ protected:
     inline static float gameTime = 0;
     inline static int difficulty = 1;
     inline static int roundsLasted = 0;
+    inline static int ordersFailed = 0;
      
     
 

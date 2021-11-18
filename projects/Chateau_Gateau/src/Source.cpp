@@ -91,7 +91,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 int getFirstTraySlot();
 bool isSlotEmpty(int i);
-void setPastryMesh(Entity* e, bakeryUtils::pastryType type);
+void setMachinePastryMesh(Entity* e, bakeryUtils::pastryType type);
+void setTrayPastryMesh(Entity* e, bakeryUtils::pastryType type);
 void setPastryFilling(Entity* e, bakeryUtils::fillType type);
 void setPastryTopping(Entity* e, bakeryUtils::toppingType type);
 int getWantedSlot();
@@ -163,7 +164,7 @@ int main()
 	srand(static_cast<unsigned int>(time(0)));
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
-	App::SetClearColor(glm::vec4(0.0f, 0.27f, 0.4f, 1.0f));
+	App::SetClearColor(glm::vec4(1, 0.964, 0.929,1.f));
 	App::setCursorVisible(false);
 	gameWindow = glfwGetCurrentContext();
 	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -338,8 +339,8 @@ int main()
 		bin.transform.m_pos = glm::vec3(-3.f, -1.3, -1.3);
 		bin.Add<BoundingBox>(glm::vec3(0.2, 1, 0.3), bin);
 		renderingEntities.push_back(&bin);
-		std::cout << bin.Get<BoundingBox>().getOrigin().x << " " << bin.Get<BoundingBox>().getOrigin().y <<
-			" " << bin.Get<BoundingBox>().getOrigin().z << std::endl;
+	//	std::cout << bin.Get<BoundingBox>().getOrigin().x << " " << bin.Get<BoundingBox>().getOrigin().y <<
+		//	" " << bin.Get<BoundingBox>().getOrigin().z << std::endl;
 		
 		Entity fridge = Entity::Create();
 		fridge.Add<CMeshRenderer>(fridge, *fridgeMat.getMesh(), *fridgeMat.getMaterial());
@@ -360,7 +361,7 @@ int main()
 		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 2.0f);
-		oven.Add<BoundingBox>(glm::vec3(0.60, 2, 0.5), oven);
+		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.25), oven);
 		renderingEntities.push_back(&oven);
 	
 		Entity filling = Entity::Create();
@@ -371,7 +372,7 @@ int main()
 		filling.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
 		filling.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		filling.transform.m_pos = glm::vec3(0.f, -1.0f, 2.0f);
-		filling.Add<BoundingBox>(glm::vec3(0.8, 2, 1), filling);
+		filling.Add<BoundingBox>(glm::vec3(0.52, 2, 0.35), filling);
 		glm::vec3 fillingPos = filling.transform.m_pos;
 		filling.Get<BoundingBox>().setOrigin(glm::vec3(fillingPos.x + 0.4, fillingPos.y, fillingPos.z));
 		renderingEntities.push_back(&filling);
@@ -481,31 +482,31 @@ int main()
 	
 	Entity tray = Entity::Create();
 	tray.Add<CMeshRenderer>(tray, *trayMat.getMesh(), *trayMat.getMaterial());
-	trayScale = glm::vec3(0.53f, 0.35f, 0.35f);
+	trayScale = glm::vec3(0.053f, 0.035f, 0.035f);
 	tray.transform.m_scale = trayScale;
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.2, cameraPos.y, cameraPos.z - 0.45);//1.15
+	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z +0.552);//1.15
 	tray.transform.SetParent(&cameraEntity.transform);
 	renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
-	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.15;
-	traySlot[0].m_pos.z = tray.transform.m_pos.z - 0.15;
+	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.015;
+	traySlot[0].m_pos.z = tray.transform.m_pos.z - 0.015;
 	traySlot[0].SetParent(&tray.transform);
 	traySlot[1] = Transform();
 	traySlot[1].m_pos = tray.transform.m_pos;
-	traySlot[1].m_pos.x = tray.transform.m_pos.x + 0.15;
-	traySlot[1].m_pos.z = tray.transform.m_pos.z - 0.15;
+	traySlot[1].m_pos.x = tray.transform.m_pos.x + 0.015;
+	traySlot[1].m_pos.z = tray.transform.m_pos.z - 0.015;
 	traySlot[1].SetParent(&tray.transform);
 	traySlot[2] = Transform();
 	traySlot[2].m_pos = tray.transform.m_pos;
-	traySlot[2].m_pos.x = tray.transform.m_pos.x - 0.15;
-	traySlot[2].m_pos.z = tray.transform.m_pos.z + 0.15;
+	traySlot[2].m_pos.x = tray.transform.m_pos.x - 0.015;
+	traySlot[2].m_pos.z = tray.transform.m_pos.z + 0.015;
 	traySlot[2].SetParent(&tray.transform);
 	traySlot[3] = Transform();
 	traySlot[3].m_pos = tray.transform.m_pos;
-	traySlot[3].m_pos.x = tray.transform.m_pos.x + 0.15;
-	traySlot[3].m_pos.z = tray.transform.m_pos.z + 0.15;
+	traySlot[3].m_pos.x = tray.transform.m_pos.x + 0.015;
+	traySlot[3].m_pos.z = tray.transform.m_pos.z + 0.015;
 	traySlot[3].SetParent(&tray.transform);
 
 	
@@ -567,9 +568,6 @@ int main()
 	glm::vec3 currentPoint = glm::vec3(0);
 	bool raycastHit = false;
 	Entity* hitEntity = nullptr;
-	// Main loop
-	//float sc = 1;
-	//bakeryUtils::addToGameTime(1);
 	currentOrders.push_back(Order());
 	currentOrders.back().createOrder(bakeryUtils::getDifficulty());//bakeryUtils::getDifficulty()
 	currentOrders.back().startOrder();
@@ -650,6 +648,10 @@ int main()
 				
 				if (ob->isOrderExpired()) {
 					createNewOrder(i, false,false);
+					bakeryUtils::addToFailed(1);
+					if (bakeryUtils::getOrdersFailed() == 3) {
+						isPaused = true;
+					}
 					for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
 						renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
 
@@ -683,15 +685,17 @@ int main()
 		/*
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		App::StartImgui();
-		ImGui::DragFloat("X", &(firstOrder.getTransform()->m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(firstOrder.getTransform()->m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(firstOrder.getTransform()->m_pos.z), 0.1f);
+		ImGui::DragFloat("X", &(ex), 0.01f);
+		ImGui::DragFloat("Y", &(why), 0.01f);
+		ImGui::DragFloat("Z", &(zed), 0.01f);
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 		
 		App::EndImgui();
-		//bakery.transform.m_scale = glm::vec3(sc);
 		*/
+		//bakery.transform.m_scale = glm::vec3(sc);
+		//tray.transform.m_pos = glm::vec3(cameraPos.x + ex, cameraPos.y + why, cameraPos.z + zed);//1.15
+
 		
 		glm::quat cameraRotEuler = cameraQuat;
 		glm::vec3 cameraFacingVector = glm::vec3(0);
@@ -781,7 +785,7 @@ int main()
 							trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *doughMat.getMesh(), *doughMat.getMaterial());
 							trayPastry[slot]->Add<Pastry>();
 
-							trayPastry[slot]->transform.m_scale = glm::vec3(0.09f, 0.09f, 0.09f);
+							trayPastry[slot]->transform.m_scale = glm::vec3(0.009f, 0.009f, 0.009f);
 							trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 							//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl;
@@ -801,6 +805,7 @@ int main()
 				}
 				else if (e->Has<Oven>()) {
 					//log("A");
+					//std::cout << "OVEN" << std::endl;
 					int wantedSlot = getWantedSlot();
 					int addingSlot = wantedSlot;
 					if (wantedSlot >= 0) {
@@ -856,7 +861,7 @@ int main()
 								trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
 								trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
 								trayPastry[newSlot]->Get<Pastry>().setInOven(false);
-								setPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								setTrayPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
 
 								/*
 								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
@@ -872,6 +877,7 @@ int main()
 				}
 				else if (e->Has<FillingMachine>()) {
 					FillingMachine& fillingScript = e->Get<FillingMachine>();
+					//std::cout << "FILLING" << std::endl;
 					if (isLeftButtonHeld) {
 						if (fillingScript.isFillingFull()) {
 							float yChange = (currentPoint.y - lastPoint.y) * -1.25;//the 1.25 is the shortness scale
@@ -890,6 +896,8 @@ int main()
 									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
 									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
 									trayPastry[wantedSlot]->Get<Pastry>().setInFilling(false);
 									fillingScript.removeFromFilling();
 									//UPDATE FILLING HERE
@@ -938,6 +946,8 @@ int main()
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
 								fillingScript.putInFilling(trayPastry[wantedSlot]);
 								trayPastry[wantedSlot]->Get<Pastry>().setInFilling(true);
+								setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
 								trayPastry[wantedSlot] = nullptr;
 
 							}
@@ -954,6 +964,8 @@ int main()
 									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
 									trayPastry[wantedSlot]->Get<Pastry>().setInFilling(false);
+									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
 									fillingScript.removeFromFilling();
 									//dont set texture here cause they just removed it
 									
@@ -994,6 +1006,7 @@ int main()
 									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
 									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
 									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
 									toppingScript.removeFromTopping();
@@ -1040,6 +1053,8 @@ int main()
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
 								toppingScript.putInTopping(trayPastry[wantedSlot]);
 								trayPastry[wantedSlot]->Get<Pastry>().setInTopping(true);
+								setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
 								trayPastry[wantedSlot] = nullptr;
 
 							}
@@ -1054,6 +1069,7 @@ int main()
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
 									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
 									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 
 									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
@@ -1100,7 +1116,7 @@ int main()
 						for (int i = 0; i < std::size(trayPastry); i++) {
 							Entity* tray = trayPastry[i];
 							if (tray != nullptr) {
-								if (o.validateOrder(tray->Get<Pastry>())) {
+								if (o.validateOrder(tray->Get<Pastry>())) {//for drinks just have a check here for if it has a pastry or not and to check if an order is completed, have an internal counter or something
 									renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), tray), renderingEntities.end());
 									trayPastry[i] = nullptr;
 									bakeryUtils::addToRounds(1);
@@ -1415,37 +1431,41 @@ int getFirstTraySlot() {
 	return -1;
 }
 
-void setPastryMesh(Entity* e, bakeryUtils::pastryType type) {
+void setTrayPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 	if (type == bakeryUtils::pastryType::CROISSANT) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *crossantMat.getMesh(), *crossantMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
+		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
 	}
 	if (type == bakeryUtils::pastryType::COOKIE) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *cookieMat.getMesh(), *cookieMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
+		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
 	}
 	if (type == bakeryUtils::pastryType::CUPCAKE) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *cupcakeMat.getMesh(), *cupcakeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.15f, 0.15f, 0.15f);
+		e->transform.m_scale = glm::vec3(0.015f, 0.015f, 0.015f);
 	}
 	if (type == bakeryUtils::pastryType::BURNT) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *burntMat.getMesh(), *burntMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.15f, 0.15f, 0.15f);
+		e->transform.m_scale = glm::vec3(0.015f, 0.015f, 0.015f);
 	}
 	if (type == bakeryUtils::pastryType::CAKE) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *cakeMat.getMesh(), *cakeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.1f, 0.1f, 0.1f);
+		e->transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
 	}
+}
+
+void setMachinePastryMesh(Entity* e, bakeryUtils::pastryType type) {
+	e->transform.m_scale *= 10;
 }
 float getTrayRaise(bakeryUtils::pastryType type) {
 	float raise = 0;
 	if (type == bakeryUtils::pastryType::CUPCAKE) {
-		raise = 0.13;
+		raise = 0.013;
 	}
 	return raise;
 }
