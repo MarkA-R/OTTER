@@ -44,11 +44,18 @@ int activeScene = 0;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.7f);
+glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
+glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.3, cameraPos.y, cameraPos.z);
+glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.3, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
 glm::quat cameraQuat = glm::quat();
 
 double xPos, yPos;
 double cameraX = 0, cameraY = 0;
 double sensitivity = -0.1;
+bool isInMainMenu = true;
+bool isInPauseMenu = false;
+int selectedOption = 0;
+glm::quat getCameraRotation();
 
 Entity* globalCameraEntity;
 GLFWwindow* gameWindow;
@@ -60,6 +67,12 @@ bool isClickingOne = false;
 bool isClickingTwo = false;
 bool isClickingThree = false;
 bool isClickingFour = false;
+bool isClickingUp = false;
+bool isClickingDown = false;
+bool isClickingLeft = false;
+bool isClickingRight = false;
+bool isClickingEnter = false;
+bool isClickingSpace = false;
 
 //Mouse State
 bool firstMouse = true;
@@ -69,6 +82,9 @@ float lastX = width / 2;
 float lastY = height / 2;
 float scrollX;
 float scrollY;
+float cameraT = 0;
+bool isCameraMoving = false;
+
 std::vector<Entity*> renderingEntities = std::vector<Entity*>();
 Transform traySlot[4] = {};
 
@@ -80,7 +96,7 @@ std::vector<OvenTimer*> orderBubbleTimers;
 std::vector<int> orderBubblesToRemove;
 Entity* trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 std::vector<Mesh*> fillingFrames = std::vector<Mesh*>();
-
+std::vector<Material*> signFrames = std::vector<Material*>();
 
 
 // Keep our main cleaner
@@ -99,6 +115,7 @@ int getWantedSlot();
 float getTrayRaise(bakeryUtils::pastryType type);
 // Function to handle user inputs
 void GetInput();
+void getKeyInput();
 
 
 MaterialCreator crossantMat = MaterialCreator();
@@ -107,6 +124,12 @@ MaterialCreator cookieMat = MaterialCreator();
 MaterialCreator cupcakeMat = MaterialCreator();
 MaterialCreator cakeMat = MaterialCreator();
 MaterialCreator burntMat = MaterialCreator();
+
+
+MaterialCreator playSignMat = MaterialCreator();
+MaterialCreator settingsSignMat = MaterialCreator();
+MaterialCreator exitSignMat = MaterialCreator();
+MaterialCreator pauseSignMat = MaterialCreator();
 
 MaterialCreator croissantTile = MaterialCreator();
 MaterialCreator doughTile = MaterialCreator();
@@ -235,6 +258,16 @@ int main()
 	cakeMat.createMaterial("bakery/models/cake.gltf", "bakery/textures/cake.png", *prog_texLit);
 	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_texLit);
 
+	playSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/playSign.png", *prog_texLit);
+	settingsSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/settingsSign.png", *prog_texLit);
+	exitSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/exitSign.png", *prog_texLit);
+	pauseSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/pauseSign.png", *prog_texLit);
+	signFrames.push_back(playSignMat.getMaterial().get());
+	signFrames.push_back(settingsSignMat.getMaterial().get());
+	signFrames.push_back(exitSignMat.getMaterial().get());
+	signFrames.push_back(pauseSignMat.getMaterial().get());
+
+
 	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
 	doughTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/doughTile.png", *prog_texLit);
 	cookieTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cookieTile.png", *prog_texLit);
@@ -273,6 +306,15 @@ int main()
 	bakery.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	bakery.transform.m_pos = glm::vec3(-2.4, -1.9, -1.2);
 	renderingEntities.push_back(&bakery);
+
+	Entity sign = Entity::Create();
+	sign.Add<CMeshRenderer>(sign, *playSignMat.getMesh(), *playSignMat.getMaterial());
+	sign.transform.m_scale = glm::vec3(0.15, 0.2, 0.03);
+	sign.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::vec3 signPos = menuCameraPos;
+	sign.transform.m_pos = glm::vec3(signPos.x - 0.5, -1.2f, signPos.z +0.2);
+	
+	renderingEntities.push_back(&sign);
 
 
 	Entity cursor = Entity::Create();
@@ -486,8 +528,8 @@ int main()
 	tray.transform.m_scale = trayScale;
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z +0.552);//1.15
-	tray.transform.SetParent(&cameraEntity.transform);
-	renderingEntities.push_back(&tray);
+	
+	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
 	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.015;
@@ -570,7 +612,7 @@ int main()
 	Entity* hitEntity = nullptr;
 	currentOrders.push_back(Order());
 	currentOrders.back().createOrder(bakeryUtils::getDifficulty());//bakeryUtils::getDifficulty()
-	currentOrders.back().startOrder();
+	//currentOrders.back().startOrder();
 	
 	OvenTimer upurrTimer1 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
 	OvenTimer upurrTimer2 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
@@ -602,19 +644,76 @@ int main()
 		renderingEntities.push_back(foe);
 	}
 	
-	
+
+	cameraX = 0;
+	cameraY = 90.f;
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
+		App::FrameStart();
+		float deltaTime = App::GetDeltaTime();
+		if (isInMainMenu) {
+			if (!isCameraMoving) {
+				getKeyInput();
+				cameraEntity.transform.m_pos = menuCameraPos;
+				globalCameraEntity->transform.m_pos = menuCameraPos;
+
+				cameraEntity.transform.m_rotation = getCameraRotation();
+				globalCameraEntity->transform.m_rotation = cameraEntity.transform.m_rotation;
+				cameraEntity.Get<CCamera>().Update();
+				if (isClickingUp) {
+					selectedOption += 2;
+					selectedOption = selectedOption % 3;
+				}
+				if (isClickingDown) {
+					selectedOption++;
+					selectedOption = selectedOption % 3;
+				}
+			}
+			
+			if (selectedOption == 0) {//PLAY
+				cameraT += deltaTime;
+				tray.transform.SetParent(&cameraEntity.transform);
+				//currentorders start order
+			}
+			else if (selectedOption == 1) {
+
+			}
+			else if (selectedOption == 2) {//exit
+
+			}
+			sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption]);
+
+			for each (Entity * e in renderingEntities) {
+
+				e->transform.RecomputeGlobal();
+
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
+				
+			}
+			
+			App::SwapBuffers();
+			continue;
+
+		}
 		bool keepCheckingRaycast = true;
 		 isClicking = false;
 		 isRightClicking = false;
 		 int addedSlot = -1;
 		 raycastHit = false;
 		 
-		App::FrameStart();
-		float deltaTime = App::GetDeltaTime();
+		
+		
+
+		
 		if (Input::GetKeyDown(GLFW_KEY_SPACE)) {
 			isPaused = !isPaused;
 
@@ -669,18 +768,7 @@ int main()
 			cameraEntity.Get<CCamera>().Update();
 		}
 		
-		
-		
 
-		
-		
-		//cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
-		//angle++;
-		//std::cout << angle << std::endl;
-		//angle += 0.05;
-		//slot1.addFill(0.01);
-		//slot1.updateArrow();
-		// Update camera
 		
 		/*
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
@@ -693,9 +781,7 @@ int main()
 		
 		App::EndImgui();
 		*/
-		//bakery.transform.m_scale = glm::vec3(sc);
-		//tray.transform.m_pos = glm::vec3(cameraPos.x + ex, cameraPos.y + why, cameraPos.z + zed);//1.15
-
+	
 		
 		glm::quat cameraRotEuler = cameraQuat;
 		glm::vec3 cameraFacingVector = glm::vec3(0);
@@ -1283,6 +1369,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		isClickingOne = false;
 	}
+
+	
+
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -1320,14 +1409,11 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	
 
 	//BELOW FROM https://gamedev.stackexchange.com/questions/13436/glm-euler-angles-to-quaternion
-	glm::quat QuatAroundX = glm::angleAxis(glm::radians((float)deltaY), glm::vec3(1.0, 0.0, 0.0));
-	glm::quat QuatAroundY = glm::angleAxis(glm::radians((float)deltaX), glm::vec3(0.0, 1.0, 0.0));
-	glm::quat QuatAroundZ = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0, 0.0, 1.0));
-	glm::quat finalOrientation = QuatAroundY * QuatAroundX * QuatAroundZ;
-	cameraQuat = finalOrientation;
 	
-	if (!isPaused) {
-		globalCameraEntity->transform.m_rotation = finalOrientation;
+	cameraQuat = getCameraRotation();
+	
+	if (!isPaused && !isInMainMenu) {
+		globalCameraEntity->transform.m_rotation = cameraQuat;
 		globalCameraEntity->transform.m_pos = cameraPos;
 
 		glfwSetCursorPos(gameWindow, width / 2, height / 2);
@@ -1352,17 +1438,65 @@ void GetInput()
 		glfwGetCursorPos(gameWindow, &xPos, &yPos);
 		glfwSetCursorPosCallback(gameWindow, getCursorData);
 	}
-		
-	
-	
-	//glfwGetCursorPos(gameWindow, &xPos, &yPos);
-	
-	//std::cout << xPos << " " << yPos << std::endl;
 
 	
 
-	//std::cout << globalCameraEntity->transform.m_rotation.x << " , " << globalCameraEntity->transform.m_rotation.y << " , " << globalCameraEntity->transform.m_rotation.z << "\n";
+}
+void getKeyInput() {
+	if (Input::GetKeyDown(GLFW_KEY_UP))
+	{
+		isClickingUp = true;
+		//std::cout << "YES" << std::endl;
+	}
+	else
+	{
+		isClickingUp = false;
+	}
 
+	if (Input::GetKeyDown(GLFW_KEY_DOWN))
+	{
+		isClickingDown = true;
+	}
+	else
+	{
+		isClickingDown = false;
+	}
+
+	if (Input::GetKeyDown(GLFW_KEY_LEFT))
+	{
+		isClickingLeft = true;
+	}
+	else
+	{
+		isClickingLeft = false;
+	}
+
+	if (Input::GetKeyDown(GLFW_KEY_RIGHT))
+	{
+		isClickingRight = true;
+	}
+	else
+	{
+		isClickingRight = false;
+	}
+
+	if (Input::GetKeyDown(GLFW_KEY_ENTER))
+	{
+		isClickingEnter = true;
+	}
+	else
+	{
+		isClickingEnter = false;
+	}
+
+	if (Input::GetKeyDown(GLFW_KEY_SPACE))
+	{
+		isClickingSpace = true;
+	}
+	else
+	{
+		isClickingSpace = false;
+	}
 }
 int getWantedSlot() {
 	int wantedSlot = -1;
@@ -1570,7 +1704,13 @@ void resetBubble(int i) {
 	orderBubbles[i]->create(currentOrders[i]);
 }
 
-
+glm::quat getCameraRotation() {
+	glm::quat QuatAroundX = glm::angleAxis(glm::radians((float)cameraX), glm::vec3(1.0, 0.0, 0.0));
+	glm::quat QuatAroundY = glm::angleAxis(glm::radians((float)cameraY), glm::vec3(0.0, 1.0, 0.0));
+	glm::quat QuatAroundZ = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0, 0.0, 1.0));
+	glm::quat finalOrientation = QuatAroundY * QuatAroundX * QuatAroundZ;
+	return finalOrientation;
+}
 
 
 
