@@ -38,8 +38,42 @@
 
 using namespace nou;
 
-//std::vector<Scene*> gameScenes = std::vector<Scene*>();
-int activeScene = 0;
+template<typename T>
+T Catmull(const T& p0, const T& p1, const T& p2, const T& p3, float t)
+{
+
+	return 0.5f * (2.f * p1 + t * (-p0 + p2)
+		+ t * t * (2.f * p0 - 5.f * p1 + 4.f * p2 - p3)
+		+ t * t * t * (-p0 + 3.f * p1 - 3.f * p2 + p3));
+}
+
+template<typename T>
+T keepInBounds(T current, T lower, T upper) {
+	if (current < lower) {
+		current = upper - (lower - current);
+	}
+	if (current >= lower && current <= upper) {
+
+	}
+	if (current > upper) {
+		current = (current + lower) % upper;
+	}
+	return current;
+}
+
+int keepIntInBounds(int current, int lower, int upper) {
+	if (current < lower) {
+		current = upper - (lower - current);
+	}
+	if (current >= lower && current <= upper) {
+
+	}
+	if (current > upper) {
+		current = (current + lower) % upper;
+	}
+	return current;
+}
+
 
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
@@ -47,6 +81,8 @@ glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.7f);
 glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
 glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.3, cameraPos.y, cameraPos.z);
 glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.3, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
+std::vector<glm::vec3> cameraKeys = std::vector<glm::vec3>();
+
 glm::quat cameraQuat = glm::quat();
 
 double xPos, yPos;
@@ -56,6 +92,8 @@ bool isInMainMenu = true;
 bool isInPauseMenu = false;
 int selectedOption = 0;
 glm::quat getCameraRotation();
+glm::quat menuCameraQuat;
+glm::quat standardCameraQuat;
 
 Entity* globalCameraEntity;
 GLFWwindow* gameWindow;
@@ -83,6 +121,7 @@ float lastY = height / 2;
 float scrollX;
 float scrollY;
 float cameraT = 0;
+int currentCameraPoint = 0;
 bool isCameraMoving = false;
 
 std::vector<Entity*> renderingEntities = std::vector<Entity*>();
@@ -184,6 +223,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 bool isPaused = false;
 int main()
 {
+	cameraKeys.push_back(cameraPos);
+	cameraKeys.push_back(insidePos);
+	cameraKeys.push_back(outsidePos);
+	cameraKeys.push_back(menuCameraPos);
+
 	srand(static_cast<unsigned int>(time(0)));
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
@@ -640,26 +684,32 @@ int main()
 	orderBubbleTransform.push_back(&upurrBubbleLocation1);
 	orderBubbleTransform.push_back(&upurrBubbleLocation2);
 	
-	for each(Entity* foe in firstOrder.returnRenderingEntities()) {
-		renderingEntities.push_back(foe);
-	}
 	
-
-	cameraX = 0;
-	cameraY = 90.f;
 	
+	standardCameraQuat = getCameraRotation();
+	cameraX = 90.f;
+	cameraY = 0.f;
+	menuCameraQuat = getCameraRotation();
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
+		
+		bool keepCheckingRaycast = true;
+		isClicking = false;
+		isRightClicking = false;
+		int addedSlot = -1;
+		raycastHit = false;
 		App::FrameStart();
 		float deltaTime = App::GetDeltaTime();
+		getKeyInput();
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
-				getKeyInput();
+				
 				cameraEntity.transform.m_pos = menuCameraPos;
 				globalCameraEntity->transform.m_pos = menuCameraPos;
 
 				cameraEntity.transform.m_rotation = getCameraRotation();
+				
 				globalCameraEntity->transform.m_rotation = cameraEntity.transform.m_rotation;
 				cameraEntity.Get<CCamera>().Update();
 				if (isClickingUp) {
@@ -670,21 +720,58 @@ int main()
 					selectedOption++;
 					selectedOption = selectedOption % 3;
 				}
+				
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption]);
+
+				if (isClickingEnter) {
+					std::cout << selectedOption << std::endl;
+					if (selectedOption == 0) {//PLAY
+						std::cout << selectedOption << std::endl;
+						isCameraMoving = true;
+					}
+
+				}
+			}
+			else
+			{
+
+				cameraT += deltaTime;
+				if (cameraT >= 1) {
+					cameraT = 0.f;
+					currentCameraPoint++;
+				}
+				
+				if (cameraT == 0.f && currentCameraPoint == 3) {
+					cameraEntity.transform.m_pos = cameraPos;
+					globalCameraEntity->transform.m_pos = cameraPos;
+					cameraX = 0.f;
+					cameraY = 0.f;
+					isCameraMoving = false;
+					isInMainMenu = false;
+					isPaused = false;
+					tray.transform.SetParent(&cameraEntity.transform);
+					renderingEntities.push_back(&tray);
+					for each (Entity * foe in firstOrder.returnRenderingEntities()) {
+						renderingEntities.push_back(foe);
+					}
+					currentOrders.back().startOrder();
+
+				}
+				else
+				{
+					
+					int index = keepInBounds(currentCameraPoint, 0, 3);
+					cameraEntity.transform.m_pos = Catmull(cameraKeys[keepInBounds(4 - currentCameraPoint,0,3) ]
+						, cameraKeys[keepInBounds( 4 - (currentCameraPoint +1), 0, 3) ],
+						cameraKeys[keepInBounds(4 - (currentCameraPoint + 2), 0, 3) ],
+						cameraKeys[keepInBounds(4 - (currentCameraPoint + 3), 0, 3) ], cameraT);
+					cameraEntity.transform.m_rotation = glm::slerp(menuCameraQuat, standardCameraQuat, (cameraT + currentCameraPoint) /3);
+					cameraEntity.Get<CCamera>().Update();
+				}
+				
+				
 			}
 			
-			if (selectedOption == 0) {//PLAY
-				cameraT += deltaTime;
-				tray.transform.SetParent(&cameraEntity.transform);
-				//currentorders start order
-			}
-			else if (selectedOption == 1) {
-
-			}
-			else if (selectedOption == 2) {//exit
-
-			}
-			sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption]);
-
 			for each (Entity * e in renderingEntities) {
 
 				e->transform.RecomputeGlobal();
@@ -704,17 +791,13 @@ int main()
 			continue;
 
 		}
-		bool keepCheckingRaycast = true;
-		 isClicking = false;
-		 isRightClicking = false;
-		 int addedSlot = -1;
-		 raycastHit = false;
+		
 		 
 		
 		
 
 		
-		if (Input::GetKeyDown(GLFW_KEY_SPACE)) {
+		if (isClickingSpace && !isCameraMoving) {
 			isPaused = !isPaused;
 
 			if (isPaused) {
@@ -734,7 +817,8 @@ int main()
 		if (!isPaused) {
 			//std::cout << isPaused << std::endl;
 			GetInput();
-
+			
+			
 			// Update our LERP timers
 		
 			bakeryUtils::addToGameTime(deltaTime);
@@ -854,6 +938,7 @@ int main()
 		if (raycastHit && hitEntity != nullptr) {
 			Entity* e = hitEntity;
 			if (e->Has<Machine>()) {//check for fridge tomorrow
+				
 				if (e->Has<Fridge>()) {
 					//log("B");
 					//std::cout << "A" << std::endl;
@@ -1380,6 +1465,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	{
 		isClicking = true;
 		isLeftButtonHeld = true;
+		
 	}
 	else
 	{
@@ -1705,13 +1791,17 @@ void resetBubble(int i) {
 }
 
 glm::quat getCameraRotation() {
-	glm::quat QuatAroundX = glm::angleAxis(glm::radians((float)cameraX), glm::vec3(1.0, 0.0, 0.0));
-	glm::quat QuatAroundY = glm::angleAxis(glm::radians((float)cameraY), glm::vec3(0.0, 1.0, 0.0));
+	glm::quat QuatAroundX = glm::angleAxis(glm::radians((float)cameraY), glm::vec3(1.0, 0.0, 0.0));
+	glm::quat QuatAroundY = glm::angleAxis(glm::radians((float)cameraX), glm::vec3(0.0, 1.0, 0.0));
 	glm::quat QuatAroundZ = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0, 0.0, 1.0));
 	glm::quat finalOrientation = QuatAroundY * QuatAroundX * QuatAroundZ;
 	return finalOrientation;
 }
 
+
+void moveCamera(int direction) {
+
+}
 
 
 
