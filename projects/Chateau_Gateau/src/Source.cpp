@@ -84,9 +84,11 @@ glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.3, (cameraPos.y + menuCamer
 std::vector<glm::vec3> cameraKeys = std::vector<glm::vec3>();
 
 glm::quat cameraQuat = glm::quat();
+glm::quat lastCameraQuat;
 
 double xPos, yPos;
 double cameraX = 0, cameraY = 0;
+double lastCameraX = 0, lastCameraY = 0;
 double sensitivity = -0.1;
 bool isInMainMenu = true;
 bool isInPauseMenu = false;
@@ -94,6 +96,8 @@ int selectedOption = 0;
 glm::quat getCameraRotation();
 glm::quat menuCameraQuat;
 glm::quat standardCameraQuat;
+glm::quat currentCameraQuat;
+glm::quat wantedCameraQuat;
 
 Entity* globalCameraEntity;
 GLFWwindow* gameWindow;
@@ -152,6 +156,9 @@ void setPastryFilling(Entity* e, bakeryUtils::fillType type);
 void setPastryTopping(Entity* e, bakeryUtils::toppingType type);
 int getWantedSlot();
 float getTrayRaise(bakeryUtils::pastryType type);
+void moveCamera(int);
+int getSignSelection(int max, bool reset);
+bool isInRendering(Entity* e);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -687,9 +694,11 @@ int main()
 	
 	
 	standardCameraQuat = getCameraRotation();
+	wantedCameraQuat = standardCameraQuat;
 	cameraX = 90.f;
 	cameraY = 0.f;
 	menuCameraQuat = getCameraRotation();
+	currentCameraQuat = menuCameraQuat;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -706,27 +715,17 @@ int main()
 			if (!isCameraMoving) {
 				
 				cameraEntity.transform.m_pos = menuCameraPos;
-				globalCameraEntity->transform.m_pos = menuCameraPos;
 
-				cameraEntity.transform.m_rotation = getCameraRotation();
-				
-				globalCameraEntity->transform.m_rotation = cameraEntity.transform.m_rotation;
+				cameraEntity.transform.m_rotation = menuCameraQuat;
+
 				cameraEntity.Get<CCamera>().Update();
-				if (isClickingUp) {
-					selectedOption += 2;
-					selectedOption = selectedOption % 3;
-				}
-				if (isClickingDown) {
-					selectedOption++;
-					selectedOption = selectedOption % 3;
-				}
+				int mainMenuChosen = getSignSelection(3,false);
 				
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption]);
-
-				if (isClickingEnter) {
-					std::cout << selectedOption << std::endl;
-					if (selectedOption == 0) {//PLAY
-						std::cout << selectedOption << std::endl;
+				
+				if (mainMenuChosen >= 0) {	
+					if (mainMenuChosen == 0) {//PLAY	
+						
 						isCameraMoving = true;
 					}
 
@@ -734,40 +733,37 @@ int main()
 			}
 			else
 			{
-
-				cameraT += deltaTime;
-				if (cameraT >= 1) {
-					cameraT = 0.f;
-					currentCameraPoint++;
-				}
-				
 				if (cameraT == 0.f && currentCameraPoint == 3) {
 					cameraEntity.transform.m_pos = cameraPos;
 					globalCameraEntity->transform.m_pos = cameraPos;
-					cameraX = 0.f;
-					cameraY = 0.f;
+					cameraX = lastCameraX;
+					cameraY = lastCameraY;
 					isCameraMoving = false;
 					isInMainMenu = false;
 					isPaused = false;
 					tray.transform.SetParent(&cameraEntity.transform);
-					renderingEntities.push_back(&tray);
-					for each (Entity * foe in firstOrder.returnRenderingEntities()) {
-						renderingEntities.push_back(foe);
+
+					
+					if (!isInRendering(&tray)) {
+						renderingEntities.push_back(&tray);
+					}
+					if (!isInRendering(&cursor)) {
+						renderingEntities.push_back(&cursor);
+					}
+					
+					for (int i = 0; i < orderBubbles.size(); i++) {
+						OrderBubble* ob = orderBubbles[i];
+						for each (Entity * ent in ob->returnRenderingEntities()) {
+							renderingEntities.push_back(ent);
+						}
 					}
 					currentOrders.back().startOrder();
-
 				}
 				else
 				{
-					
-					int index = keepInBounds(currentCameraPoint, 0, 3);
-					cameraEntity.transform.m_pos = Catmull(cameraKeys[keepInBounds(4 - currentCameraPoint,0,3) ]
-						, cameraKeys[keepInBounds( 4 - (currentCameraPoint +1), 0, 3) ],
-						cameraKeys[keepInBounds(4 - (currentCameraPoint + 2), 0, 3) ],
-						cameraKeys[keepInBounds(4 - (currentCameraPoint + 3), 0, 3) ], cameraT);
-					cameraEntity.transform.m_rotation = glm::slerp(menuCameraQuat, standardCameraQuat, (cameraT + currentCameraPoint) /3);
-					cameraEntity.Get<CCamera>().Update();
+					moveCamera(1);
 				}
+				
 				
 				
 			}
@@ -791,7 +787,68 @@ int main()
 			continue;
 
 		}
-		
+		if (isInPauseMenu) {
+			if (!isCameraMoving) {
+				cameraEntity.transform.m_pos = menuCameraPos;
+
+				cameraEntity.transform.m_rotation = menuCameraQuat;
+
+				cameraEntity.Get<CCamera>().Update();
+				int mainMenuChosen = getSignSelection(0, false) ;
+
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
+				
+				if (mainMenuChosen >= 0) {
+					if (mainMenuChosen == 0) {//CONTINUE						
+						isCameraMoving = true;
+						isInPauseMenu = false;
+						isInMainMenu = true;
+						
+					
+						
+					}
+
+				}
+			}
+			else
+			{
+
+				if (cameraT == 0.f && currentCameraPoint == 3) {
+					isCameraMoving = false;
+					selectedOption = 0;
+					std::reverse(cameraKeys.begin(), cameraKeys.end());
+					
+					currentCameraQuat = menuCameraQuat;
+					wantedCameraQuat = lastCameraQuat;
+					currentCameraPoint = 0;
+					
+					
+
+				}
+				else
+				{
+					moveCamera(1);
+					
+				}
+			}
+			for each (Entity * e in renderingEntities) {
+
+				e->transform.RecomputeGlobal();
+
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
+
+			}
+
+			App::SwapBuffers();
+			continue;
+		}
 		 
 		
 		
@@ -803,15 +860,27 @@ int main()
 			if (isPaused) {
 				removeFromRendering(&tray);
 				removeFromRendering(&cursor);
-				App::setCursorVisible(true);
+				std::reverse(cameraKeys.begin(), cameraKeys.end());
+				selectedOption = -1;
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[3]);
+				currentCameraPoint = 0;
+				cameraT = 0.f;
+				isCameraMoving = true;
+				isInPauseMenu = true;
+				lastCameraX = cameraX;
+				lastCameraY = cameraY;
+				wantedCameraQuat = menuCameraQuat;
+				currentCameraQuat = cameraQuat;
+				lastCameraQuat = cameraQuat;
+				for (int i = 0; i < orderBubbles.size(); i++) {
+					OrderBubble* ob = orderBubbles[i];
+					for each (Entity * ent in ob->returnRenderingEntities()) {
+						removeFromRendering(ent);
+					}
+				}
+				//App::setCursorVisible(true);
 			}
-			else
-			{
-				renderingEntities.push_back(&tray);
-				renderingEntities.push_back(&cursor);
-				App::setCursorVisible(false);
-				
-			}
+			
 			
 		}
 		if (!isPaused) {
@@ -1757,7 +1826,12 @@ MaterialCreator* getToppingTile(bakeryUtils::toppingType x) {
 
 }
 
-
+bool isInRendering(Entity* e) {
+	if (std::find(renderingEntities.begin(), renderingEntities.end(), e) != renderingEntities.end()) {
+		return true;
+	}
+	return false;
+}
 
 void createNewOrder(int i, bool addDifficulty, bool remove) {
 	if (addDifficulty) {
@@ -1800,8 +1874,47 @@ glm::quat getCameraRotation() {
 
 
 void moveCamera(int direction) {
+	float deltaTime = App::GetDeltaTime();
 
+	cameraT += deltaTime;
+	if (cameraT >= 1) {
+		cameraT = 0.f;
+		currentCameraPoint += direction;
+	}
+
+	int index = keepInBounds(currentCameraPoint, 0, 3);
+	globalCameraEntity->transform.m_pos = Catmull(cameraKeys[keepInBounds(4 - currentCameraPoint, 0, 3)]
+		, cameraKeys[keepInBounds(4 - (currentCameraPoint + 1), 0, 3)],
+		cameraKeys[keepInBounds(4 - (currentCameraPoint + 2), 0, 3)],
+		cameraKeys[keepInBounds(4 - (currentCameraPoint + 3), 0, 3)], cameraT);
+	globalCameraEntity->transform.m_rotation = glm::slerp(currentCameraQuat, wantedCameraQuat, (cameraT + currentCameraPoint) / 3);
+	globalCameraEntity->Get<CCamera>().Update();
 }
+
+int getSignSelection(int max, bool reset) {
+	if (reset) {
+		selectedOption = 0;
+	}
+	if (isClickingUp) {
+		selectedOption += (max -1);
+		selectedOption = selectedOption % max;
+	}
+	if (isClickingDown) {
+		selectedOption++;
+		selectedOption = selectedOption % max;
+	}
+
+	
+
+	if (isClickingSpace) {
+		
+		return selectedOption;
+
+	}
+	return -1;
+}
+
+
 
 
 
