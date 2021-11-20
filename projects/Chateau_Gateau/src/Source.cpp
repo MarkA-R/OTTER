@@ -82,7 +82,7 @@ float easeIn(float x) {
 
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
-glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.7f);
+glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
 glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
 glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.3, cameraPos.y, cameraPos.z);
 glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.3, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
@@ -457,8 +457,8 @@ int main()
 		oven.Add<Machine>();
 		oven.Add<Oven>();
 		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
-		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 2.0f);
+		oven.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 0.5f);
 		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.25), oven);
 		renderingEntities.push_back(&oven);
 	
@@ -583,7 +583,7 @@ int main()
 	trayScale = glm::vec3(0.053f, 0.035f, 0.035f);
 	tray.transform.m_scale = trayScale;
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z +0.552);//1.15
+	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.148);// 0.552
 	
 	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
@@ -610,18 +610,19 @@ int main()
 	
 
 	Transform slot1Transform = oven.transform;
-	slot1Transform.m_pos.x += 0.95;
-	slot1Transform.m_pos.y += 0.55;
-	slot1Transform.m_pos.z += 0.6;
+	//1.f, -1.5f, 0.5f
+	slot1Transform.m_pos.x += -0.39;
+	slot1Transform.m_pos.y += 0.53;
+	slot1Transform.m_pos.z -= 0.440;
 	OvenTimer slot1 = OvenTimer(nothingTile,arrowMat, timerMat, slot1Transform);
 	renderingEntities.push_back(slot1.getArrow());
 	renderingEntities.push_back(slot1.getCircle());
 	renderingEntities.push_back(slot1.getTile());
 
 	Transform slot2Transform = oven.transform;
-	slot2Transform.m_pos.x += 0.35;
-	slot2Transform.m_pos.y += 0.55;
-	slot2Transform.m_pos.z += 0.6;
+	slot2Transform.m_pos.x += -0.27;
+	slot2Transform.m_pos.y += 0.53;
+	slot2Transform.m_pos.z -= 0.140;
 	OvenTimer slot2 = OvenTimer(nothingTile, arrowMat, timerMat, slot2Transform);
 	renderingEntities.push_back(slot2.getArrow());
 	renderingEntities.push_back(slot2.getCircle());
@@ -629,18 +630,18 @@ int main()
 
 
 	Transform slot3Transform = oven.transform;
-	slot3Transform.m_pos.x += 0.95;
-	slot3Transform.m_pos.y += 0.30;
-	slot3Transform.m_pos.z += 0.6;
+	slot3Transform.m_pos.x += -0.39;
+	slot3Transform.m_pos.y += 0.27;
+	slot3Transform.m_pos.z -= 0.440;
 	OvenTimer slot3 = OvenTimer(nothingTile, arrowMat, timerMat, slot3Transform);
 	renderingEntities.push_back(slot3.getArrow());
 	renderingEntities.push_back(slot3.getCircle());
 	renderingEntities.push_back(slot3.getTile());
 
 	Transform slot4Transform = oven.transform;
-	slot4Transform.m_pos.x += 0.35;
-	slot4Transform.m_pos.y += 0.30;
-	slot4Transform.m_pos.z += 0.6;
+	slot4Transform.m_pos.x += -0.27;
+	slot4Transform.m_pos.y += 0.27;
+	slot4Transform.m_pos.z -= 0.140;
 	OvenTimer slot4 = OvenTimer(nothingTile, arrowMat, timerMat, slot4Transform);
 	renderingEntities.push_back(slot4.getArrow());
 	renderingEntities.push_back(slot4.getCircle());
@@ -958,9 +959,10 @@ int main()
 		/*
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		App::StartImgui();
-		ImGui::DragFloat("X", &(ex), 0.01f);
-		ImGui::DragFloat("Y", &(why), 0.01f);
-		ImGui::DragFloat("Z", &(zed), 0.01f);
+		ImGui::DragFloat("X", &(slot1Transform.m_pos.x), 0.01f);
+		ImGui::DragFloat("Y", &(slot1Transform.m_pos.y), 0.01f);
+		ImGui::DragFloat("Z", &(slot1Transform.m_pos.z), 0.01f);
+		slot1.setTransform(slot1Transform);
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 		
