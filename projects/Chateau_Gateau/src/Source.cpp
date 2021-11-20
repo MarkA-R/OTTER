@@ -61,19 +61,24 @@ T keepInBounds(T current, T lower, T upper) {
 	return current;
 }
 
-int keepIntInBounds(int current, int lower, int upper) {
-	if (current < lower) {
-		current = upper - (lower - current);
-	}
-	if (current >= lower && current <= upper) {
 
+float easeInOut(float x) {//the easeInOutQuint function from easings.net (https://easings.net/#easeInOutQuint)
+	if (x < 0.5) {
+		return 16 * x * x * x * x * x;
 	}
-	if (current > upper) {
-		current = (current + lower) % upper;
+	else
+	{
+		return 1 - pow(-2 * x + 2, 5) / 2;
 	}
-	return current;
 }
 
+float easeOut(float x) {
+	return 1 - (1 - x) * (1 - x);
+}
+
+float easeIn(float x) {
+	return 1 - cos((x * 3.1415926) / 2);
+}
 
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
@@ -583,23 +588,23 @@ int main()
 	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
-	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.015;
-	traySlot[0].m_pos.z = tray.transform.m_pos.z - 0.015;
+	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.017;
+	traySlot[0].m_pos.z = tray.transform.m_pos.z - 0.017;
 	traySlot[0].SetParent(&tray.transform);
 	traySlot[1] = Transform();
 	traySlot[1].m_pos = tray.transform.m_pos;
-	traySlot[1].m_pos.x = tray.transform.m_pos.x + 0.015;
-	traySlot[1].m_pos.z = tray.transform.m_pos.z - 0.015;
+	traySlot[1].m_pos.x = tray.transform.m_pos.x + 0.017;
+	traySlot[1].m_pos.z = tray.transform.m_pos.z - 0.017;
 	traySlot[1].SetParent(&tray.transform);
 	traySlot[2] = Transform();
 	traySlot[2].m_pos = tray.transform.m_pos;
-	traySlot[2].m_pos.x = tray.transform.m_pos.x - 0.015;
-	traySlot[2].m_pos.z = tray.transform.m_pos.z + 0.015;
+	traySlot[2].m_pos.x = tray.transform.m_pos.x - 0.017;
+	traySlot[2].m_pos.z = tray.transform.m_pos.z + 0.017;
 	traySlot[2].SetParent(&tray.transform);
 	traySlot[3] = Transform();
 	traySlot[3].m_pos = tray.transform.m_pos;
-	traySlot[3].m_pos.x = tray.transform.m_pos.x + 0.015;
-	traySlot[3].m_pos.z = tray.transform.m_pos.z + 0.015;
+	traySlot[3].m_pos.x = tray.transform.m_pos.x + 0.017;
+	traySlot[3].m_pos.z = tray.transform.m_pos.z + 0.017;
 	traySlot[3].SetParent(&tray.transform);
 
 	
@@ -699,6 +704,33 @@ int main()
 	cameraY = 0.f;
 	menuCameraQuat = getCameraRotation();
 	currentCameraQuat = menuCameraQuat;
+	
+	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
+	cameraEntity.transform.m_pos = cameraPos;
+	globalCameraEntity->transform.m_pos = cameraPos;
+	cameraX = lastCameraX;
+	cameraY = lastCameraY;
+	isCameraMoving = false;
+	isInMainMenu = false;
+	isPaused = false;
+	tray.transform.SetParent(&cameraEntity.transform);
+
+
+	if (!isInRendering(&tray)) {
+		renderingEntities.push_back(&tray);
+	}
+	if (!isInRendering(&cursor)) {
+		renderingEntities.push_back(&cursor);
+	}
+
+	for (int i = 0; i < orderBubbles.size(); i++) {
+		OrderBubble* ob = orderBubbles[i];
+		for each (Entity * ent in ob->returnRenderingEntities()) {
+			renderingEntities.push_back(ent);
+		}
+	}
+	currentOrders.back().startOrder();
+	//up to here
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -1877,12 +1909,15 @@ void moveCamera(int direction) {
 	float deltaTime = App::GetDeltaTime();
 
 	cameraT += deltaTime;
+	
 	if (cameraT >= 1) {
 		cameraT = 0.f;
 		currentCameraPoint += direction;
 	}
 
 	int index = keepInBounds(currentCameraPoint, 0, 3);
+	
+	
 	globalCameraEntity->transform.m_pos = Catmull(cameraKeys[keepInBounds(4 - currentCameraPoint, 0, 3)]
 		, cameraKeys[keepInBounds(4 - (currentCameraPoint + 1), 0, 3)],
 		cameraKeys[keepInBounds(4 - (currentCameraPoint + 2), 0, 3)],
