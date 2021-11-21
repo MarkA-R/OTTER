@@ -10,14 +10,20 @@
             "nodes" : [
                 0,
                 1,
-                2
+                2,
+                3
             ]
         }
     ],
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Cube"
+            "name" : "Cube",
+            "scale" : [
+                0.07140260934829712,
+                1,
+                0.05711495876312256
+            ]
         },
         {
             "name" : "Light",
@@ -45,6 +51,20 @@
                 7.358891487121582,
                 4.958309173583984,
                 6.925790786743164
+            ]
+        },
+        {
+            "mesh" : 1,
+            "name" : "Cube.001",
+            "scale" : [
+                0.12656348943710327,
+                0.12656348943710327,
+                0.12656348943710327
+            ],
+            "translation" : [
+                0.2408013492822647,
+                0.7463951110839844,
+                0
             ]
         }
     ],
@@ -75,6 +95,20 @@
                     "material" : 0
                 }
             ]
+        },
+        {
+            "name" : "Cube.001",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "NORMAL" : 5,
+                        "TEXCOORD_0" : 6
+                    },
+                    "indices" : 7,
+                    "material" : 0
+                }
+            ]
         }
     ],
     "textures" : [
@@ -86,66 +120,120 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "dough",
-            "uri" : "dough.png"
+            "name" : "Untitled",
+            "uri" : "Untitled.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 24,
             "max" : [
-                0.8660253286361694,
-                0.8946207165718079,
-                0.8660253286361694
+                1,
+                1,
+                1
             ],
             "min" : [
-                -0.8660253286361694,
-                0,
-                -0.8660253286361694
+                -1,
+                -1,
+                -1
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 24,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 24,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 576,
+            "count" : 36,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 24,
+            "max" : [
+                1,
+                1,
+                1
+            ],
+            "min" : [
+                -1,
+                -1,
+                -1
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 24,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 24,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5123,
+            "count" : 36,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 1620,
+            "byteLength" : 288,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 1620,
-            "byteOffset" : 1620
+            "byteLength" : 288,
+            "byteOffset" : 288
         },
         {
             "buffer" : 0,
-            "byteLength" : 1080,
-            "byteOffset" : 3240
+            "byteLength" : 192,
+            "byteOffset" : 576
         },
         {
             "buffer" : 0,
-            "byteLength" : 1152,
-            "byteOffset" : 4320
+            "byteLength" : 72,
+            "byteOffset" : 768
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 288,
+            "byteOffset" : 840
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 288,
+            "byteOffset" : 1128
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 192,
+            "byteOffset" : 1416
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 72,
+            "byteOffset" : 1608
         }
     ],
     "samplers" : [
@@ -156,8 +244,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 5472,
-            "uri" : "dough.bin"
+            "byteLength" : 1680,
+            "uri" : "bar2.bin"
         }
     ]
 }

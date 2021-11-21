@@ -17,7 +17,12 @@
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Cube"
+            "name" : "Cube",
+            "scale" : [
+                0.359078586101532,
+                1,
+                0.359078586101532
+            ]
         },
         {
             "name" : "Light",
@@ -86,66 +91,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "dough",
-            "uri" : "dough.png"
+            "name" : "Untitled",
+            "uri" : "Untitled.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 110,
             "max" : [
-                0.8660253286361694,
-                0.8946207165718079,
-                0.8660253286361694
+                1,
+                1,
+                1
             ],
             "min" : [
-                -0.8660253286361694,
-                0,
-                -0.8660253286361694
+                -1,
+                -1,
+                -1
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 110,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 110,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 576,
+            "count" : 204,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 1620,
+            "byteLength" : 1320,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 1620,
-            "byteOffset" : 1620
+            "byteLength" : 1320,
+            "byteOffset" : 1320
         },
         {
             "buffer" : 0,
-            "byteLength" : 1080,
-            "byteOffset" : 3240
+            "byteLength" : 880,
+            "byteOffset" : 2640
         },
         {
             "buffer" : 0,
-            "byteLength" : 1152,
-            "byteOffset" : 4320
+            "byteLength" : 408,
+            "byteOffset" : 3520
         }
     ],
     "samplers" : [
@@ -156,8 +161,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 5472,
-            "uri" : "dough.bin"
+            "byteLength" : 3928,
+            "uri" : "drinkMachine2.bin"
         }
     ]
 }

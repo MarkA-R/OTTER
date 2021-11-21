@@ -94,7 +94,8 @@ void OrderBubble::create(Order& o)
     toRender.push_back(timer->getTile());
    
     glm::vec3 timerPos = bubbleTransform.m_pos;
-    timerPos.y -= 0.3;
+    timerPos.y -= 0.346 * scaleX;
+    timerPos.x -= 0.67 * scaleX;
    // std::cout << timerPos.y << std::endl;
     timer->setPosition(timerPos);
     timer->setTransform(bubbleTransform);
@@ -104,10 +105,11 @@ void OrderBubble::create(Order& o)
     bubble = Entity::Allocate();
     bubble.get()->Add<CMeshRenderer>(*bubble, *bubbleTile->getMesh(), *bubbleTile->getMaterial());
     bubble.get()->transform.m_rotation =
+        glm::angleAxis(glm::radians(-180.f), glm::vec3(0.0f, 0.0f, 1.0f))*
         glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f));// *
-        //;
-    bubble.get()->transform.m_scale = glm::vec3(scaleX, 0.8, 0.8) * scaleAll;
+        glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    bubble.get()->transform.m_scale = glm::vec3(scaleX, scaleX, scaleX) * scaleAll;
     bubble.get()->transform.m_pos = bubbleTransform.m_pos;
     bubble.get()->transform.SetParent(&bubbleTransform);
     toRender.push_back(bubble.get());

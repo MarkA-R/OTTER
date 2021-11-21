@@ -88,6 +88,15 @@ glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.3, cameraPos.y, cameraPos.z);
 glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.3, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
 std::vector<glm::vec3> cameraKeys = std::vector<glm::vec3>();
 
+
+int ovenFrame = -1;
+std::vector<Mesh*> currentOvenFrames;
+std::vector<Mesh*> ovenDoorOneOpen;
+std::vector<Mesh*> ovenDoorTwoOpen;
+std::vector<Mesh*> ovenDoorThreeOpen;
+std::vector<Mesh*> ovenDoorFourOpen;
+
+
 glm::quat cameraQuat = glm::quat();
 glm::quat lastCameraQuat;
 
@@ -145,6 +154,8 @@ std::vector<int> orderBubblesToRemove;
 Entity* trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 std::vector<Mesh*> fillingFrames = std::vector<Mesh*>();
 std::vector<Material*> signFrames = std::vector<Material*>();
+std::vector<Mesh*> drinkFrames = std::vector<Mesh*>();
+
 
 
 // Keep our main cleaner
@@ -189,6 +200,12 @@ MaterialCreator cupcakeTile = MaterialCreator();
 MaterialCreator cakeTile = MaterialCreator();
 MaterialCreator nothingTile = MaterialCreator();
 MaterialCreator burntTile = MaterialCreator();
+
+MaterialCreator coffeeTile = MaterialCreator();
+MaterialCreator teaTile = MaterialCreator();
+MaterialCreator milkshakeTile = MaterialCreator();
+
+
 
 
 MaterialCreator custardFilling = MaterialCreator();
@@ -271,7 +288,7 @@ int main()
 	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_texLit);
 
 	MaterialCreator trayMat = MaterialCreator();
-	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/wood.png", *prog_texLit);
+	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/tray.png", *prog_texLit);
 
 	MaterialCreator fridgeMat = MaterialCreator();
 	fridgeMat.createMaterial("bakery/models/fridge.gltf", "bakery/textures/fridge.png", *prog_texLit);
@@ -292,8 +309,30 @@ int main()
 	fillingMat2.createMaterial("bakery/models/fillingMachine2.gltf", "bakery/textures/fillingMachine.png", *prog_morph);
 	fillingFrames.push_back(fillingMat1.getMesh().get());
 	fillingFrames.push_back(fillingMat2.getMesh().get());
-	
-	
+
+	MaterialCreator barMat1 = MaterialCreator();
+	barMat1.createMaterial("bakery/models/bar1.gltf", "bakery/textures/bar.png", *prog_morph);
+	MaterialCreator barMat2 = MaterialCreator();
+	barMat2.createMaterial("bakery/models/bar2.gltf", "bakery/textures/bar.png", *prog_morph);
+
+
+
+	MaterialCreator drinkMat1 = MaterialCreator();//for morphs
+	drinkMat1.createMaterial("bakery/models/drinkMachine1.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
+
+	MaterialCreator drinkMat2 = MaterialCreator();//for morphs
+	drinkMat2.createMaterial("bakery/models/drinkMachine2.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
+
+	drinkFrames.push_back(drinkMat1.getMesh().get());
+	drinkFrames.push_back(drinkMat2.getMesh().get());
+
+
+	//oven morph targets
+	for (int i = 1; i <= 4; i++) {
+
+	}
+
+
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
 	
@@ -314,10 +353,14 @@ int main()
 	cakeMat.createMaterial("bakery/models/cake.gltf", "bakery/textures/cake.png", *prog_texLit);
 	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_texLit);
 
-	playSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/playSign.png", *prog_texLit);
-	settingsSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/settingsSign.png", *prog_texLit);
-	exitSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/exitSign.png", *prog_texLit);
-	pauseSignMat.createMaterial("UI/models/sign.gltf", "UI/textures/pauseSign.png", *prog_texLit);
+	coffeeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/coffeeTile.png", *prog_texLit);
+	teaTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/teaTile.png", *prog_texLit);
+	milkshakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/milkshakeTile.png", *prog_texLit);
+
+	playSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/playSign.png", *prog_texLit);
+	settingsSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/settingsSign.png", *prog_texLit);
+	exitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/exitSign.png", *prog_texLit);
+	pauseSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/pauseSign.png", *prog_texLit);
 	signFrames.push_back(playSignMat.getMaterial().get());
 	signFrames.push_back(settingsSignMat.getMaterial().get());
 	signFrames.push_back(exitSignMat.getMaterial().get());
@@ -365,10 +408,10 @@ int main()
 
 	Entity sign = Entity::Create();
 	sign.Add<CMeshRenderer>(sign, *playSignMat.getMesh(), *playSignMat.getMaterial());
-	sign.transform.m_scale = glm::vec3(0.15, 0.2, 0.03);
-	sign.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	sign.transform.m_scale = glm::vec3(0.15, 0.2, 0.15);
+	sign.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::vec3 signPos = menuCameraPos;
-	sign.transform.m_pos = glm::vec3(signPos.x - 0.5, -1.2f, signPos.z +0.2);
+	sign.transform.m_pos = glm::vec3(signPos.x - 0.5, -1.55f, signPos.z +0.2);
 	
 	renderingEntities.push_back(&sign);
 
@@ -398,7 +441,7 @@ int main()
 		ent_register.Add<Register>();
 		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		ent_register.transform.m_pos = glm::vec3(-1.f, -2.4, -2.99f);
+		ent_register.transform.m_pos = glm::vec3(-1.f, -2.4, -2.29f);
 		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
 		renderingEntities.push_back(&ent_register);
 
@@ -424,7 +467,7 @@ int main()
 		counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
 		counter.transform.m_scale = glm::vec3(1.f, 0.4f, 0.4f);
 		counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		counter.transform.m_pos = glm::vec3(-1.f, -2.4, -2.99f);
+		counter.transform.m_pos = glm::vec3(-1.f, -2.4, -2.29f);
 		renderingEntities.push_back(&counter);
 
 
@@ -445,9 +488,9 @@ int main()
 		
 		fridge.Add<Machine>();
 		fridge.Add<Fridge>();
-		fridge.transform.m_scale = glm::vec3(0.5f, 1.f, 0.5f);
+		fridge.transform.m_scale = glm::vec3(0.5f, 1.f, .5f);
 		fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 2.0f);
+		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 0.4f);
 		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.3), fridge);
 		renderingEntities.push_back(&fridge);
 
@@ -469,7 +512,7 @@ int main()
 		filling.Add<FillingMachine>();
 		filling.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
 		filling.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		filling.transform.m_pos = glm::vec3(0.f, -1.0f, 2.0f);
+		filling.transform.m_pos = glm::vec3(0.3f, -1.0f, 2.0f);
 		filling.Add<BoundingBox>(glm::vec3(0.52, 2, 0.35), filling);
 		glm::vec3 fillingPos = filling.transform.m_pos;
 		filling.Get<BoundingBox>().setOrigin(glm::vec3(fillingPos.x + 0.4, fillingPos.y, fillingPos.z));
@@ -522,7 +565,7 @@ int main()
 		topping.Add<ToppingMachine>();
 		topping.transform.m_scale = glm::vec3(0.4f, 1.f, 0.4f);
 		topping.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		topping.transform.m_pos = glm::vec3(-1.2, -1.0f, 2.0f);
+		topping.transform.m_pos = glm::vec3(-2.0, -1.0f, 2.0f);
 		topping.Add<BoundingBox>(glm::vec3(0.4f, 2, 0.5), topping);
 		
 		glm::vec3 tempTopPos = topping.transform.m_pos;
@@ -580,10 +623,10 @@ int main()
 	
 	Entity tray = Entity::Create();
 	tray.Add<CMeshRenderer>(tray, *trayMat.getMesh(), *trayMat.getMaterial());
-	trayScale = glm::vec3(0.053f, 0.035f, 0.035f);
+	trayScale = glm::vec3(0.053f, 0.035f, 0.037f);
 	tray.transform.m_scale = trayScale;
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.148);// 0.552
+	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
 	
 	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
@@ -707,6 +750,7 @@ int main()
 	currentCameraQuat = menuCameraQuat;
 	
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
+	
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
 	cameraX = lastCameraX;
@@ -732,6 +776,7 @@ int main()
 	}
 	currentOrders.back().startOrder();
 	//up to here
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -1593,6 +1638,15 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	double deltaX = (x - xPos) * sensitivity;
 	double deltaY = (y - yPos) * sensitivity;
+	
+	if (cameraY <= -80) {
+		cameraY = -79.9;
+		deltaY = 0;
+	}
+	if (cameraY >= 80) {
+		cameraY = 79.9;
+		deltaY = 0;
+	}
 	deltaX += cameraX;
 	deltaY += cameraY;
 	
@@ -1932,14 +1986,17 @@ int getSignSelection(int max, bool reset) {
 	if (reset) {
 		selectedOption = 0;
 	}
-	if (isClickingUp) {
-		selectedOption += (max -1);
-		selectedOption = selectedOption % max;
+	if (max != 0) {
+		if (isClickingUp) {
+			selectedOption += (max - 1);
+			selectedOption = selectedOption % max;
+		}
+		if (isClickingDown) {
+			selectedOption++;
+			selectedOption = selectedOption % max;
+		}
 	}
-	if (isClickingDown) {
-		selectedOption++;
-		selectedOption = selectedOption % max;
-	}
+	
 
 	
 

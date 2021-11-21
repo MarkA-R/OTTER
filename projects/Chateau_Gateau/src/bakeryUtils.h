@@ -32,6 +32,13 @@ public:
         
     };
 
+    enum class drinkType {
+        NONE,
+        COFFEE,
+        MILKSHAKE,
+        TEA//short for bubble tea
+    };
+
     static float bakeryUtils::returnCroissantTime()
     {
         return timeToCroissant;
@@ -166,12 +173,17 @@ public:
    static int getOrdersFailed() {
        return ordersFailed;
    }
+
+   static float getDrinkFillAmount() {
+       return drinkFillAmount;
+   }
 protected:
     inline static float timeToCroissant = 10;
     inline static float timeToCookie = 20;
     inline static float timeToCupcake = 30;
     inline static float timeToCake = 50;
     inline static float timeToBurn = 60;
+    inline static float drinkFillAmount = 5.f;
     inline static float gameTime = 0;
     inline static int difficulty = 1;
     inline static int roundsLasted = 0;

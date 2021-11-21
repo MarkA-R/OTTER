@@ -10,11 +10,21 @@
             "nodes" : [
                 0,
                 1,
-                2
+                2,
+                3
             ]
         }
     ],
     "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "Cube",
+            "scale" : [
+                0.07140260934829712,
+                1,
+                0.05711495876312256
+            ]
+        },
         {
             "name" : "Light",
             "rotation" : [
@@ -44,22 +54,16 @@
             ]
         },
         {
-            "mesh" : 0,
-            "name" : "Cube.003",
-            "rotation" : [
-                -0.10899911820888519,
-                0,
-                0,
-                0.9940418601036072
-            ],
+            "mesh" : 1,
+            "name" : "Cube.001",
             "scale" : [
-                0.6261624693870544,
-                1,
-                0.05011679604649544
+                0.12656348943710327,
+                0.12656348943710327,
+                0.12656348943710327
             ],
             "translation" : [
-                0,
-                0.94377201795578,
+                0.2408013492822647,
+                -0.9679713249206543,
                 0
             ]
         }
@@ -79,7 +83,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Cube.003",
+            "name" : "Cube",
             "primitives" : [
                 {
                     "attributes" : {
@@ -88,6 +92,20 @@
                         "TEXCOORD_0" : 2
                     },
                     "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "Cube.001",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "NORMAL" : 5,
+                        "TEXCOORD_0" : 6
+                    },
+                    "indices" : 7,
                     "material" : 0
                 }
             ]
@@ -102,66 +120,120 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "playSign",
-            "uri" : "playSign.png"
+            "name" : "Untitled",
+            "uri" : "Untitled.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 78,
+            "count" : 24,
             "max" : [
                 1,
-                1.0431404113769531,
+                1,
                 1
             ],
             "min" : [
                 -1,
                 -1,
-                -19.762447357177734
+                -1
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 78,
+            "count" : 24,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 78,
+            "count" : 24,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 120,
+            "count" : 36,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 24,
+            "max" : [
+                1,
+                1,
+                1
+            ],
+            "min" : [
+                -1,
+                -1,
+                -1
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 24,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 24,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5123,
+            "count" : 36,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 936,
+            "byteLength" : 288,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 936,
-            "byteOffset" : 936
+            "byteLength" : 288,
+            "byteOffset" : 288
         },
         {
             "buffer" : 0,
-            "byteLength" : 624,
-            "byteOffset" : 1872
+            "byteLength" : 192,
+            "byteOffset" : 576
         },
         {
             "buffer" : 0,
-            "byteLength" : 240,
-            "byteOffset" : 2496
+            "byteLength" : 72,
+            "byteOffset" : 768
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 288,
+            "byteOffset" : 840
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 288,
+            "byteOffset" : 1128
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 192,
+            "byteOffset" : 1416
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 72,
+            "byteOffset" : 1608
         }
     ],
     "samplers" : [
@@ -172,8 +244,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 2736,
-            "uri" : "sign.bin"
+            "byteLength" : 1680,
+            "uri" : "bar1.bin"
         }
     ]
 }

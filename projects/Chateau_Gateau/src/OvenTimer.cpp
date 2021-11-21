@@ -103,4 +103,17 @@ void OvenTimer::setPosition(glm::vec3 x)
 	arrow.get()->transform.m_pos = x;
 }
 
+void OvenTimer::dontShow(int i)
+{
+	if (i == 0) {
+		tile->transform.m_scale = glm::vec3(0);
+	}
+	if (i == 1) {
+		arrow->transform.m_scale = glm::vec3(0);
+	}
+	if (i == 2) {
+		circle->transform.m_scale = glm::vec3(0);
+	}
+}
+
 

@@ -19,6 +19,7 @@ public:
 	Transform& getTransform();
 	void setTransform(Transform&);
 	void setPosition(glm::vec3);
+	void dontShow(int);//0 for tile, 1 for arrow, 2 for circle
 
 protected:
 	float fill = 0;

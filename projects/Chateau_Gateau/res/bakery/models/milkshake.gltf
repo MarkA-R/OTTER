@@ -16,10 +16,6 @@
     ],
     "nodes" : [
         {
-            "mesh" : 0,
-            "name" : "Cube"
-        },
-        {
             "name" : "Light",
             "rotation" : [
                 0.16907575726509094,
@@ -46,24 +42,28 @@
                 4.958309173583984,
                 6.925790786743164
             ]
+        },
+        {
+            "mesh" : 0,
+            "name" : "Cylinder"
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Material",
+            "name" : "Material.001",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
                 },
                 "metallicFactor" : 0,
-                "roughnessFactor" : 0.4000000059604645
+                "roughnessFactor" : 0.5
             }
         }
     ],
     "meshes" : [
         {
-            "name" : "Cube",
+            "name" : "Cylinder",
             "primitives" : [
                 {
                     "attributes" : {
@@ -86,66 +86,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "dough",
-            "uri" : "dough.png"
+            "name" : "milkshake",
+            "uri" : "milkshake.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 183,
             "max" : [
-                0.8660253286361694,
-                0.8946207165718079,
-                0.8660253286361694
+                0.25375568866729736,
+                1.3049132823944092,
+                0.2930118441581726
             ],
             "min" : [
-                -0.8660253286361694,
-                0,
-                -0.8660253286361694
+                -0.25375568866729736,
+                -0.05499845743179321,
+                -0.29301178455352783
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 183,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 135,
+            "count" : 183,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 576,
+            "count" : 282,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 1620,
+            "byteLength" : 2196,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 1620,
-            "byteOffset" : 1620
+            "byteLength" : 2196,
+            "byteOffset" : 2196
         },
         {
             "buffer" : 0,
-            "byteLength" : 1080,
-            "byteOffset" : 3240
+            "byteLength" : 1464,
+            "byteOffset" : 4392
         },
         {
             "buffer" : 0,
-            "byteLength" : 1152,
-            "byteOffset" : 4320
+            "byteLength" : 564,
+            "byteOffset" : 5856
         }
     ],
     "samplers" : [
@@ -156,8 +156,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 5472,
-            "uri" : "dough.bin"
+            "byteLength" : 6420,
+            "uri" : "milkshake.bin"
         }
     ]
 }
