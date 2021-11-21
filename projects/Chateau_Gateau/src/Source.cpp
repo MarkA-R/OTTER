@@ -23,6 +23,8 @@
 #include "ToppingMachine.h"
 #include "Register.h"
 #include "TrashCan.h"
+#include "DrinkMachine.h"
+#include "Drink.h"
 #include <algorithm>
 
 #include <ctime>
@@ -513,7 +515,7 @@ int main()
 		filling.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
 		filling.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		filling.transform.m_pos = glm::vec3(0.3f, -1.0f, 2.0f);
-		filling.Add<BoundingBox>(glm::vec3(0.52, 2, 0.35), filling);
+		filling.Add<BoundingBox>(glm::vec3(0.72, 2, 0.35), filling);
 		glm::vec3 fillingPos = filling.transform.m_pos;
 		filling.Get<BoundingBox>().setOrigin(glm::vec3(fillingPos.x + 0.4, fillingPos.y, fillingPos.z));
 		renderingEntities.push_back(&filling);
@@ -543,6 +545,40 @@ int main()
 		filling.Get<FillingMachine>().setTransform(fillTransform);
 		
 
+		Entity drink = Entity::Create();
+		drink.Add<CMorphMeshRenderer>(drink, *drinkMat1.getMesh(), *drinkMat1.getMaterial());
+
+		drink.Add<Machine>();
+		drink.Add<DrinkMachine>();
+		drink.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
+		drink.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		drink.transform.m_pos = glm::vec3(-0.9f, -1.0f, 2.0f);
+		drink.Add<BoundingBox>(glm::vec3(0.52, 2, 0.35), filling);
+		//glm::vec3 drinkPos = drink.transform.m_pos;
+		//drink.Get<BoundingBox>().setOrigin(glm::vec3(drinkPos.x + 0.4, drinkPos.y, drinkPos.z));
+		renderingEntities.push_back(&drink);
+
+		auto& animatordrink = drink.Add<CMorphAnimator>(drink);
+		animatordrink.SetFrameTime(1.0f);
+		animatordrink.SetFrames(fillingFrames);
+
+		/*
+
+		filling.Get<FillingMachine>().setup(&custardFilling, &nutellaFilling, &strawberryFilling);
+
+		Entity fillingPlane = Entity::Create();
+		fillingPlane.Add<CMeshRenderer>(fillingPlane, *custardFilling.getMesh(), *custardFilling.getMaterial());
+		fillingPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+		fillingPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
+		glm::vec3 fillPos = filling.transform.m_pos;
+		fillingPlane.transform.m_pos = glm::vec3(fillPos.x - 0.1, fillPos.y + 0.8, fillPos.z - 0.5);
+		renderingEntities.push_back(&fillingPlane);
+		filling.Get<FillingMachine>().setFillingPlane(&fillingPlane);
+
+		*/
+
+
 		//Setting up our particle system.
 		ParticleParam particleData;
 		particleData.lifetime = 0.8f;
@@ -552,11 +588,6 @@ int main()
 		particleData.maxParticles = 200;
 		particleData.emissionRate = 10.0f;
 		particleData.tanTheta = glm::tan(glm::radians(25.0f));
-
-
-
-		
-
 
 		Entity topping = Entity::Create();
 		topping.Add<CMeshRenderer>(topping, *toppingMat.getMesh(), *toppingMat.getMaterial());

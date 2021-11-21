@@ -3,13 +3,13 @@
 #include "CMorphMeshRenderer.h"
 #include "CMorphAnimator.h"
 #include "MaterialCreator.h"
+
 using namespace nou;
 class FillBar
 {
 protected:
 	std::unique_ptr<Entity> bar;
-	Mesh* topBar;
-	Mesh* bottomBar;
+	std::vector<Mesh*> frames;
 	MaterialCreator bottomMat;
 	MaterialCreator topMat;
 	float t = 0.0f;

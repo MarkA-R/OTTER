@@ -53,8 +53,13 @@ void FillBar::setup(MaterialCreator& bottom, MaterialCreator& top, Transform pos
 		*/
 	bar.get()->transform.m_scale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
 	bar.get()->transform.m_pos = position.m_pos;
-	bottomBar = bottom.getMesh().get();
-	topBar = top.getMesh().get();
+	
+	auto& animator = bar.get()->Add<CMorphAnimator>(*bar.get());
+	animator.SetFrameTime(1.0f);
+	frames.push_back(bottom.getMesh().get());
+	frames.push_back(top.getMesh().get());
+	animator.SetFrames(frames);
+	
 }
 
 
