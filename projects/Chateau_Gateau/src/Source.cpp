@@ -889,7 +889,7 @@ int main()
 
 		
 
-		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {
+		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
 			receipt.transform.m_pos = cursor.transform.m_pos;
 			receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
@@ -931,30 +931,55 @@ int main()
 			else
 			{
 				if (cameraT == 0.f && currentCameraPoint == 3) {
-					cameraEntity.transform.m_pos = cameraPos;
-					globalCameraEntity->transform.m_pos = cameraPos;
-					cameraX = lastCameraX;
-					cameraY = lastCameraY;
+					if (!isInContinueMenu) {
+						cameraEntity.transform.m_pos = cameraPos;
+						globalCameraEntity->transform.m_pos = cameraPos;
+						cameraX = lastCameraX;
+						cameraY = lastCameraY;
+					}
+					
 					isCameraMoving = false;
 					isInMainMenu = false;
 					isPaused = false;
 					tray.transform.SetParent(&cameraEntity.transform);
+					
 
-					
-					if (!isInRendering(&tray)) {
-						renderingEntities.push_back(&tray);
-					}
-					if (!isInRendering(&cursor)) {
-						renderingEntities.push_back(&cursor);
-					}
-					
-					for (int i = 0; i < orderBubbles.size(); i++) {
-						OrderBubble* ob = orderBubbles[i];
-						for each (Entity * ent in ob->returnRenderingEntities()) {
-							renderingEntities.push_back(ent);
+					if (!isInContinueMenu) {
+						if (!isInRendering(&tray)) {
+							renderingEntities.push_back(&tray);
 						}
+						if (!isInRendering(&cursor)) {
+							renderingEntities.push_back(&cursor);
+						}
+						
+
+						for (int i = 0; i < orderBubbles.size(); i++) {
+							OrderBubble* ob = orderBubbles[i];
+							for each (Entity * ent in ob->returnRenderingEntities()) {
+								renderingEntities.push_back(ent);
+							}
+						}
+						currentOrders.back().startOrder();
 					}
-					currentOrders.back().startOrder();
+					if (isInContinueMenu) {
+						isInContinueMenu = false;
+						isInMainMenu = true;
+						selectedOption = 0;
+						std::reverse(cameraKeys.begin(), cameraKeys.end());
+						currentCameraPoint = 0;
+						cameraT = 0.f;
+						lastCameraX = 0;
+						lastCameraY = 0;
+						//standardCameraQuat = getCameraRotation();
+						wantedCameraQuat = standardCameraQuat;
+						cameraX = 90.f;
+						cameraY = 0.f;
+						//menuCameraQuat = getCameraRotation();
+						currentCameraQuat = menuCameraQuat;
+						lastCameraQuat = standardCameraQuat;
+						
+					}
+					
 				}
 				else
 				{
@@ -1067,6 +1092,9 @@ int main()
 			receipt.transform.m_pos = Lerp(receptBeginPos, receptEndPos,receiptT);
 
 			if (isClickingSpace) {
+				if (isInRendering(&receipt)) {
+					removeFromRendering(&receipt);
+				}
 				std::reverse(cameraKeys.begin(), cameraKeys.end());
 				selectedOption = -1;
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[0]);
@@ -1075,12 +1103,13 @@ int main()
 				isCameraMoving = true;
 				isInPauseMenu = false;
 				isInMainMenu = true;
-				isInContinueMenu = false;
+				isInContinueMenu = true;
 				lastCameraX = cameraX;
 				lastCameraY = cameraY;
 				wantedCameraQuat = menuCameraQuat;
 				currentCameraQuat = cameraQuat;
 				lastCameraQuat = cameraQuat;
+				
 				for (int i = 0; i < orderBubbles.size(); i++) {
 					OrderBubble* ob = orderBubbles[i];
 					for each (Entity * ent in ob->returnRenderingEntities()) {
