@@ -13,12 +13,12 @@ class OrderBubble
 private:
 	OvenTimer* timer;
 	Order order;
-	MaterialCreator* orderTiles[3];
+	MaterialCreator* orderTiles[4];
 	MaterialCreator* plusTile;
 	MaterialCreator* bubbleTile;
 	std::unique_ptr<Entity> bubble;
-	std::unique_ptr<Entity> plusL, plusR;
-	std::unique_ptr<Entity> pastryTile, fillingTile, toppingTile;
+	std::unique_ptr<Entity> plusL, plusR, plusM;
+	std::unique_ptr<Entity> pastryTile, fillingTile, toppingTile, drinkTile;
 	Transform bubbleTransform;
 	std::vector<Entity*> toRender = std::vector<Entity*>();
 	//if nullptr dont render
@@ -29,7 +29,7 @@ public:
 	bool isOrderExpired();
 	bool isOrderCompleted(Pastry&);
 	void setTransform(Transform& t);
-	void setTiles(MaterialCreator*, MaterialCreator*, MaterialCreator*);//2
+	void setTiles(MaterialCreator*, MaterialCreator*, MaterialCreator*, MaterialCreator*);//2
 	void setup(MaterialCreator*, MaterialCreator*);//3
 	void setupTimer(OvenTimer*);
 	
@@ -38,5 +38,6 @@ public:
 	std::vector<Entity*> returnRenderingEntities();
 	void clearRenderingEntities();
 	Transform* getTransform();
+	Order* getOrder();
 };
 

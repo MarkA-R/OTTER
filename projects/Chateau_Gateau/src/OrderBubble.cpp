@@ -29,6 +29,7 @@ void OrderBubble::addFill(float x)
 
 bool OrderBubble::isOrderExpired()
 {
+    //std::cout << order.maxEndTime << std::endl;
     return !order.isOnTime();
 }
 
@@ -42,11 +43,12 @@ void OrderBubble::setTransform(Transform& t)
     bubbleTransform = t;
 }
 
-void OrderBubble::setTiles(MaterialCreator* pastry, MaterialCreator* fill, MaterialCreator* top)
+void OrderBubble::setTiles(MaterialCreator* pastry, MaterialCreator* fill, MaterialCreator* top, MaterialCreator* drink)
 {
     orderTiles[0] = pastry;
     orderTiles[1] = fill;
     orderTiles[2] = top;
+    orderTiles[3] = drink;
 }
 
 void OrderBubble::setup(MaterialCreator* bubble, MaterialCreator* plus)
@@ -70,10 +72,12 @@ void OrderBubble::create(Order& o)
     float totalEnties = 1;//for pastry
     bool hasTopping = false;
     bool hasFilling = false;
+    bool hasDrink = false;
     float scaleX = 1.3;
-    float scaleAll = 0.9;
+    float scaleY = 0.75;
+    float scaleAll = 0.95;
     float place = 1;
-    float yAdder = 0.1;
+    float yAdder = 0.15;
     if (order.filling != bakeryUtils::fillType::NONE) {
         totalEnties += 1;
         hasFilling = true;
@@ -81,6 +85,10 @@ void OrderBubble::create(Order& o)
     if (order.topping != bakeryUtils::toppingType::NONE) {
         totalEnties += 1;
         hasTopping = true;
+    }
+    if (order.drink != bakeryUtils::drinkType::NONE) {
+       // totalEnties += 1;
+        hasDrink = true;
     }
     float width = (scaleX*(scaleAll-0.05)) * 2;
     //std::cout << "W " << width << std::endl;
@@ -94,8 +102,8 @@ void OrderBubble::create(Order& o)
     toRender.push_back(timer->getTile());
    
     glm::vec3 timerPos = bubbleTransform.m_pos;
-    timerPos.y -= 0.346 * scaleX;
-    timerPos.x -= 0.67 * scaleX;
+    timerPos.y -= 0.29 * scaleX;
+    timerPos.x -= 0.70 * scaleX;
    // std::cout << timerPos.y << std::endl;
     timer->setPosition(timerPos);
     timer->setTransform(bubbleTransform);
@@ -104,12 +112,13 @@ void OrderBubble::create(Order& o)
 
     bubble = Entity::Allocate();
     bubble.get()->Add<CMeshRenderer>(*bubble, *bubbleTile->getMesh(), *bubbleTile->getMaterial());
+    bubble.get()->transform.m_scale = glm::vec3(scaleX, scaleX, scaleY) * scaleAll;
     bubble.get()->transform.m_rotation =
         glm::angleAxis(glm::radians(-180.f), glm::vec3(0.0f, 0.0f, 1.0f))*
         glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
         glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    bubble.get()->transform.m_scale = glm::vec3(scaleX, scaleX, scaleX) * scaleAll;
+   
     bubble.get()->transform.m_pos = bubbleTransform.m_pos;
     bubble.get()->transform.SetParent(&bubbleTransform);
     toRender.push_back(bubble.get());
@@ -120,6 +129,38 @@ void OrderBubble::create(Order& o)
    // std::cout << "SECW/2 " << sectionWidth / 2 << std::endl;
    // std::cout << "BPOS " << bubblePos.x << std::endl;
     //std::cout << "FINAL " << (bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place) << std::endl;
+
+    if (hasDrink) {
+
+        drinkTile = Entity::Allocate();
+        drinkTile.get()->Add<CMeshRenderer>(*drinkTile, *orderTiles[3]->getMesh(), *orderTiles[3]->getMaterial());
+        drinkTile.get()->transform.SetParent(&bubbleTransform);
+        drinkTile.get()->transform.m_rotation =
+            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+        drinkTile.get()->transform.m_scale = glm::vec3(0.7, 0.7, 0.7) * 0.3f;
+
+
+        drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width/2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+        toRender.push_back(drinkTile.get());
+        //place++;
+
+        plusR = Entity::Allocate();
+        plusR.get()->Add<CMeshRenderer>(*plusR, *plusTile->getMesh(), *plusTile->getMaterial());
+        plusR.get()->transform.SetParent(&bubbleTransform);
+        plusR.get()->transform.m_rotation =
+            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+        plusR.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.1f;
+
+
+        plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+        toRender.push_back(plusR.get());
+        //place++;
+
+
+    }
+
 
     if (hasTopping) {
 
@@ -136,17 +177,17 @@ void OrderBubble::create(Order& o)
         toRender.push_back(toppingTile.get());
         place++;
 
-        plusR = Entity::Allocate();
-        plusR.get()->Add<CMeshRenderer>(*plusR, *plusTile->getMesh(), *plusTile->getMaterial());
-        plusR.get()->transform.SetParent(&bubbleTransform);
-        plusR.get()->transform.m_rotation =
+        plusM = Entity::Allocate();
+        plusM.get()->Add<CMeshRenderer>(*plusM, *plusTile->getMesh(), *plusTile->getMaterial());
+        plusM.get()->transform.SetParent(&bubbleTransform);
+        plusM.get()->transform.m_rotation =
             glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
             glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        plusR.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.1f;
+        plusM.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * 0.1f;
 
 
-        plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-        toRender.push_back(plusR.get());
+        plusM.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+        toRender.push_back(plusM.get());
         place++;
 
        
@@ -226,6 +267,12 @@ void OrderBubble::clearRenderingEntities()
 Transform* OrderBubble::getTransform()
 {
     return &bubbleTransform;
+}
+
+Order* OrderBubble::getOrder()
+{
+    // TODO: insert return statement here
+    return &order;
 }
 
 

@@ -26,7 +26,7 @@
 #include "DrinkMachine.h"
 #include "Drink.h"
 #include <algorithm>
-
+#include <math.h>
 #include <ctime>
 
 
@@ -39,6 +39,13 @@
 #include "Register.h"
 
 using namespace nou;
+
+// Templated LERP function
+template<typename T>
+T Lerp(const T& p0, const T& p1, float t)
+{
+	return (1.0f - t) * p0 + t * p1;
+}
 
 template<typename T>
 T Catmull(const T& p0, const T& p1, const T& p2, const T& p3, float t)
@@ -82,6 +89,11 @@ float easeIn(float x) {
 	return 1 - cos((x * 3.1415926) / 2);
 }
 
+
+float tempA = 0.f;
+float tempB = 0.f;
+float tempC = 0.f;
+float tempD = 0.f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
@@ -98,6 +110,10 @@ std::vector<Mesh*> ovenDoorTwoOpen;
 std::vector<Mesh*> ovenDoorThreeOpen;
 std::vector<Mesh*> ovenDoorFourOpen;
 
+float receiptT = 0.0f;
+float receiptStopT = 0.0f;
+glm::vec3 receptEndPos;
+glm::vec3 receptBeginPos;
 
 glm::quat cameraQuat = glm::quat();
 glm::quat lastCameraQuat;
@@ -108,6 +124,7 @@ double lastCameraX = 0, lastCameraY = 0;
 double sensitivity = -0.1;
 bool isInMainMenu = true;
 bool isInPauseMenu = false;
+bool isInContinueMenu = false;
 int selectedOption = 0;
 glm::quat getCameraRotation();
 glm::quat menuCameraQuat;
@@ -177,6 +194,7 @@ float getTrayRaise(bakeryUtils::pastryType type);
 void moveCamera(int);
 int getSignSelection(int max, bool reset);
 bool isInRendering(Entity* e);
+void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -208,6 +226,11 @@ MaterialCreator teaTile = MaterialCreator();
 MaterialCreator milkshakeTile = MaterialCreator();
 
 
+MaterialCreator coffeeMat = MaterialCreator();
+MaterialCreator teaMat = MaterialCreator();
+MaterialCreator milkshakeMat = MaterialCreator();
+
+
 
 
 MaterialCreator custardFilling = MaterialCreator();
@@ -235,6 +258,7 @@ Transform upurrBubbleLocation2;
 MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
 MaterialCreator* getFillingTile(bakeryUtils::fillType x);
 MaterialCreator* getToppingTile(bakeryUtils::toppingType x);
+MaterialCreator* getDrinkTile(bakeryUtils::drinkType x);
 void removeFromRendering(Entity* e);
 void resetBubble(int i);
 glm::vec3 trayScale;
@@ -344,6 +368,10 @@ int main()
 	MaterialCreator bakeryMat = MaterialCreator();
 	bakeryMat.createMaterial("bakery/models/bakery.gltf", "bakery/textures/bakeryTexture.png", *prog_texLit);
 
+	MaterialCreator receiptMat = MaterialCreator();
+	receiptMat.createMaterial("bakery/models/tile.gltf", "UI/textures/Receipt.png", *prog_texLit);
+
+
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
 	particleMat->AddTexture("albedo", *particleTex);
@@ -359,6 +387,10 @@ int main()
 	teaTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/teaTile.png", *prog_texLit);
 	milkshakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/milkshakeTile.png", *prog_texLit);
 
+	coffeeMat.createMaterial("bakery/models/coffee.gltf", "bakery/textures/coffee.png", *prog_texLit);
+	teaMat.createMaterial("bakery/models/tea.gltf", "bakery/textures/tea.png", *prog_texLit);
+	milkshakeMat.createMaterial("bakery/models/milkshake.gltf", "bakery/textures/milkshake.png", *prog_texLit);
+	
 	playSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/playSign.png", *prog_texLit);
 	settingsSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/settingsSign.png", *prog_texLit);
 	exitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/exitSign.png", *prog_texLit);
@@ -388,7 +420,7 @@ int main()
 	plusTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/plusTile.png", *prog_texLit);
 	bubbleTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/bubbleTile.png", *prog_texLit);
 
-
+	
 	std::unique_ptr<Texture2D> pecanTex = std::make_unique<Texture2D>("bakery/textures/pecanParticle.png");
 	pecanParticle = std::make_unique<Material>(*prog_particles);
 	pecanParticle->AddTexture("albedo", *pecanTex);
@@ -400,6 +432,9 @@ int main()
 	std::unique_ptr<Texture2D> sprinkleTex = std::make_unique<Texture2D>("bakery/textures/sprinkleParticle.png");
 	sprinkleParticle = std::make_unique<Material>(*prog_particles);
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
+
+	
+	
 
 	Entity bakery = Entity::Create();
 	bakery.Add<CMeshRenderer>(bakery, *bakeryMat.getMesh(), *bakeryMat.getMaterial());
@@ -435,8 +470,16 @@ int main()
 	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	globalCameraEntity = &cameraEntity;
 	
+	Entity receipt = Entity::Create();
+	receipt.Add<CMeshRenderer>(receipt, *receiptMat.getMesh(), *receiptMat.getMaterial());
+	receipt.transform.m_scale = glm::vec3(0.15, 0.15, 0.15);
+	receipt.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//0
 	
 	
+	
+		
 		//Creating Cash Register Entity
 		Entity ent_register = Entity::Create();
 		ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
@@ -553,30 +596,47 @@ int main()
 		drink.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
 		drink.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		drink.transform.m_pos = glm::vec3(-0.9f, -1.0f, 2.0f);
-		drink.Add<BoundingBox>(glm::vec3(0.52, 2, 0.35), filling);
-		//glm::vec3 drinkPos = drink.transform.m_pos;
-		//drink.Get<BoundingBox>().setOrigin(glm::vec3(drinkPos.x + 0.4, drinkPos.y, drinkPos.z));
+		drink.Add<BoundingBox>(glm::vec3(0.32, 2, 0.35), filling);
+		glm::vec3 drinkPos = drink.transform.m_pos;
+		drink.Get<BoundingBox>().setOrigin(glm::vec3(drinkPos.x - 0.0, drinkPos.y, drinkPos.z));
 		renderingEntities.push_back(&drink);
 
 		auto& animatordrink = drink.Add<CMorphAnimator>(drink);
 		animatordrink.SetFrameTime(1.0f);
-		animatordrink.SetFrames(fillingFrames);
+		animatordrink.SetFrames(drinkFrames);
 
-		/*
+		Transform drinkBarPos = drink.transform;
+		drinkBarPos.m_pos.z -= 0.65;
+		drinkBarPos.m_pos.y += 0.7;
+		drinkBarPos.m_pos.x += 0.1;
+		drinkBarPos.m_scale = glm::vec3(0.05,0.5,0.1);
+		//drinkBarPos.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		filling.Get<FillingMachine>().setup(&custardFilling, &nutellaFilling, &strawberryFilling);
+		FillBar drinkFill;
+		drinkFill.setup(barMat1, barMat2, drinkBarPos);
+		Transform outDrinkTrans = drink.transform;
+		outDrinkTrans.m_pos.z -= 0.3;
+		outDrinkTrans.m_pos.y -= 0.05;
+		Transform inDrinkTrans = drink.transform;
+		inDrinkTrans.m_pos.y -= 0.05;
+		drink.Get<DrinkMachine>().setTransform(inDrinkTrans, outDrinkTrans);
+		drink.Get<DrinkMachine>().setup(&coffeeTile, &milkshakeTile, &teaTile, &drinkFill);
+		renderingEntities.push_back(drinkFill.getEntity());
+		
 
-		Entity fillingPlane = Entity::Create();
-		fillingPlane.Add<CMeshRenderer>(fillingPlane, *custardFilling.getMesh(), *custardFilling.getMaterial());
-		fillingPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
-		fillingPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+		//filling.Get<FillingMachine>().setup(&custardFilling, &nutellaFilling, &strawberryFilling);
+
+		Entity drinkPlane = Entity::Create();
+		drinkPlane.Add<CMeshRenderer>(drinkPlane, *coffeeTile.getMesh(), *coffeeTile.getMaterial());
+		drinkPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+		drinkPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
-		glm::vec3 fillPos = filling.transform.m_pos;
-		fillingPlane.transform.m_pos = glm::vec3(fillPos.x - 0.1, fillPos.y + 0.8, fillPos.z - 0.5);
-		renderingEntities.push_back(&fillingPlane);
-		filling.Get<FillingMachine>().setFillingPlane(&fillingPlane);
+		glm::vec3 drinkTilePos = drink.transform.m_pos;
+		drinkPlane.transform.m_pos = glm::vec3(drinkTilePos.x - 0.1, drinkTilePos.y + 0.8, drinkTilePos.z - 0.5);
+		renderingEntities.push_back(&drinkPlane);
+		drink.Get<DrinkMachine>().setDrinkPlane(&drinkPlane);
 
-		*/
+		
 
 
 		//Setting up our particle system.
@@ -735,7 +795,7 @@ int main()
 	oven.Get<Oven>().setMaterials(tiles);
 	App::Tick();
 
-	float angle = 0;
+
 	Oven* ovenScript = &oven.Get<Oven>();
 	glm::vec3 lastPoint = glm::vec3(-999,-999,-999);
 	glm::vec3 currentPoint = glm::vec3(0);
@@ -759,7 +819,7 @@ int main()
 
 	OrderBubble firstOrder(&customerTimer);
 	//firstOrder.setTransform(customerBubbleLocation);
-	firstOrder.setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping));
+	firstOrder.setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping), getDrinkTile(currentOrders.back().drink));
 	firstOrder.setup(&bubbleTile, &plusTile);
 	firstOrder.create(currentOrders.back());
 
@@ -782,6 +842,8 @@ int main()
 	
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
+	bool skipMenu = true;
+	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
 	cameraX = lastCameraX;
@@ -806,8 +868,12 @@ int main()
 		}
 	}
 	currentOrders.back().startOrder();
-	//up to here
+	}
 	
+//up to here
+	
+	DrinkMachine& drinkScript = drink.Get<DrinkMachine>();
+	//renderingEntities.push_back(&receipt);
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -820,6 +886,24 @@ int main()
 		App::FrameStart();
 		float deltaTime = App::GetDeltaTime();
 		getKeyInput();
+
+		
+
+		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {
+			receipt.transform.m_pos = cursor.transform.m_pos;
+			receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+				* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+			removeFromRendering(&cursor);
+			removeFromRendering(&tray);
+			for each (Entity * trayEntity in trayPastry) {
+				removeFromRendering(trayEntity);
+			}
+			renderingEntities.push_back(&receipt);
+			receiptT = 0;
+			isInContinueMenu = true;
+		}
+
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
 				
@@ -836,6 +920,10 @@ int main()
 					if (mainMenuChosen == 0) {//PLAY	
 						
 						isCameraMoving = true;
+					}
+
+					if (mainMenuChosen == 2) {
+						break;
 					}
 
 				}
@@ -959,7 +1047,66 @@ int main()
 			continue;
 		}
 		 
-		
+		if (isInContinueMenu) {
+			//std::cout << static_cast<int>(floor(static_cast<float>(receiptT * 100.f))) << std::endl;
+			if ((static_cast<int>(floor(static_cast<float>(receiptT * 100.f))) % 2 == 0) && receiptStopT < 1
+				&& receiptT >=0.8 && receiptT <= 0.9) {
+				receiptStopT += deltaTime * 4;
+			}
+			else
+			{
+				receiptT += deltaTime;
+				receiptStopT = 0;
+			}
+			
+			
+			if (receiptT > 1) {
+				receiptT = 1;
+			}
+			
+			receipt.transform.m_pos = Lerp(receptBeginPos, receptEndPos,receiptT);
+
+			if (isClickingSpace) {
+				std::reverse(cameraKeys.begin(), cameraKeys.end());
+				selectedOption = -1;
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[0]);
+				currentCameraPoint = 0;
+				cameraT = 0.f;
+				isCameraMoving = true;
+				isInPauseMenu = false;
+				isInMainMenu = true;
+				isInContinueMenu = false;
+				lastCameraX = cameraX;
+				lastCameraY = cameraY;
+				wantedCameraQuat = menuCameraQuat;
+				currentCameraQuat = cameraQuat;
+				lastCameraQuat = cameraQuat;
+				for (int i = 0; i < orderBubbles.size(); i++) {
+					OrderBubble* ob = orderBubbles[i];
+					for each (Entity * ent in ob->returnRenderingEntities()) {
+						removeFromRendering(ent);
+					}
+				}
+			}
+			for each (Entity * e in renderingEntities) {
+				
+
+				e->transform.RecomputeGlobal();
+
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
+
+			}
+
+			App::SwapBuffers();
+			continue;
+		}
 		
 
 		
@@ -1003,25 +1150,39 @@ int main()
 			ovenScript->update(deltaTime);
 
 			
-			for (int i = 0; i < orderBubbles.size(); i++) {
+			for (int i = 0; i < currentOrders.size(); i++) {
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
-				
-				if (ob->isOrderExpired()) {
+				//std::cout << bakeryUtils::getTime() << " > " << ob->isOrderExpired() << std::endl;
+				if (!currentOrders[i].isOnTime()) {
+					//std::cout << "START" << std::endl;
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
 					if (bakeryUtils::getOrdersFailed() == 3) {
-						isPaused = true;
+						//std::cout << "END" << std::endl;
+						receipt.transform.m_pos = cursor.transform.m_pos;
+						removeFromRendering(&cursor);
+						removeFromRendering(&tray);
+						for each (Entity * trayEntity in trayPastry) {
+							removeFromRendering(trayEntity);
+						}
+						renderingEntities.push_back(&receipt);
+						
+						isInContinueMenu = true;
+						break;
 					}
+
+
 					for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
 						renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
-
+						//std::cout << "r" << std::endl;
 					}
 
 					resetBubble(i);
 
 					for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
 						renderingEntities.push_back(foe);
+						//std::cout << "d" << std::endl;
 					}
 					
 				}
@@ -1032,18 +1193,7 @@ int main()
 		
 
 		
-		/*
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		App::StartImgui();
-		ImGui::DragFloat("X", &(slot1Transform.m_pos.x), 0.01f);
-		ImGui::DragFloat("Y", &(slot1Transform.m_pos.y), 0.01f);
-		ImGui::DragFloat("Z", &(slot1Transform.m_pos.z), 0.01f);
-		slot1.setTransform(slot1Transform);
-		//ImGui::DragFloat("Scale", &(sc), 0.1f);
-		//ImGui::SetWindowPos(0,0);
 		
-		App::EndImgui();
-		*/
 	
 		
 		glm::quat cameraRotEuler = cameraQuat;
@@ -1071,9 +1221,37 @@ int main()
 		//std::cout << cameraRotEuler.x << " " << cameraRotEuler.y << " " << cameraRotEuler.z << std::endl;
 		cursor.transform.m_pos = raycastPoints[5];
 		
-			cursor.transform.m_rotation = cameraEntity.transform.m_rotation;
+		cursor.transform.m_rotation = cameraEntity.transform.m_rotation;
 		
+
+		receipt.transform.m_pos = cursor.transform.m_pos;
+		receptEndPos = cursor.transform.m_pos;
+		receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//glm::inverse(cursor.transform.m_rotation);
 		
+		/*
+		//receipt.transform.SetParent(&cameraEntity.transform);
+		//receipt.transform.m_pos = cursor.transform.m_pos;
+
+		
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		App::StartImgui();
+		ImGui::DragFloat("X", &(tempA), 0.1f);
+		ImGui::DragFloat("Y", &(tempB), 0.1f);
+		ImGui::DragFloat("Z", &(tempC), 0.1f);
+
+		
+
+		//ImGui::DragFloat("Scale", &(sc), 0.1f);
+		//ImGui::SetWindowPos(0,0);
+
+		App::EndImgui();
+		*/
+		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
+		receipt.transform.m_pos = receptEndPos;
+			
+		//receipt.transform.m_rotation = cameraQuat;
 		
 		
 		hitEntity = nullptr;
@@ -1081,7 +1259,9 @@ int main()
 			
 			e->transform.RecomputeGlobal();
 
+			if (true) {
 
+			}
 			if (e->Has<CMeshRenderer>()) {
 				e->Get<CMeshRenderer>().Draw();
 			}
@@ -1113,6 +1293,36 @@ int main()
 			}
 					
 		}
+
+		if (drinkScript.isOpening || drinkScript.isClosing) {
+			float multiplier = 1;
+			if (drinkScript.isClosing) {
+				multiplier = -1;
+			}
+			drinkScript.addToT(deltaTime * multiplier);
+			drink.Get<CMorphAnimator>().setFrameAndTime(0, 1, drinkScript.getT());
+			if (drinkScript.isClosing) {
+				drinkScript.addFill(deltaTime* multiplier);
+				drinkScript.getFillBar()->setT(drinkScript.getFill());
+				drinkScript.getFillBar()->updateArrow();
+			}
+			if (drinkScript.isOpening) {
+				drinkScript.moveDrink(drinkScript.getT());
+
+			}
+			if (drinkScript.getT() >= 1.f) {
+				drinkScript.setT(1.f);
+				drinkScript.isOpening = false;
+			}
+			if (drinkScript.getT() <= 0.f) {
+				drinkScript.setT(0.f);
+				
+				drinkScript.isClosing = false;
+				drinkScript.isOpening = false;
+			}
+		}
+
+		
 
 		if (raycastHit && hitEntity != nullptr) {
 			Entity* e = hitEntity;
@@ -1164,26 +1374,32 @@ int main()
 						bool putInOven = false;
 						if (trayPastry[wantedSlot] != nullptr) {
 							if (!ovenScript->isSlotFull(wantedSlot)) {
-								if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
-								{
-									if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
-										putInOven = true;
+								if (trayPastry[wantedSlot]->Has<Pastry>()) {
+									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
+									{
+										if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
+											putInOven = true;
+										}
 									}
-								}
+
+									}
+								
 							}
 							else
 							{
 								int firstEmpty = ovenScript->getFirstEmpty();
 								if (firstEmpty >= 0) {
-									
-									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
-									{
-										if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
-											putInOven = true;
-											
-											addingSlot = firstEmpty;
+									if (trayPastry[wantedSlot]->Has<Pastry>()) {
+										if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
+										{
+											if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
+												putInOven = true;
+
+												addingSlot = firstEmpty;
+											}
 										}
 									}
+									
 								}
 								
 							}
@@ -1281,13 +1497,16 @@ int main()
 							bool putinFill = false;
 							if (trayPastry[wantedSlot] != nullptr) {
 								if (!fillingScript.isFillingFull()) {
-									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
-										&& trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling() == bakeryUtils::fillType::NONE)
-									{
-										if (!trayPastry[wantedSlot]->Get<Pastry>().isInFilling()) {
-											putinFill = true;
+									if (trayPastry[wantedSlot]->Has<Pastry>()) {
+										if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
+											&& trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling() == bakeryUtils::fillType::NONE)
+										{
+											if (!trayPastry[wantedSlot]->Get<Pastry>().isInFilling()) {
+												putinFill = true;
+											}
 										}
 									}
+									
 								}
 							}
 							if (putinFill) {
@@ -1388,13 +1607,16 @@ int main()
 							bool putinTop = false;
 							if (trayPastry[wantedSlot] != nullptr) {
 								if (!toppingScript.isToppingFull()) {
-									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
-										&& trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping() == bakeryUtils::toppingType::NONE)
-									{
-										if (!trayPastry[wantedSlot]->Get<Pastry>().isInTopping()) {
-											putinTop = true;
+									if (trayPastry[wantedSlot]->Has<Pastry>()) {
+										if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
+											&& trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping() == bakeryUtils::toppingType::NONE)
+										{
+											if (!trayPastry[wantedSlot]->Get<Pastry>().isInTopping()) {
+												putinTop = true;
+											}
 										}
 									}
+									
 								}
 							}
 							if (putinTop) {
@@ -1442,19 +1664,88 @@ int main()
 					}
 				
 				}
+				else if (e->Has<DrinkMachine>()) {
+				if (!drinkScript.isOpening && !drinkScript.isClosing && !drinkScript.isDrinkFull()) {
+					if (isLeftButtonHeld) {
+						drinkScript.addFill(deltaTime / bakeryUtils::getDrinkFillAmount());
+						drinkScript.getFillBar()->setT(drinkScript.getFill());
+						drinkScript.getFillBar()->updateArrow();
+						
+					}
+					else if (scrollY != 0) {
+						drinkScript.addDrinkNum(scrollY);
+						drinkScript.updatePlane();
+					}
+					else 
+					{
+						 if (drinkScript.getFill() > 0.9f && drinkScript.getFill() < 1.05f
+							&& (!drinkScript.isOpening || !drinkScript.isClosing)) {
+							drinkScript.isOpening = true;
+							drinkScript.isClosing = false;
+							if (!drinkScript.isDrinkFull()) {
+								drinkScript.createDrink();
+								setDrinkMesh(drinkScript.getFromDrink(), drinkScript.getDrink());
+								drinkScript.getFromDrink()->transform.m_scale = glm::vec3(0.2);
+								drinkScript.getFromDrink()->Add<Drink>();
+								drinkScript.getFromDrink()->Get<Drink>().setDrinkType(drinkScript.getDrink());
+								renderingEntities.push_back(drinkScript.getFromDrink());
+							}
+							
+
+							//create drink entity here
+						}
+						else
+						{
+							drinkScript.setFill(0.f);
+							drinkScript.getFillBar()->setT(drinkScript.getFill());
+							drinkScript.getFillBar()->updateArrow();
+
+						}
+						
+					}
+				}
+				else if (drinkScript.isDrinkFull()) {
+					if (getWantedSlot() != -1) {
+						//put in tray
+						//std::cout << getWantedSlot() << std::endl;
+						int wantedSlot = getWantedSlot();
+						if (trayPastry[wantedSlot] == nullptr) {
+							trayPastry[wantedSlot] = drinkScript.releaseFromDrink();
+							//setDrinkMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Drink>().getDrinkType());
+							trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+							trayPastry[wantedSlot]->transform.m_scale /= 5;
+
+							trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+
+							//trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
+							drinkScript.removeFromDrink();
+
+							drinkScript.isClosing = true;
+							drinkScript.isOpening = false;
+						}
+						
+						
+
+					}
+					
+				}
+				
+				}
 				else if (e->Has<TrashCan>()) {
 				//std::cout << "HERE" << std::endl;
 				int wantedSlot = getWantedSlot();
 				if (wantedSlot >= 0) {
 					if (trayPastry[wantedSlot] != nullptr) {
-						renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[wantedSlot]), renderingEntities.end());
+						removeFromRendering(trayPastry[wantedSlot]);
 						trayPastry[wantedSlot] = nullptr;
 					}
 
 				}
 			}
+				
 
-
+			
 
 
 			}
@@ -1463,15 +1754,43 @@ int main()
 				if (isClicking) {
 					for (int u = 0; u < currentOrders.size(); u++) {
 						Order& o = currentOrders[u];
+						int pastryIndex = -1;
+						int drinkIndex = -1;
 						for (int i = 0; i < std::size(trayPastry); i++) {
 							Entity* tray = trayPastry[i];
 							if (tray != nullptr) {
-								if (o.validateOrder(tray->Get<Pastry>())) {//for drinks just have a check here for if it has a pastry or not and to check if an order is completed, have an internal counter or something
-									renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), tray), renderingEntities.end());
-									trayPastry[i] = nullptr;
+								if (tray->Has<Pastry>())
+								{
+									if (o.validateOrder(tray->Get<Pastry>())) {//for drinks just have a check here for if it has a pastry or not and to check if an order is completed, have an internal counter or something
+										o.setPastryValidated(true);
+										pastryIndex = i;
+									}
+								}
+								
+								if (tray->Has<Drink>()) {
+									if (o.validateDrink(tray->Get<Drink>())) {
+										o.setDrinkValidated(true);
+										drinkIndex = i;
+									}
+								}
+								
+								if (o.returnSatisfied()) {
+									if (pastryIndex != -1) {
+										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
+
+										trayPastry[pastryIndex] = nullptr;
+
+									}
+									if (drinkIndex != -1) {
+										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[drinkIndex]), renderingEntities.end());
+
+										trayPastry[drinkIndex] = nullptr;
+
+									}
+									
 									bakeryUtils::addToRounds(1);
 									std::cout << "HERE" << std::endl;
-									createNewOrder(u,true);
+									createNewOrder(u, true);
 									for each (Entity * remover in orderBubbles[u]->returnRenderingEntities()) {
 										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
 
@@ -1519,7 +1838,7 @@ int main()
 
 
 			if ((bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
-				) {
+				) {//|| currentOrders.size() == 1
 			
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(1, false,false);
@@ -1534,9 +1853,9 @@ int main()
 
 
 			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
-			std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
+			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
 			if ((bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
-				) {
+				) {//|| currentOrders.size() == 2
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(2, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1);
@@ -1640,6 +1959,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+		
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		isClicking = true;
@@ -1686,7 +2006,7 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	
 	cameraQuat = getCameraRotation();
 	
-	if (!isPaused && !isInMainMenu) {
+	if (!isPaused && !isInMainMenu && !isInContinueMenu) {
 		globalCameraEntity->transform.m_rotation = cameraQuat;
 		globalCameraEntity->transform.m_pos = cameraPos;
 
@@ -1867,6 +2187,32 @@ void setTrayPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 	}
 }
 
+void setDrinkMesh(Entity* e, bakeryUtils::drinkType type) {
+	//std::cout << "A" << (int) type << std::endl;
+	if (type == bakeryUtils::drinkType::COFFEE) {
+		if (e->Has<CMeshRenderer>()) {
+			e->Remove<CMeshRenderer>();
+		}
+		
+		e->Add<CMeshRenderer>(*e, *coffeeMat.getMesh(), *coffeeMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+	}
+	if (type == bakeryUtils::drinkType::TEA) {
+		if (e->Has<CMeshRenderer>()) {
+			e->Remove<CMeshRenderer>();
+		}
+		e->Add<CMeshRenderer>(*e, *teaMat.getMesh(), *teaMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+	}
+	if (type == bakeryUtils::drinkType::MILKSHAKE) {
+		if (e->Has<CMeshRenderer>()) {
+			e->Remove<CMeshRenderer>();
+		}
+		e->Add<CMeshRenderer>(*e, *milkshakeMat.getMesh(), *milkshakeMat.getMaterial());
+		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+	}
+}
+
 void setMachinePastryMesh(Entity* e, bakeryUtils::pastryType type) {
 	e->transform.m_scale *= 10;
 }
@@ -1929,7 +2275,6 @@ MaterialCreator* getFillingTile(bakeryUtils::fillType x) {
 
 }
 
-
 MaterialCreator* getToppingTile(bakeryUtils::toppingType x) {
 	if (x == bakeryUtils::toppingType::PECAN) {
 		return &pecanTopping;
@@ -1943,6 +2288,20 @@ MaterialCreator* getToppingTile(bakeryUtils::toppingType x) {
 
 	return nullptr;
 
+}
+
+MaterialCreator* getDrinkTile(bakeryUtils::drinkType x) {
+	if (x == bakeryUtils::drinkType::COFFEE) {
+		return &coffeeTile;
+	}
+	if (x == bakeryUtils::drinkType::MILKSHAKE) {
+		return &milkshakeTile;
+	}
+	if (x == bakeryUtils::drinkType::TEA) {
+		return &teaTile;
+	}
+
+	return nullptr;
 }
 
 bool isInRendering(Entity* e) {
@@ -1978,7 +2337,7 @@ void resetBubble(int i) {
 	orderBubbleTimers[i]->setFill(0);
 	orderBubbleTimers[i]->updateArrow();
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
-	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping));
+	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping), getDrinkTile(currentOrders[i].drink));
 	orderBubbles[i]->setup(&bubbleTile, &plusTile);
 	orderBubbles[i]->create(currentOrders[i]);
 }

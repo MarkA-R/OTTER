@@ -1,4 +1,5 @@
 #include "Order.h"
+#include <ctime>
 
 float Order::getWorkTime()
 {
@@ -17,6 +18,9 @@ bool Order::orderStarted()
 
 void Order::createOrder(int difficulty)
 {
+	
+	isPastrySatisfied = false;
+	isDrinkSatisfied = true;
 	if (difficulty > 4) {
 		difficulty = 4;
 	}
@@ -28,14 +32,17 @@ void Order::createOrder(int difficulty)
 	if (random < 1) {
 		random = 1;
 	}
+
 	int fillingRand = (rand() % 3) + 1;
 	int toppingRand = (rand() % 3) + 1;
+	int drinkRand = (rand() % 3) + 1;
+	float addedDrinkSecs = 0;
 	//std::cout << fillingRand << " " << toppingRand << std::endl;
 	int usingPastryInt = random;
 	if (difficulty == 1) {
 		random = 1;
 	}
-	
+	drink = bakeryUtils::drinkType::NONE;
 	type =bakeryUtils::pastryType((random));
 	if (difficulty > 2) {
 		topping = bakeryUtils::toppingType(toppingRand);
@@ -51,15 +58,22 @@ void Order::createOrder(int difficulty)
 	{
 		filling = bakeryUtils::fillType::NONE;
 	}
+
 	
-	
-	float orderSeconds = (60 / (difficulty)) + bakeryUtils::returnBakeTime(type);//60
+	if (difficulty == 4 && bakeryUtils::getRoundsLasted()  >= 6) {
+		drink = bakeryUtils::drinkType(drinkRand);
+		addedDrinkSecs = bakeryUtils::getDrinkFillAmount();
+		
+		isDrinkSatisfied = false;
+	}
+	std::cout << "DRINKSEC " << addedDrinkSecs << std::endl;
+	float orderSeconds = (60 / (difficulty)) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
 	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;
 }
 
-void Order::translate(bakeryUtils::toppingType topping, bakeryUtils::fillType filling, bakeryUtils::pastryType type)
+void Order::translate(bakeryUtils::toppingType topping, bakeryUtils::fillType filling, bakeryUtils::pastryType type, bakeryUtils::drinkType drink)
 {
 	if (topping == bakeryUtils::toppingType::NONE)
 	{
@@ -97,6 +111,23 @@ void Order::translate(bakeryUtils::toppingType topping, bakeryUtils::fillType fi
 		s_filling = "JAM";
 	}
 
+	if (drink == bakeryUtils::drinkType::NONE)
+	{
+		s_drink = "NONE";
+	}
+	else if (drink == bakeryUtils::drinkType::COFFEE)
+	{
+		s_drink = "COFFEE";
+	}
+	else if (drink == bakeryUtils::drinkType::MILKSHAKE)
+	{
+		s_drink = "MILKSHAKE";
+	}
+	else if (drink == bakeryUtils::drinkType::TEA)
+	{
+		s_drink = "TEA";
+	}
+
 	if(type == bakeryUtils::pastryType::CROISSANT)
 	{
 		s_type = "CROISSANT";
@@ -119,15 +150,17 @@ void Order::translate(bakeryUtils::toppingType topping, bakeryUtils::fillType fi
 void Order::startOrder()
 {
 	setStarted(true);
-	translate(topping,filling,type);
-	std::cout << "I want a " << s_type << " filled with " << s_filling << " and topped with " << s_topping << "." << std::endl;
+
+	translate(topping,filling,type,drink);
+	std::cout << "I want a " << s_type << " filled with " << s_filling << " and topped with " << s_topping << " and a " << s_drink << "." << std::endl;
 	startTime = bakeryUtils::getTime(); //bakeryStats.getGameTime();
 	maxEndTime = startTime + workTime;
 	//std::cout << "START" << startTime << std::endl;
 }
 
-void Order::setOver(bool)
+void Order::setOver(bool x)
 {
+	//hasStarted = x;
 }
 
 
@@ -140,6 +173,7 @@ bool Order::validateOrder(Pastry p)
 		{
 			if ((int)p.getPastryTopping() == (int)topping)
 			{
+				
 				return true;
 			}
 		}
@@ -148,9 +182,23 @@ bool Order::validateOrder(Pastry p)
 	return false;
 }
 
+bool Order::validateDrink(Drink d)
+{
+	if ((int)d.getDrinkType() == int(drink))
+	{
+		
+		return true;
+	}
+	return false;
+}
+
 bool Order::returnSatisfied()
 {
-	return isSatisfied;
+	
+	if (isPastrySatisfied && isDrinkSatisfied) {
+		return true;
+	}
+	return false;
 }
 
 bool Order::isOnTime()
@@ -171,6 +219,16 @@ bool Order::isOnTime()
 	return false;
 }
 
+void Order::setPastryValidated(bool x)
+{
+	isPastrySatisfied = x;
+}
+
+void Order::setDrinkValidated(bool x)
+{
+	isDrinkSatisfied = x;
+}
+
 Pastry Order::toPastry()
 {
 	Pastry p = Pastry();
@@ -178,6 +236,11 @@ Pastry Order::toPastry()
 	p.setType(type);
 	p.setTopping(topping);
 	return p;
+}
+
+Drink Order::toDrink()
+{
+	return Drink();
 }
 
 void Order::update(float deltaTime)
