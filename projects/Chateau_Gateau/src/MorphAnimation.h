@@ -16,10 +16,14 @@ public:
 	void update(Entity*, float, bool stopAtEnd = false);
 	int getCurrentFrame();
 	int getNextFrame();
+	void setCurrentFrame(int);
 	float getT();
+	void setT(float);
 	float getAddedT(float);
 	float getFrameTime();
 	Mesh* getMeshAtFrame(int i);
+	std::vector<Mesh*> getFrames();
+	int getFrameSize();
 
 
 };

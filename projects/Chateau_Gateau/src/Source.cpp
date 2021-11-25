@@ -725,6 +725,11 @@ int main()
 		loadAnimationData(mithunanWalkFrames,"characters/mithunan/walk/walk",8);
 		MorphAnimation mithunanWalk = MorphAnimation(mithunanWalkFrames,0.5,0);
 		allMithunanFrames.push_back(&mithunanWalk);
+
+		std::vector<Mesh*> mithunanIdleFrames;
+		loadAnimationData(mithunanIdleFrames, "characters/mithunan/idle/idle", 4);
+		MorphAnimation mithunanIdle = MorphAnimation(mithunanIdleFrames, 1, 0);
+		allMithunanFrames.push_back(&mithunanIdle);
 		
 		std::unique_ptr<Texture2D> mithunanTex = std::make_unique<Texture2D>("characters/mithunan/tempChar.png");
 		std::unique_ptr<Material> mithunanMat = std::make_unique<Material>(*prog_morph);
@@ -933,20 +938,13 @@ int main()
 
 		
 
-		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
-			receipt.transform.m_pos = cursor.transform.m_pos;
-			receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-				glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-				* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
-			removeFromRendering(&cursor);
-			removeFromRendering(&tray);
-			for each (Entity * trayEntity in trayPastry) {
-				removeFromRendering(trayEntity);
-			}
-			renderingEntities.push_back(&receipt);
-			receiptT = 0;
-			isInContinueMenu = true;
+		if (Input::GetKeyDown(GLFW_KEY_D)) {//put this in the lose spot
+			mithunan.Get<CharacterController>().queueAnimation(1);
 		}
+		if (Input::GetKeyDown(GLFW_KEY_A)) {//put this in the lose spot
+			mithunan.Get<CharacterController>().queueAnimation(0);
+		}
+		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
 
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
@@ -1183,7 +1181,7 @@ int main()
 		
 
 		
-		if (isClickingSpace && !isCameraMoving) {
+		if (isClickingSpace && !isCameraMoving && !isInContinueMenu) {
 			isPaused = !isPaused;
 
 			if (isPaused) {
@@ -1223,7 +1221,7 @@ int main()
 			ovenScript->update(deltaTime);
 
 			
-			for (int i = 0; i < currentOrders.size(); i++) {
+			for (int i = 0; i < currentOrders.size(); i++) {//pausing
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
 				//std::cout << bakeryUtils::getTime() << " > " << ob->isOrderExpired() << std::endl;
@@ -1232,15 +1230,17 @@ int main()
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
 					if (bakeryUtils::getOrdersFailed() == 3) {
-						//std::cout << "END" << std::endl;
-						receipt.transform.m_pos = cursor.transform.m_pos;
+						 receipt.transform.m_pos = cursor.transform.m_pos;
+						receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+							glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+							* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
 						removeFromRendering(&cursor);
 						removeFromRendering(&tray);
 						for each (Entity * trayEntity in trayPastry) {
 							removeFromRendering(trayEntity);
 						}
 						renderingEntities.push_back(&receipt);
-						
+						receiptT = 0;
 						isInContinueMenu = true;
 						break;
 					}
@@ -1326,7 +1326,7 @@ int main()
 			
 		//receipt.transform.m_rotation = cameraQuat;
 		
-		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
+		
 
 
 

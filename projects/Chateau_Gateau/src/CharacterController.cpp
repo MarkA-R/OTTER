@@ -1,4 +1,5 @@
 #include "CharacterController.h"
+#include <iostream>
 
 CharacterController::CharacterController(Entity* e, std::vector<MorphAnimation*> toPlay, std::vector<glm::vec3> toMove)
 {
@@ -20,30 +21,51 @@ void CharacterController::setStopSpot(int x)
 
 void CharacterController::queueAnimation(int x)
 {
-	currentAnimation = x;
+	queuedAnimation = x;
 }
 
 void CharacterController::updateAnimation(float deltaTime)
 {
 	float nextT = animations[currentAnimation]->getAddedT(deltaTime);
+	
 	bool doneAnimation = false;
-	if (nextT >= 1.f) {
+	if (animations[currentAnimation]->getT() + nextT >= 1.f) {
 		doneAnimation = true;
 	}
+	
 	if (inTransition) {
 		transitionT += transitionTAdder;
 	}
+	
+	
+	//std::cout << "CURRENT: " <<  animations[currentAnimation]->getT() << std::endl;
+	//std::cout << "QUEUED: " <<  animations[queuedAnimation]->getT() << std::endl;
+	
 	if (doneAnimation) {
-		inTransition = false;
-		transitionT = 0.f;
-		if (queuedAnimation >= 0) {
-			startTransition = animations[currentAnimation]->getMeshAtFrame(animations[currentAnimation]->getCurrentFrame());//probably should be next frame
+		
+		
+		if (queuedAnimation >= 0 && queuedAnimation != currentAnimation) {
+			startTransition = animations[currentAnimation]->getMeshAtFrame(animations[currentAnimation]->getNextFrame());//probably should be next frame
 			endTransition = animations[queuedAnimation]->getMeshAtFrame(0);//start of next animation
+			
 			transitionTAdder = (animations[currentAnimation]->getAddedT(deltaTime) + animations[queuedAnimation]->getAddedT(deltaTime)) / 2;
+			animations[currentAnimation]->setCurrentFrame(0);
+			animations[currentAnimation]->setT(0);
+			animations[queuedAnimation]->setCurrentFrame(0);
+			animations[queuedAnimation]->setT(0);
+			currentAnimation = queuedAnimation;
+			queuedAnimation = -1;
+			if (owner->Has<CMorphAnimator>()) {
+				owner->Get<CMorphAnimator>().SetFrames(animations[currentAnimation]->getFrames());
+			}
+			transitionT = 0.f;
+			inTransition = true;
+			
 		}
 	}
-	else
-	{
+	
+	
+
 		if (!inTransition) {
 			animations[currentAnimation]->update(owner, deltaTime, stopAnimation);
 
@@ -51,8 +73,12 @@ void CharacterController::updateAnimation(float deltaTime)
 		else
 		{
 			owner->Get<CMorphAnimator>().setMeshAndTime(startTransition, endTransition, transitionT);
+			if (transitionT >= 1) {
+				inTransition = false;
+
+			}
 		}
-	}
+	
 	
 	
 }

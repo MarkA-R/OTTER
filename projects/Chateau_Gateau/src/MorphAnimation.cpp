@@ -60,9 +60,28 @@ int MorphAnimation::getNextFrame()
 	return nextFrame;
 }
 
+void MorphAnimation::setCurrentFrame(int x)
+{
+	currentFrame = x;
+	nextFrame = currentFrame + 1;
+	if (currentFrame >= (frames.size())) {
+		currentFrame = currentFrame % frames.size();
+	}
+
+
+	if (nextFrame >= (frames.size())) {
+		nextFrame = (currentFrame + 1) % frames.size();
+	}
+}
+
 float MorphAnimation::getT()
 {
 	return currentT;
+}
+
+void MorphAnimation::setT(float x)
+{
+	currentT = x;
 }
 
 float MorphAnimation::getAddedT(float deltaTime)
@@ -78,4 +97,14 @@ float MorphAnimation::getFrameTime()
 Mesh* MorphAnimation::getMeshAtFrame(int i)
 {
 	return frames[i];
+}
+
+std::vector<Mesh*> MorphAnimation::getFrames()
+{
+	return frames;
+}
+
+int MorphAnimation::getFrameSize()
+{
+	return frames.size();
 }
