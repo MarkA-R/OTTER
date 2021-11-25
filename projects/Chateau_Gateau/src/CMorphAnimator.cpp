@@ -49,7 +49,10 @@ namespace nou
 		m_owner->Get<CMorphMeshRenderer>().UpdateData(*m_data->animationFrames[(int)currentFrame], *m_data->animationFrames[(int)nextFrame], t);
 
 	}
+	void CMorphAnimator::setMeshAndTime(Mesh* currentFrame, Mesh* nextFrame, float t) {
+		m_owner->Get<CMorphMeshRenderer>().UpdateData(*currentFrame, *nextFrame, t);
 
+	}
 
 	void CMorphAnimator::Update(float deltaTime)
 	{

@@ -1,0 +1,37 @@
+#pragma once
+#include "MorphAnimation.h"
+#include "CMorphMeshRenderer.h"
+#include "CMorphAnimator.h"
+#include "NOU/Entity.h"
+#include "NOU/CMeshRenderer.h"
+using namespace nou;
+class CharacterController
+{
+protected:
+	
+	std::vector<MorphAnimation*> animations;
+	//0 for idle, 1 for walk, 2 for something else and so on
+	Mesh* startTransition;
+	Mesh* endTransition;
+	float transitionT = 0.f;
+	float transitionTAdder = 0.f;
+	bool inTransition = false;
+	int currentspot = 0;
+	int stopSpot = 1;
+	int currentAnimation = 0;
+	int queuedAnimation = -1;
+	bool stopAnimation = false;
+	std::vector<glm::vec3> linePositions;
+	Entity* owner;
+
+public:
+	CharacterController(Entity*, std::vector<MorphAnimation*>, std::vector<glm::vec3>);
+	void setCurrentSpot(int);
+	void setStopSpot(int);
+	void queueAnimation(int);
+	void updateAnimation(float);
+	void updatePosition();
+	void continueAnimation(bool);
+
+};
+

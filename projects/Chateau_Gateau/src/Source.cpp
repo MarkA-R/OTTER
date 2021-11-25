@@ -25,6 +25,9 @@
 #include "TrashCan.h"
 #include "DrinkMachine.h"
 #include "Drink.h"
+#include "CharacterController.h"
+#include "MorphAnimation.h"
+
 #include <algorithm>
 #include <math.h>
 #include <ctime>
@@ -195,6 +198,7 @@ void moveCamera(int);
 int getSignSelection(int max, bool reset);
 bool isInRendering(Entity* e);
 void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
+void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -370,6 +374,8 @@ int main()
 
 	MaterialCreator receiptMat = MaterialCreator();
 	receiptMat.createMaterial("bakery/models/tile.gltf", "UI/textures/Receipt.png", *prog_texLit);
+
+	
 
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
@@ -711,6 +717,42 @@ int main()
 		topping.Get<ToppingMachine>().setTopPlane(&toppingPlane);
 
 
+
+		//Characters below
+		std::vector<MorphAnimation*> allMithunanFrames;
+		
+		std::vector<Mesh*> mithunanWalkFrames;
+		loadAnimationData(mithunanWalkFrames,"characters/mithunan/walk/walk",8);
+		MorphAnimation mithunanWalk = MorphAnimation(mithunanWalkFrames,0.5,0);
+		allMithunanFrames.push_back(&mithunanWalk);
+		
+		std::unique_ptr<Texture2D> mithunanTex = std::make_unique<Texture2D>("characters/mithunan/tempChar.png");
+		std::unique_ptr<Material> mithunanMat = std::make_unique<Material>(*prog_morph);
+		mithunanMat->AddTexture("albedo", *mithunanTex);
+
+		Entity mithunan = Entity::Create();
+		mithunan.Add<CMorphMeshRenderer>(mithunan, *mithunanWalkFrames[0], *mithunanMat.get());
+		mithunan.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+		mithunan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
+		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+		std::vector<glm::vec3> line;
+		line.push_back(mithunan.transform.m_pos);
+		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
+		//mithunan.Get<CharacterController>().continueAnimation(false);
+		auto& mithunanAnimator = mithunan.Add<CMorphAnimator>(mithunan);
+		mithunanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+		mithunanAnimator.SetFrames(mithunanWalkFrames);
+
+
+
+
+		renderingEntities.push_back(&mithunan);
+		
+		
+
+
+
 	
 	Entity tray = Entity::Create();
 	tray.Add<CMeshRenderer>(tray, *trayMat.getMesh(), *trayMat.getMaterial());
@@ -796,6 +838,7 @@ int main()
 	App::Tick();
 
 
+
 	Oven* ovenScript = &oven.Get<Oven>();
 	glm::vec3 lastPoint = glm::vec3(-999,-999,-999);
 	glm::vec3 currentPoint = glm::vec3(0);
@@ -839,6 +882,7 @@ int main()
 	cameraY = 0.f;
 	menuCameraQuat = getCameraRotation();
 	currentCameraQuat = menuCameraQuat;
+
 	
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
@@ -1282,7 +1326,11 @@ int main()
 			
 		//receipt.transform.m_rotation = cameraQuat;
 		
-		
+		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
+
+
+
+
 		hitEntity = nullptr;
 		for each (Entity* e in renderingEntities) {
 			
@@ -2425,6 +2473,18 @@ int getSignSelection(int max, bool reset) {
 
 	}
 	return -1;
+}
+
+void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count) {
+	for (int i = 1; i <= count; i++) {
+		std::string filename = prefix + std::to_string(i) + ".gltf";
+
+		Mesh* frame = new Mesh();
+		GLTF::LoadMesh(filename, *frame);
+
+		toModify.push_back(frame);
+	}
+	
 }
 
 
