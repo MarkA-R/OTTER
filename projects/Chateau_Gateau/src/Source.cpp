@@ -114,8 +114,8 @@ float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
-float lineY = -1.1f;
-std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
+float lineY = 0.8;//-1.1f;
+std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
 glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
@@ -321,6 +321,13 @@ int main()
 	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	// Load in our model/texture resources
 	LoadDefaultResources();
+	int stipple[16] = {
+	0,0,0,1,
+	0,0,1,0,
+	0,1,0,0,
+	1,0,0,0};
+	prog_transparent.get()->SetUniform("stipplePattern", *stipple);
+
 	glfwSetMouseButtonCallback(gameWindow, mouse_button_callback);
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	glfwSetScrollCallback(gameWindow, scroll_callback);
@@ -332,6 +339,9 @@ int main()
 
 	MaterialCreator cursorMat = MaterialCreator();
 	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_unlit);
+
+	MaterialCreator vaseMat = MaterialCreator();
+	vaseMat.createMaterialOBJ("bakery/models/vase.obj", "bakery/textures/vase.png", *prog_texLit);
 
 	MaterialCreator registerMaterial = MaterialCreator();
 	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_texLit);
@@ -349,7 +359,7 @@ int main()
 	binMat.createMaterial("bakery/models/trash.gltf", "bakery/textures/trash.png", *prog_texLit);
 
 	MaterialCreator ovenMat = MaterialCreator();
-	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit);
+	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_transparent);
 
 	MaterialCreator toppingMat = MaterialCreator();
 	toppingMat.createMaterial("bakery/models/topping.gltf", "bakery/textures/topping.png", *prog_texLit);
@@ -398,7 +408,7 @@ int main()
 	receiptMat.createMaterial("bakery/models/tile.gltf", "UI/textures/Receipt.png", *prog_texLit);
 
 	
-
+	
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
@@ -507,6 +517,13 @@ int main()
 	
 	
 	
+	Entity vase = Entity::Create();
+	vase.Add<CMeshRenderer>(vase, *vaseMat.getMesh(), *vaseMat.getMaterial());
+	vase.transform.m_scale = glm::vec3(0.08f, 0.08f, 0.08f);
+	vase.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	vase.transform.m_pos = glm::vec3(-0.5, -1.12, -2.29f);
+	renderingEntities.push_back(&vase);
+
 		
 		//Creating Cash Register Entity
 		Entity ent_register = Entity::Create();
@@ -1050,6 +1067,12 @@ int main()
 								renderingEntities.push_back(ent);
 							}
 						}
+						for each (Entity * en in trayPastry) {
+							if (en != nullptr) {
+								renderingEntities.push_back(en);
+							}
+							
+						}
 						currentOrders.back().startOrder();
 					}
 					if (isInContinueMenu) {
@@ -1253,6 +1276,9 @@ int main()
 					for each (Entity * ent in ob->returnRenderingEntities()) {
 						removeFromRendering(ent);
 					}
+				}
+				for each (Entity * en in trayPastry) {
+					removeFromRendering(en);
 				}
 				//App::setCursorVisible(true);
 			}
@@ -1811,7 +1837,7 @@ int main()
 							if (!drinkScript.isDrinkFull()) {
 								drinkScript.createDrink();
 								setDrinkMesh(drinkScript.getFromDrink(), drinkScript.getDrink());
-								drinkScript.getFromDrink()->transform.m_scale = glm::vec3(0.2);
+								//drinkScript.getFromDrink()->transform.m_scale = glm::vec3(0.002);
 								drinkScript.getFromDrink()->Add<Drink>();
 								drinkScript.getFromDrink()->Get<Drink>().setDrinkType(drinkScript.getDrink());
 								renderingEntities.push_back(drinkScript.getFromDrink());
@@ -2037,6 +2063,12 @@ void LoadDefaultResources()
 	std::vector<Shader*> unlit = { vs_unlitShader.get(), vs_unlitShader.get() };
 	prog_unlit = std::make_unique<ShaderProgram>(unlit);
 
+	std::unique_ptr vs_transparentShader = std::make_unique<Shader>("shaders/stippling.vert", GL_VERTEX_SHADER);
+	std::unique_ptr fs_transparentShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
+	std::vector<Shader*> transparentTex = { vs_transparentShader.get(), fs_transparentShader.get() };
+	prog_transparent = std::make_unique<ShaderProgram>(transparentTex);
+
+
 	auto v_morph = std::make_unique<Shader>("shaders/morph.vert", GL_VERTEX_SHADER);
 	auto f_lit = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
 	
@@ -2049,7 +2081,7 @@ void LoadDefaultResources()
 	prog_particles = std::make_unique<ShaderProgram>(particles);
 
 
-
+	
 	std::vector<Shader*> morph = { v_morph.get(), f_lit.get() };
 	prog_morph = std::make_unique<ShaderProgram>(morph);
 
@@ -2321,21 +2353,21 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type) {
 		}
 		
 		e->Add<CMeshRenderer>(*e, *coffeeMat.getMesh(), *coffeeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		e->transform.m_scale = glm::vec3(0.04f, 0.04f, 0.04f);
 	}
 	if (type == bakeryUtils::drinkType::TEA) {
 		if (e->Has<CMeshRenderer>()) {
 			e->Remove<CMeshRenderer>();
 		}
 		e->Add<CMeshRenderer>(*e, *teaMat.getMesh(), *teaMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	}
 	if (type == bakeryUtils::drinkType::MILKSHAKE) {
 		if (e->Has<CMeshRenderer>()) {
 			e->Remove<CMeshRenderer>();
 		}
 		e->Add<CMeshRenderer>(*e, *milkshakeMat.getMesh(), *milkshakeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	}
 }
 

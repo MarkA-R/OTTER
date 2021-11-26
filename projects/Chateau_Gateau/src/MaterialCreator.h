@@ -11,6 +11,7 @@ class MaterialCreator
 public:
 	MaterialCreator();
 	void createMaterial(std::string, std::string, ShaderProgram&);
+	void createMaterialOBJ(std::string, std::string, ShaderProgram&);
 	const std::unique_ptr<Mesh>& getMesh();
 	const std::unique_ptr<Texture2D>& getTexture();
 	const std::unique_ptr<Material>& getMaterial();
