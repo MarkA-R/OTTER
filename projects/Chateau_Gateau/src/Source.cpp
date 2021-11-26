@@ -321,12 +321,8 @@ int main()
 	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	// Load in our model/texture resources
 	LoadDefaultResources();
-	int stipple[16] = {
-	0,0,0,1,
-	0,0,1,0,
-	0,1,0,0,
-	1,0,0,0};
-	prog_transparent.get()->SetUniform("stipplePattern", *stipple);
+	
+	
 
 	glfwSetMouseButtonCallback(gameWindow, mouse_button_callback);
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
@@ -976,11 +972,11 @@ int main()
 	
 	DrinkMachine& drinkScript = drink.Get<DrinkMachine>();
 	//renderingEntities.push_back(&receipt);
-	
+	GLfloat seeThrough = 0.5f;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
-		
-		
+		prog_transparent->Bind();
+		prog_transparent.get()->SetUniform("transparency", seeThrough);
 		bool keepCheckingRaycast = true;
 		isClicking = false;
 		isRightClicking = false;
@@ -1378,16 +1374,16 @@ int main()
 			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 			* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//glm::inverse(cursor.transform.m_rotation);
 		
-		/*
+		
 		//receipt.transform.SetParent(&cameraEntity.transform);
 		//receipt.transform.m_pos = cursor.transform.m_pos;
 
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
-		ImGui::DragFloat("X", &(tempA), 0.1f);
-		ImGui::DragFloat("Y", &(tempB), 0.1f);
-		ImGui::DragFloat("Z", &(tempC), 0.1f);
+		ImGui::DragFloat("X", &(seeThrough), 0.1f);
+		//ImGui::DragFloat("Y", &(tempB), 0.1f);
+		//ImGui::DragFloat("Z", &(tempC), 0.1f);
 
 		
 
@@ -1395,7 +1391,7 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		*/
+		
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
 		receipt.transform.m_pos = receptBeginPos;
 			
@@ -2067,7 +2063,8 @@ void LoadDefaultResources()
 	std::unique_ptr fs_transparentShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
 	std::vector<Shader*> transparentTex = { vs_transparentShader.get(), fs_transparentShader.get() };
 	prog_transparent = std::make_unique<ShaderProgram>(transparentTex);
-
+	prog_transparent.get()->Bind();
+	//prog_transparent.get()->SetUniform("transparency", 0.5f);
 
 	auto v_morph = std::make_unique<Shader>("shaders/morph.vert", GL_VERTEX_SHADER);
 	auto f_lit = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
@@ -2080,7 +2077,7 @@ void LoadDefaultResources()
 	std::vector<Shader*> particles = { v_particles.get(), g_particles.get(), f_particles.get() };
 	prog_particles = std::make_unique<ShaderProgram>(particles);
 
-
+	
 	
 	std::vector<Shader*> morph = { v_morph.get(), f_lit.get() };
 	prog_morph = std::make_unique<ShaderProgram>(morph);
