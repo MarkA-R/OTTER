@@ -29,6 +29,8 @@ namespace nou
 		void SetMode(PathSampler::PathMode mode);
 		void Update(const PathSampler::KeypointSet& keypoints, float deltaTime);
 
+		void Update(std::vector<glm::vec3> keypoints, float deltaTime);
+
 		private:
 
 		Entity* m_owner;

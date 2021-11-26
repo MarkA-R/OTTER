@@ -27,6 +27,7 @@
 #include "Drink.h"
 #include "CharacterController.h"
 #include "MorphAnimation.h"
+#include "CPathAnimator.h"
 
 #include <algorithm>
 #include <math.h>
@@ -57,6 +58,22 @@ T Catmull(const T& p0, const T& p1, const T& p2, const T& p3, float t)
 	return 0.5f * (2.f * p1 + t * (-p0 + p2)
 		+ t * t * (2.f * p0 - 5.f * p1 + 4.f * p2 - p3)
 		+ t * t * t * (-p0 + 3.f * p1 - 3.f * p2 + p3));
+}
+
+// TODO: Templated Bezier function
+template<typename T>
+T Bezier(const T& p0, const T& p1, const T& p2, const T& p3, float t)
+{
+	glm::vec3 l10 = Lerp(p1, p0, t);
+	glm::vec3 l32 = Lerp(p3, p2, t);
+	glm::vec3 l03 = Lerp(p0, p3, t);
+
+	glm::vec3 l10_l03 = Lerp(l10, l03, t);
+	glm::vec3 l10_l32 = Lerp(l10, l32, t);
+
+	glm::vec3 finalL = Lerp(l10_l03, l10_l32, t);
+
+	return finalL;
 }
 
 template<typename T>
@@ -97,6 +114,7 @@ float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
+float lineY = -1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
@@ -199,6 +217,7 @@ int getSignSelection(int max, bool reset);
 bool isInRendering(Entity* e);
 void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
+int placeInLineToIndex(int linePlace);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -268,6 +287,7 @@ void resetBubble(int i);
 glm::vec3 trayScale;
 glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
+std::vector<glm::vec3> line;
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -286,7 +306,9 @@ int main()
 	cameraKeys.push_back(insidePos);
 	cameraKeys.push_back(outsidePos);
 	cameraKeys.push_back(menuCameraPos);
-
+	PathSampler::Lerp = Lerp<glm::vec3>;
+	PathSampler::Catmull = Catmull<glm::vec3>;
+	PathSampler::Bezier = Bezier<glm::vec3>;
 	srand(static_cast<unsigned int>(time(0)));
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
@@ -735,15 +757,29 @@ int main()
 		std::unique_ptr<Material> mithunanMat = std::make_unique<Material>(*prog_morph);
 		mithunanMat->AddTexture("albedo", *mithunanTex);
 
+		
+
 		Entity mithunan = Entity::Create();
 		mithunan.Add<CMorphMeshRenderer>(mithunan, *mithunanWalkFrames[0], *mithunanMat.get());
+		mithunan.Add<CPathAnimator>(mithunan);
+		mithunan.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
 		mithunan.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
 		mithunan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
-		std::vector<glm::vec3> line;
-		line.push_back(mithunan.transform.m_pos);
+		line.push_back(glm::vec3(3.5, lineY, -9.4));
+		line.push_back(glm::vec3(-1.1, lineY, -8.8));
+		line.push_back(glm::vec3(-1.1, lineY, -7.7));
+		line.push_back(glm::vec3(-1.1, lineY, -5.3));
+		line.push_back(glm::vec3(-1.1, lineY, -3.8));
+		line.push_back(glm::vec3(-1.1, lineY, -3.5));
+		line.push_back(glm::vec3(-1.6, lineY, -3.5));
+		line.push_back(glm::vec3(-1.6, lineY, -4.8));
+		line.push_back(glm::vec3(-2.1, lineY, -9.5));
+		line.push_back(glm::vec3(-7.6, lineY, -9.5));
+		
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
+		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
 		//mithunan.Get<CharacterController>().continueAnimation(false);
 		auto& mithunanAnimator = mithunan.Add<CMorphAnimator>(mithunan);
 		mithunanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
@@ -923,6 +959,7 @@ int main()
 	
 	DrinkMachine& drinkScript = drink.Get<DrinkMachine>();
 	//renderingEntities.push_back(&receipt);
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -936,7 +973,15 @@ int main()
 		float deltaTime = App::GetDeltaTime();
 		getKeyInput();
 
+
 		
+		
+
+		
+
+
+
+
 
 		if (Input::GetKeyDown(GLFW_KEY_D)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().queueAnimation(1);
@@ -944,6 +989,10 @@ int main()
 		if (Input::GetKeyDown(GLFW_KEY_A)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().queueAnimation(0);
 		}
+		if (Input::GetKeyDown(GLFW_KEY_S)) {//put this in the lose spot
+			mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+		}
+		mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
 		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
 
 		if (isInMainMenu) {
@@ -1307,9 +1356,9 @@ int main()
 		//receipt.transform.SetParent(&cameraEntity.transform);
 		//receipt.transform.m_pos = cursor.transform.m_pos;
 
-		
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		App::StartImgui();
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		
 		ImGui::DragFloat("X", &(tempA), 0.1f);
 		ImGui::DragFloat("Y", &(tempB), 0.1f);
 		ImGui::DragFloat("Z", &(tempC), 0.1f);
@@ -1322,7 +1371,7 @@ int main()
 		App::EndImgui();
 		*/
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
-		receipt.transform.m_pos = receptEndPos;
+		receipt.transform.m_pos = receptBeginPos;
 			
 		//receipt.transform.m_rotation = cameraQuat;
 		
@@ -2487,7 +2536,20 @@ void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int cou
 	
 }
 
-
+int placeInLineToIndex(int linePlace) {
+	if (linePlace >= 1 && linePlace <= 3) {
+		return (2 + (2 - linePlace));
+	}
+	else
+	{
+		if (linePlace < 1) {
+			return 0;
+		}
+		if (linePlace > 3) {
+			return line.size() - 1;
+		}
+	}
+}
 
 
 

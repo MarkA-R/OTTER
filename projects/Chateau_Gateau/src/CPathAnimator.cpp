@@ -13,6 +13,8 @@ that we intend the class for use as a component with the ENTT framework.
 
 namespace nou
 {
+	bool loopBezier = false;
+	int counter = 0;
 	CPathAnimator::CPathAnimator(Entity& owner)
 	{
 		m_owner = &owner;
@@ -143,6 +145,195 @@ namespace nou
 				size_t p0_index, p1_index, p2_index, p3_index;
 				glm::vec3 p0, p1, p2, p3;
 
+				// TODO: Complete this function
+			}
+			break;
+			}
+		}
+	}
+
+	void CPathAnimator::Update(std::vector < glm::vec3 > keypoints, float deltaTime)
+	{
+		if (keypoints.size() == 0 || m_segmentTravelTime == 0)
+			return;
+
+		else
+		{
+			switch (m_mode)
+			{
+			case PathSampler::PathMode::LERP:
+			{
+				m_segmentTimer += deltaTime;
+
+				//Ensure we are not "over time" and move to the next segment
+				//if necessary.
+				while (m_segmentTimer > m_segmentTravelTime)
+				{
+					m_segmentTimer -= m_segmentTravelTime;
+
+					m_segmentIndex += 1;
+
+					if (m_segmentIndex >= keypoints.size())
+						m_segmentIndex = 0;
+				}
+
+				float t = m_segmentTimer / m_segmentTravelTime;
+
+				// LERP
+
+				// Need at least 2 points for 1 segment
+				if (keypoints.size() < 2)
+				{
+					m_owner->transform.m_pos = keypoints[0];
+					return;
+				}
+
+				glm::vec3 p0, p1;
+				size_t p0_index, p1_index;
+
+				p1_index = m_segmentIndex;
+				p0_index = (p1_index == 0) ? keypoints.size() - 1 : p1_index - 1;
+
+				p0 = keypoints[p0_index];
+				p1 = keypoints[p1_index];
+
+				m_owner->transform.m_pos = PathSampler::Lerp(p0, p1, t);
+			}
+			break;
+
+			case PathSampler::PathMode::CATMULL:
+			{
+				m_segmentTimer += deltaTime;
+
+				//Ensure we are not "over time" and move to the next segment
+				//if necessary.
+				while (m_segmentTimer > m_segmentTravelTime)
+				{
+					m_segmentTimer -= m_segmentTravelTime;
+
+					m_segmentIndex += 1;
+
+					if (m_segmentIndex >= keypoints.size())
+						m_segmentIndex = 0;
+				}
+
+				float t = m_segmentTimer / m_segmentTravelTime;
+
+				// Neither Catmull nor Bezier make sense with less than 4 points.
+				if (keypoints.size() < 4)
+				{
+					m_owner->transform.m_pos = keypoints[0];
+					return;
+				}
+
+				size_t p0_index, p1_index, p2_index, p3_index;
+				glm::vec3 p0, p1, p2, p3;
+
+				p1_index = m_segmentIndex;
+
+				if (m_segmentIndex == 0) {
+					p0_index = keypoints.size() - 1;
+				}
+				else {
+					p0_index = p1_index - 1;
+
+				}
+
+				p2_index = (p1_index + 1) % keypoints.size();
+				p3_index = (p2_index + 1) % keypoints.size();
+
+				p0 = keypoints[p0_index];
+				p1 = keypoints[p1_index];
+				p2 = keypoints[p2_index];
+				p3 = keypoints[p3_index];
+
+
+				//m_owner->transform.m_pos = PathSampler::Lerp(p0, p1, t);
+				// TODO: Complete this function
+				//std::cout << PathSampler::Catmull(p0, p1, p2, p3, t) << std::endl;
+				m_owner->transform.m_pos = PathSampler::Catmull(p0, p1, p2, p3, t);
+			}
+			break;
+
+			case PathSampler::PathMode::BEZIER:
+			{
+
+				{
+					float adder = deltaTime;
+					if (!loopBezier) {
+						if (counter % 2 == 0) {
+							adder *= -1;
+						}
+					}
+
+					m_segmentTimer += adder;
+
+					while (m_segmentTimer <= 0 || m_segmentTimer >= 1) {
+						m_segmentIndex += 1;
+						counter++;
+						if (m_segmentIndex >= keypoints.size()) {
+							m_segmentIndex = 0;
+						}
+						if (!loopBezier) {
+							m_segmentTimer += -adder;
+						}
+						else
+						{
+							m_segmentTimer -= m_segmentTravelTime;
+						}
+
+
+					}
+
+
+				}
+
+
+
+				float t = m_segmentTimer / m_segmentTravelTime;
+
+				// Neither Catmull nor Bezier make sense with less than 4 points.
+				if (keypoints.size() < 4)
+				{
+					m_owner->transform.m_pos = keypoints[0];
+					return;
+				}
+
+				size_t p0_index, p1_index, p2_index, p3_index;
+				glm::vec3 p0, p1, p2, p3;
+				if (loopBezier) {
+					p1_index = m_segmentIndex;
+
+					if (m_segmentIndex == 0) {
+						p0_index = keypoints.size() - 1;
+					}
+					else {
+						p0_index = p1_index - 1;
+
+					}
+
+					p2_index = (p1_index + 1) % keypoints.size();
+					p3_index = (p2_index + 1) % keypoints.size();
+
+					p0 = keypoints[p0_index];
+					p1 = keypoints[p1_index];
+					p2 = keypoints[p2_index];
+					p3 = keypoints[p3_index];
+				}
+				else
+				{
+					p0 = keypoints[0];
+					p1 = keypoints[1];
+					p2 = keypoints[2];
+					p3 = keypoints[3];
+
+				}
+
+
+
+
+
+				m_owner->transform.m_pos = PathSampler::Bezier(p0, p1, p2, p3, t);
 				// TODO: Complete this function
 			}
 			break;

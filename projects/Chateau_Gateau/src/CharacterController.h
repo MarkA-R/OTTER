@@ -17,7 +17,9 @@ protected:
 	float transitionTAdder = 0.f;
 	bool inTransition = false;
 	int currentspot = 0;
+	int nextSpot = 1;
 	int stopSpot = 1;
+	float lineT = 0.f;
 	int currentAnimation = 0;
 	int queuedAnimation = -1;
 	bool stopAnimation = false;
@@ -30,7 +32,7 @@ public:
 	void setStopSpot(int);
 	void queueAnimation(int);
 	void updateAnimation(float);
-	void updatePosition();
+	void updatePosition(float, float);
 	void continueAnimation(bool);
 
 };
