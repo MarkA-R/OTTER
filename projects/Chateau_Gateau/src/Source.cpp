@@ -290,6 +290,11 @@ glm::vec3 trayScale;
 glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
 std::vector<glm::vec3> line;
+float carT = 0.f;
+glm::vec3 firstCarPos = glm::vec3(10, -1, 10);
+glm::vec3 lastCarPos = glm::vec3(-10, -1, 10);
+
+
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -939,9 +944,13 @@ int main()
 	menuCameraQuat = getCameraRotation();
 	currentCameraQuat = menuCameraQuat;
 
-	glm::vec3 carLight = glm::vec3(-0.0f, -0.0f, 1.0f);
-	glm::vec3 carLightColour = glm::vec3(1, 0, 0);
-	float strength = 1.f;
+	//glm::vec3 carLight = glm::vec3(-0.0f, -0.0f, 1.0f);
+	//glm::vec3 carLightColour = glm::vec3(1, 0, 0);
+	//float strength = 1.f;
+	Light carLight;
+	carLight.colour = glm::vec3(1, 1, 0);
+	carLight.pos = glm::vec3(-0.0f, -0.0f, 1.0f);
+	carLight.strength = 0.f;
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
 	bool skipMenu = true;
@@ -983,9 +992,9 @@ int main()
 		prog_transparent.get()->SetUniform("transparency", seeThrough);
 		
 		prog_allLights->Bind();
-		prog_allLights.get()->SetUniform("lightDir2", carLight);
-		prog_allLights.get()->SetUniform("lightColor2", carLightColour);
-		prog_allLights.get()->SetUniform("strength", strength);
+		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
+		prog_allLights.get()->SetUniform("lightColor2", carLight.colour);
+		prog_allLights.get()->SetUniform("strength", carLight.strength);
 		//prog_transparent.get()->Bind();
 		
 		//prog_allLights.get()->Bind();
@@ -996,7 +1005,9 @@ int main()
 		//prog_allLights.get()->SetUniformFloatArray("lightStrength", lightStrength, 4);
 		
 		
+		
 		//std::cout << lightPos[0].x << " " << lightPos[0].y << " " << lightPos[0].z << " " << std::endl;
+		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
@@ -1009,13 +1020,14 @@ int main()
 		ImGui::DragFloat("Z1", &(carLightColour.z), 0.1f);
 
 		ImGui::DragFloat("STR", &(strength), 0.1f);
-
+		
 		
 		
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
+		*/
 		bool keepCheckingRaycast = true;
 		isClicking = false;
 		isRightClicking = false;
@@ -1043,6 +1055,15 @@ int main()
 		}
 		if (Input::GetKeyDown(GLFW_KEY_S)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+		}
+		if (Input::GetKey(GLFW_KEY_W)) {//put this in the lose spot
+			carT += deltaTime;
+			if (carT > 1) {
+				carT = 0.f;
+			}
+			
+			carLight.pos = Lerp(firstCarPos, lastCarPos, carT);
+			carLight.strength = sin(carT * 3.1415926);
 		}
 		mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
 		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
