@@ -72,6 +72,12 @@ namespace nou
 		template<typename T>
 		void SetUniformArray(const std::string& name, T* data, int len) const;
 
+		template<typename T>
+		void SetUniformFloatArray(const std::string& name, T* data, int len) const;
+
+		template<typename T>
+		void SetUniformVec3Array(const std::string& name, T* data, int len) const;
+
 		protected:
 
 		//The OpenGL ID of our shader program.

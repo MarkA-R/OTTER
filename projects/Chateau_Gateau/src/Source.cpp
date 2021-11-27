@@ -28,6 +28,7 @@
 #include "CharacterController.h"
 #include "MorphAnimation.h"
 #include "CPathAnimator.h"
+#include "Light.h"
 
 #include <algorithm>
 #include <math.h>
@@ -115,7 +116,8 @@ float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
 float lineY = 0.8;//-1.1f;
-std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent;
+std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
+prog_allLights;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
 glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
@@ -340,7 +342,7 @@ int main()
 	vaseMat.createMaterialOBJ("bakery/models/vase.obj", "bakery/textures/vase.png", *prog_texLit);
 
 	MaterialCreator registerMaterial = MaterialCreator();
-	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_texLit);
+	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_allLights);
 	
 	MaterialCreator counterMat = MaterialCreator();
 	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_texLit);
@@ -535,7 +537,7 @@ int main()
 		customerBubbleLocation.m_pos.x -= 1.75;
 		customerBubbleLocation.m_pos.y += 2.0;
 		customerBubbleLocation.m_pos.z -= 1.0;
-
+		
 
 		upurrBubbleLocation1 = ent_register.transform;
 		upurrBubbleLocation1.m_pos.x -= 1.75;
@@ -719,7 +721,7 @@ int main()
 		Transform toppingTR = topping.transform;
 		toppingTR.m_pos.y -= 0.5;
 		toppingTR.m_pos.x += 0.2;
-
+		
 		topping.Get<ToppingMachine>().setup(&pecanTopping, &sprinkleTopping, &stawberryTopping);
 		topping.Get<ToppingMachine>().setTransform(toppingTL, toppingTR);
 		glm::vec3 pecanColour = glm::vec3(0.811, 0.647, 0.235);
@@ -937,7 +939,8 @@ int main()
 	menuCameraQuat = getCameraRotation();
 	currentCameraQuat = menuCameraQuat;
 
-	
+	glm::vec3 carLight = glm::vec3(-0.0f, -0.0f, 1.0f);
+	glm::vec3 carLightColour = glm::vec3(1, 0, 0);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
 	bool skipMenu = true;
@@ -977,6 +980,38 @@ int main()
 	{
 		prog_transparent->Bind();
 		prog_transparent.get()->SetUniform("transparency", seeThrough);
+		
+		prog_allLights->Bind();
+		prog_allLights.get()->SetUniform("lightDir2", carLight);
+		prog_allLights.get()->SetUniform("lightColor2", carLightColour);
+		//prog_transparent.get()->Bind();
+		
+		//prog_allLights.get()->Bind();
+		//
+		//prog_allLights.get()->Bind();
+		//prog_allLights.get()->SetUniformVec3Array("lightPos", lightPos, 4);
+		//prog_allLights.get()->SetUniformVec3Array("lightColour", lightColour, 4);
+		//prog_allLights.get()->SetUniformFloatArray("lightStrength", lightStrength, 4);
+		
+		
+		//std::cout << lightPos[0].x << " " << lightPos[0].y << " " << lightPos[0].z << " " << std::endl;
+		App::StartImgui();
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		
+		ImGui::DragFloat("X", &(carLight.x), 0.1f);
+		ImGui::DragFloat("Y", &(carLight.y), 0.1f);
+		ImGui::DragFloat("Z", &(carLight.z), 0.1f);
+		
+		ImGui::DragFloat("X1", &(carLightColour.x), 0.1f);
+		ImGui::DragFloat("Y1", &(carLightColour.y), 0.1f);
+		ImGui::DragFloat("Z1", &(carLightColour.z), 0.1f);
+
+		
+		
+		//ImGui::DragFloat("Scale", &(sc), 0.1f);
+		//ImGui::SetWindowPos(0,0);
+
+		App::EndImgui();
 		bool keepCheckingRaycast = true;
 		isClicking = false;
 		isRightClicking = false;
@@ -1377,21 +1412,21 @@ int main()
 		
 		//receipt.transform.SetParent(&cameraEntity.transform);
 		//receipt.transform.m_pos = cursor.transform.m_pos;
-
+		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
 		ImGui::DragFloat("X", &(seeThrough), 0.1f);
-		//ImGui::DragFloat("Y", &(tempB), 0.1f);
-		//ImGui::DragFloat("Z", &(tempC), 0.1f);
+		ImGui::DragFloat("Y", &(tempB), 0.1f);
+		ImGui::DragFloat("Z", &(tempC), 0.1f);
 
 		
-
+		
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		
+		*/
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
 		receipt.transform.m_pos = receptBeginPos;
 			
@@ -2063,7 +2098,15 @@ void LoadDefaultResources()
 	std::unique_ptr fs_transparentShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
 	std::vector<Shader*> transparentTex = { vs_transparentShader.get(), fs_transparentShader.get() };
 	prog_transparent = std::make_unique<ShaderProgram>(transparentTex);
-	prog_transparent.get()->Bind();
+	//prog_transparent.get()->Bind();
+
+	
+	
+	std::unique_ptr vs_allLightShader = std::make_unique<Shader>("shaders/texturedWithLights.vert", GL_VERTEX_SHADER);
+	std::unique_ptr fs_allLightShader = std::make_unique<Shader>("shaders/texturedWithLights.frag", GL_FRAGMENT_SHADER);
+	std::vector<Shader*> allLightTex = { vs_allLightShader.get(), fs_allLightShader.get() };
+	prog_allLights = std::make_unique<ShaderProgram>(allLightTex);
+	//prog_allLights.get()->Bind();
 	//prog_transparent.get()->SetUniform("transparency", 0.5f);
 
 	auto v_morph = std::make_unique<Shader>("shaders/morph.vert", GL_VERTEX_SHADER);

@@ -228,4 +228,16 @@ namespace nou
 	{
 		glUniformMatrix4fv(GetUniformLoc(name), len, GL_FALSE, (GLfloat*)data);
 	}
+
+	template<>
+	void ShaderProgram::SetUniformFloatArray<GLfloat>(const std::string& name, GLfloat* data, int len) const
+	{
+		glProgramUniform1fv(GetUniformLoc(name), len, GL_FALSE, (GLfloat*)data);
+	}
+
+	template<>
+	void ShaderProgram::SetUniformVec3Array<glm::vec3>(const std::string& name, glm::vec3* data, int len) const
+	{
+		glProgramUniform3fv(GetUniformLoc(name), len, GL_FALSE, (GLfloat*)data);
+	}
 }
