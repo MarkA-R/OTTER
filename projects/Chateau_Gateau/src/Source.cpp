@@ -941,6 +941,7 @@ int main()
 
 	glm::vec3 carLight = glm::vec3(-0.0f, -0.0f, 1.0f);
 	glm::vec3 carLightColour = glm::vec3(1, 0, 0);
+	float strength = 1.f;
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
 	bool skipMenu = true;
@@ -984,6 +985,7 @@ int main()
 		prog_allLights->Bind();
 		prog_allLights.get()->SetUniform("lightDir2", carLight);
 		prog_allLights.get()->SetUniform("lightColor2", carLightColour);
+		prog_allLights.get()->SetUniform("strength", strength);
 		//prog_transparent.get()->Bind();
 		
 		//prog_allLights.get()->Bind();
@@ -1005,6 +1007,8 @@ int main()
 		ImGui::DragFloat("X1", &(carLightColour.x), 0.1f);
 		ImGui::DragFloat("Y1", &(carLightColour.y), 0.1f);
 		ImGui::DragFloat("Z1", &(carLightColour.z), 0.1f);
+
+		ImGui::DragFloat("STR", &(strength), 0.1f);
 
 		
 		
