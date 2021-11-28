@@ -187,25 +187,46 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 	int tableSize = table.getEntries().size();
 	int divisions = tableSize / linePositions.size();
 	//std::cout << tableSize << "/" << linePositions.size() << std::endl;
-	int startingRange = currentspot * divisions;
-	int endingRange = nextSpot * divisions;
+	
+	int stopRange = ((stopSpot-1) * divisions) -1;
 	int currentIndex = 0;
 	int nextIndex = 0;
+
 	Entry currentEntry = table.getAtIndex(currentspot);
 	Entry nextEntry = table.getAtIndex(nextSpot);
-	bool found = false;
+	bool stop = false;
 	//std::cout << currentspot << " " << currentEntry.getDistance() << std::endl;
-	if (currentEntry.getDistance() <= distanceTravelled && distanceTravelled <= nextEntry.getDistance()) {
+	
+		if (currentEntry.getDistance() <= distanceTravelled && distanceTravelled <= nextEntry.getDistance()) {
+
+		}
+		else
+		{
+			if (currentspot < stopRange) {
+				currentspot++;
+				nextSpot++;
+				if (nextSpot >= tableSize - 1) {
+					nextSpot = tableSize - 1;
+				}
+				if (currentspot >= tableSize - 1) {
+					currentspot = tableSize - 1;
+				}
+				currentEntry = table.getAtIndex(currentspot);
+				nextEntry = table.getAtIndex(nextSpot);
+				std::cout << "XXXXXXXXXX" << std::endl;
+			}
+			else
+			{
+
+				stop = true;
+			}
+			
+		}
 		
-	}
-	else
-	{
-		currentspot++;
-		nextSpot++;
-		currentEntry = table.getAtIndex(currentspot);
-		nextEntry = table.getAtIndex(nextSpot);
-		std::cout << "XXXXXXXXXX" << std::endl;
-	}
+	
+		
+	
+	
 
 	min = currentEntry.getDistance();
 	max = nextEntry.getDistance();
@@ -220,10 +241,46 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 	//std::cout << currentEntry.getPosition().x << "," << currentEntry.getPosition().y << "," << currentEntry.getPosition().z << " o "
 	//	<< nextEntry.getPosition().x << "," << nextEntry.getPosition().y << "," << nextEntry.getPosition().z << " -> " << percent << std::endl;
 	//std::cout << percent << std::endl;
-	owner->transform.m_pos = Lerp(currentEntry.getPosition(), nextEntry.getPosition(), percent);
-	//owner->transform.m_pos = currentEntry.getPosition();
 	
-	distanceTravelled += (speed * deltaTime);
+	if (!stop) {
+		bool keepComputing = true;
+
+		glm::vec3 oldPos = owner->transform.m_pos;
+		glm::vec3 newPos = Lerp(currentEntry.getPosition(), nextEntry.getPosition(), percent);
+		owner->transform.m_pos = newPos;
+
+
+		//https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/lookat-function
+		glm::vec3 newDir = (glm::normalize(newPos - oldPos));
+
+		glm::vec3 subtractedVectors = (oldPos - newPos);
+		if (subtractedVectors.x == 0.f && subtractedVectors.y == 0.f && subtractedVectors.z == 0.f) {
+			keepComputing = false;
+		}
+		if (keepComputing) {
+			glm::vec3 up = glm::vec3(0, 1, 0);
+			glm::vec3 right = glm::cross(up, newDir);
+			glm::mat3 rotationMatrix;
+			rotationMatrix[0][0] = right.x;
+			rotationMatrix[0][1] = right.y;
+			rotationMatrix[0][2] = right.z;
+			rotationMatrix[1][0] = up.x;
+			rotationMatrix[1][1] = up.y;
+			rotationMatrix[1][2] = up.z;
+			rotationMatrix[2][0] = newDir.x;
+			rotationMatrix[2][1] = newDir.y;
+			rotationMatrix[2][2] = newDir.z;
+
+			owner->transform.m_rotation = rotationMatrix;
+		}
+
+	}
+	//owner->transform.m_pos = currentEntry.getPosition();
+	if (!stop) {
+		distanceTravelled += (speed * deltaTime);
+	}
+	
+	
 	
 }
 

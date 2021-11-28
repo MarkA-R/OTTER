@@ -800,7 +800,7 @@ int main()
 		line.push_back(glm::vec3(-7.6, lineY, -9.5));
 		
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
-		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
+		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
 		//mithunan.Get<CharacterController>().continueAnimation(false);
 		auto& mithunanAnimator = mithunan.Add<CMorphAnimator>(mithunan);
 		mithunanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
@@ -2697,7 +2697,8 @@ void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int cou
 
 int placeInLineToIndex(int linePlace) {
 	if (linePlace >= 1 && linePlace <= 3) {
-		return (2 + (2 - linePlace));
+		//std::cout << "AMT " << (3 + (3 - linePlace)) << std::endl;
+		return (3 + (3 - linePlace));
 	}
 	else
 	{
@@ -2705,7 +2706,7 @@ int placeInLineToIndex(int linePlace) {
 			return 0;
 		}
 		if (linePlace > 3) {
-			return line.size() - 1;
+			return line.size();
 		}
 	}
 }
