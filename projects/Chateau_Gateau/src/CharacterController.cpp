@@ -1,5 +1,11 @@
 #include "CharacterController.h"
 #include <iostream>
+// Templated LERP function
+template<typename T>
+T Lerp(const T& p0, const T& p1, float t)
+{
+	return (1.0f - t) * p0 + t * p1;
+}
 
 template<typename T>
 T Catmull(const T& p0, const T& p1, const T& p2, const T& p3, float t)
@@ -15,6 +21,22 @@ CharacterController::CharacterController(Entity* e, std::vector<MorphAnimation*>
 	owner = e;
 	animations = toPlay;
 	linePositions = toMove;
+	int p0 = 0;
+	int p3 = 3;
+	float totalD = 0.f;
+	for (int i = 0; i < linePositions.size() - 1; i++) {
+		//std::cout << "CC " << i << std::endl;
+		p0 = i - 1;
+		p3 = i + 2;
+		if (p0 < 0) {
+			p0 = 0;
+		}
+		if (p3 >= linePositions.size()) {
+			p3 = linePositions.size() - 1;
+		}
+		tables.push_back(MotionTable(linePositions[p0], linePositions[i], linePositions[i + 1], linePositions[p3], totalD));
+		//totalD += tables[i].getLast().getDistance();
+	}
 }
 
 void CharacterController::setCurrentSpot(int x)
@@ -167,6 +189,125 @@ void CharacterController::updatePosition(float deltaTime, float seconds)
 	}
 	
 
+	
+}
+
+void CharacterController::updateDistance(float deltaTime, float speed)
+{
+	//distanceTravelled += (speed * deltaTime);
+	//std::cout << distanceTravelled << std::endl;
+	
+	Entry nextEntry = tables[currentspot].getAtIndex(0);
+	Entry currentEntry = nextEntry;
+	int currentIndex = 0;
+	int nextIndex = 1;
+	float max = 0.f;
+	float min = 0.f;
+	bool setToZero = false;
+	float subtractorDistance = 0.f;
+	
+	for(int i = 0; i < tables[currentspot].getEntries().size() - 2; i++)
+	{
+	
+		//std::cout << "PREV " << previousEntry.getDistance() << " CURR " << currentEntry.getDistance() << std::endl;
+		//std::cout << currentspot << " " << nextSpot << std::endl;
+		
+		currentEntry = tables[currentspot].getAtIndex(i);
+		nextEntry = tables[currentspot].getAtIndex(i + 1);
+		/*
+		if ((i + 1) > tables[currentspot].getEntries().size()) {
+			nextEntry = tables[nextSpot].getAtIndex(0);
+		}
+		*/
+
+		min = currentEntry.getDistance();
+		max = nextEntry.getDistance();
+		if (currentEntry.getDistance() <= distanceTravelled) {
+			if (distanceTravelled <= nextEntry.getDistance()) {
+				
+				break;
+			}
+			else
+			{
+
+			}
+			
+			
+			
+		}
+		if (i == tables[currentspot].getEntries().size() - 3) {//at the end
+			if (distanceTravelled > tables[currentspot].getLast().getDistance()) {
+				std::cout << "AAAQA" << std::endl;
+				distanceTravelled = 0;
+				currentEntry = tables[nextSpot].getAtIndex(0);
+				nextEntry = tables[nextSpot].getAtIndex(1);
+				min = currentEntry.getDistance();
+				max = nextEntry.getDistance();
+				currentspot++;
+				nextSpot++;
+				//setToZero = true;
+			}
+			
+		}
+		
+		
+		
+		
+	
+	
+	}
+	
+	float percent = ((distanceTravelled - subtractorDistance) - min) / (max - min);
+	
+
+	std::cout << percent << " P: " << distanceTravelled << std::endl;
+	//std::cout << distanceTravelled << std::endl;
+	/*
+	if (percent >= 1) {
+		currentspot++;
+		nextSpot++;
+		
+		previousEntry = tables[currentspot].getAtIndex(0);
+		currentEntry = tables[currentspot].getAtIndex(1);
+		percent = (distanceTravelled - previousEntry.getDistance()) / (currentEntry.getDistance() - previousEntry.getDistance());
+
+		//percent -= 1;
+		if (nextSpot >= linePositions.size()) {
+			nextSpot = linePositions.size() - 1;
+			currentspot = linePositions.size() - 2;
+			distanceTravelled = 0.f;
+		}
+	}
+	*/
+
+	owner->transform.m_pos = Lerp(currentEntry.getPosition(), nextEntry.getPosition(), percent);
+
+	/*
+	owner->transform.m_pos = tables[currentspot].getEntryUsingDistance(distanceTravelled).getPosition();
+	if (tables[currentspot].getEntryUsingDistance(distanceTravelled).getT() >= 1) {
+		currentspot++;
+		nextSpot++;
+		distanceTravelled = 0;
+		
+		if (nextSpot >= linePositions.size()) {
+			nextSpot = linePositions.size() - 1;
+			currentspot = linePositions.size() - 2;
+			distanceTravelled = 0.f;
+		}
+	}
+	if (nextSpot >= linePositions.size()) {
+		nextSpot = linePositions.size() - 1;
+		currentspot = linePositions.size() - 2;
+		distanceTravelled = 0;
+	}
+	*/
+	if (!setToZero) {
+		distanceTravelled += (speed * deltaTime);
+	}
+	else
+	{
+		distanceTravelled = 0;
+	}
 	
 }
 

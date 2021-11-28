@@ -4,6 +4,7 @@
 #include "CMorphAnimator.h"
 #include "NOU/Entity.h"
 #include "NOU/CMeshRenderer.h"
+#include "MotionTable.h"
 using namespace nou;
 class CharacterController
 {
@@ -25,7 +26,10 @@ protected:
 	bool stopAnimation = false;
 	std::vector<glm::vec3> linePositions;
 	Entity* owner;
-
+	float distanceTravelled = 0.f;
+	std::vector<MotionTable> tables;
+	int currentTable = 0;
+	int nextTable = 1;
 public:
 	CharacterController(Entity*, std::vector<MorphAnimation*>, std::vector<glm::vec3>);
 	void setCurrentSpot(int);
@@ -33,6 +37,7 @@ public:
 	void queueAnimation(int);
 	void updateAnimation(float);
 	void updatePosition(float, float);
+	void updateDistance(float deltaTime, float speed);
 	void continueAnimation(bool);
 
 };

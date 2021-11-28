@@ -52,6 +52,7 @@ T Lerp(const T& p0, const T& p1, float t)
 	return (1.0f - t) * p0 + t * p1;
 }
 
+
 template<typename T>
 T Catmull(const T& p0, const T& p1, const T& p2, const T& p3, float t)
 {
@@ -197,7 +198,7 @@ Entity* trayPastry[4] = {nullptr, nullptr, nullptr, nullptr};
 std::vector<Mesh*> fillingFrames = std::vector<Mesh*>();
 std::vector<Material*> signFrames = std::vector<Material*>();
 std::vector<Mesh*> drinkFrames = std::vector<Mesh*>();
-
+std::vector<glm::vec2> mouseMovements;
 
 
 // Keep our main cleaner
@@ -350,10 +351,10 @@ int main()
 	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_allLights);
 	
 	MaterialCreator counterMat = MaterialCreator();
-	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_texLit);
+	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_allLights);
 
 	MaterialCreator trayMat = MaterialCreator();
-	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/tray.png", *prog_texLit);
+	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/tray.png", *prog_allLights);
 
 	MaterialCreator fridgeMat = MaterialCreator();
 	fridgeMat.createMaterial("bakery/models/fridge.gltf", "bakery/textures/fridge.png", *prog_texLit);
@@ -1057,15 +1058,16 @@ int main()
 			mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
 		}
 		if (Input::GetKey(GLFW_KEY_W)) {//put this in the lose spot
-			carT += deltaTime;
+			carT += deltaTime/3;
 			if (carT > 1) {
 				carT = 0.f;
 			}
 			
 			carLight.pos = Lerp(firstCarPos, lastCarPos, carT);
-			carLight.strength = sin(carT * 3.1415926);
+			carLight.strength = sin(carT * 3.1415926)/2;
 		}
-		mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
+		//mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
+		mithunan.Get<CharacterController>().updateDistance(deltaTime, 1);
 		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
 
 		if (isInMainMenu) {
@@ -2206,6 +2208,38 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	
 }
 
+void calculateStar() {
+	
+	if (mouseMovements.size() >= 5) {
+		int backIndex = mouseMovements.size() - 1;
+		int correctCount = 0;
+		for (int i = 0; i < mouseMovements.size(); i++) {
+			if (mouseMovements[i] == glm::vec2(1, -1)) {
+				correctCount++;
+
+			}
+			if (mouseMovements[i] == glm::vec2(1, 1)) {
+				correctCount++;
+			}
+			
+			if (mouseMovements[i] == glm::vec2(-1, -1)) {
+				correctCount++;
+			}
+			
+			if (mouseMovements[i].x == 1) {
+				correctCount++;
+			}
+		
+			if (mouseMovements[i] == glm::vec2(-1, 1)) {
+				correctCount++;
+			}
+		}
+		if (correctCount >= 5) {
+			std::cout << "MAID MODE ACTIVATED" << std::endl;
+		}
+	}
+}
+
 void getCursorData(GLFWwindow* window, double x, double y) {
 
 	//globalCameraEntity->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));;
@@ -2230,6 +2264,34 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 	cameraQuat = getCameraRotation();
 	
 	if (!isPaused && !isInMainMenu && !isInContinueMenu) {
+		/*
+		int xMovement = 1;
+		int yMovement = 1;
+		if ((x - xPos) < 0) {
+			xMovement = -1;
+		}
+		if ((y - yPos) < 0) {
+			yMovement = -1;
+		}
+		glm::vec2 toAdd = glm::vec2(xMovement, yMovement);
+		if (mouseMovements.size() >= 1) {
+			std::cout << toAdd.x << " " << toAdd.y << std::endl;
+
+			if (mouseMovements.back() != toAdd) {
+				mouseMovements.push_back(toAdd);
+			}
+			while (mouseMovements.size() > 7) {
+				mouseMovements.erase(mouseMovements.begin());
+			}
+		}
+		else
+		{
+			mouseMovements.push_back(toAdd);
+			std::cout << toAdd.x << " " << toAdd.y << std::endl;
+		}
+		
+		calculateStar();
+		*/
 		globalCameraEntity->transform.m_rotation = cameraQuat;
 		globalCameraEntity->transform.m_pos = cameraPos;
 
