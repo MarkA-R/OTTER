@@ -17,7 +17,7 @@ T Lerp(const T& p0, const T& p1, float t)
 }
 
 float getDistance(glm::vec3 b, glm::vec3 a) {
-	return sqrt(abs(pow(a.x - b.x,2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2)));
+	return sqrt(pow(abs(a.x - b.x), 2) + pow(abs(a.y - b.y), 2) + pow(abs(a.z - b.z), 2));
 }
 
 Entry::Entry(float a, float b, glm::vec3 c) {
@@ -47,7 +47,7 @@ MotionTable::MotionTable(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,
 	int index = 0;
 	for (float i = 0.f; i <= 1.1f;) {
 		//std::cout << "MT " << i << std::endl;
-		std::cout << i << std::endl;
+		//std::cout << i << std::endl;
 		glm::vec3 currentPos = Catmull(p0, p1, p2, p3, i);
 		if (entries.size() >= 1) {
 			Entry previous = entries[index];
@@ -65,6 +65,80 @@ MotionTable::MotionTable(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,
 		i += (1.f / (samples));
 		
 	}
+}
+
+MotionTable::MotionTable(std::vector<glm::vec3> a)
+{
+	int samples = 10;
+	float u = 0.f;
+	int index = 0;
+	int timesToWait = samples;
+	int waitedTime = 0.f;
+	int sampleIndex = 0;
+	int p0 = a.size() - 1;
+	int p1 = 0;
+	int p2 = 1;
+	int p3 = 2;
+	//float timesToAdd = (1.f / (samples)) * a.size();
+	for (float i = 0.f; i <= a.size();) {
+		//std::cout << "MT " << i << std::endl;
+		//std::cout << i << std::endl;
+		//TODO:
+		//make it one long curve. use the p0 and p3 stuff from the other movement update function.
+		//instead of interating i = 0 i < all frames, just loop from currentframe to next frame +- 1 or something
+		if (u > 1) {
+			u -= 1;
+			p1++;
+			p2++;
+		}
+		
+		
+		p0 = p1 - 1;
+		p3 = p2 + 1;
+		if (p0 >= a.size()) {
+			p0 = a.size() - 1;
+		}
+		if (p1 >= a.size()) {
+			p1 = a.size() - 1;
+		}
+		if (p2 >= a.size()) {
+			p2 = a.size() - 1;
+		}
+		if (p3 >= a.size()) {
+			p3 = a.size() - 1;
+		}
+		
+		
+		
+		
+		std::cout << p0 << " " << p1 << " " << p2 << " " << p3 << " --- " << u << std::endl;
+		glm::vec3 currentPos = Catmull(a[p0], a[p1], a[p2], a[p3], u);
+		if (entries.size() >= 1) {
+			Entry previous = entries.back();
+			//glm::vec3 currentPos = Catmull(p0, p1, p2, p3, i);
+			//std::cout << currentPos.x << " " << currentPos.y << " " << currentPos.z << std::endl;
+			//std::cout << glm::distance(previous.getPosition(), currentPos) + previous.getDistance() << " " << sampleIndex << std::endl;
+			entries.push_back(Entry(i, (glm::distance(currentPos,previous.getPosition() ) + previous.getDistance()), currentPos));
+			//index++;
+		}
+		else
+		{
+			//std::cout << currentPos.x << " " << currentPos.y << " " << currentPos.z << std::endl;
+
+			entries.push_back(Entry(i, 0, a[0]));
+		}
+		i += (1.f / (samples));
+		u += (1.f / (samples));
+		waitedTime++;
+		sampleIndex++;
+
+	}
+
+	std::cout << "Motion table created with length of: " << entries.size() << std::endl;
+}
+
+MotionTable::MotionTable()
+{
 }
 
 

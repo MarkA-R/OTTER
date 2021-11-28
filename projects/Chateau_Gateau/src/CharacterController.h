@@ -27,7 +27,7 @@ protected:
 	std::vector<glm::vec3> linePositions;
 	Entity* owner;
 	float distanceTravelled = 0.f;
-	std::vector<MotionTable> tables;
+	MotionTable table;
 	int currentTable = 0;
 	int nextTable = 1;
 public:
