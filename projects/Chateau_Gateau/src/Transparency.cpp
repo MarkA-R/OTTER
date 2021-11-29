@@ -27,11 +27,12 @@ void Transparency::updateTransparency(float deltaTime)
 		currentTransparency = wantedTransparency;
 		transparencyT = -1;
 		wantedTransparency = -1;
-		if (newParent != &owner->transform) {
-			owner->transform.SetParent(newParent);
-			newParent = nullptr;
-		}
+		
 		if (nextPosition.x > -999) {
+			if (newParent != &owner->transform) {
+				owner->transform.SetParent(newParent);
+				newParent = nullptr;
+			}
 			owner->transform.m_pos = (nextPosition);
 			nextPosition = glm::vec3(-999);
 		}
@@ -55,12 +56,12 @@ float Transparency::getTransparency()
 	return currentTransparency;
 }
 
-void Transparency::setWantedTransparency(float x , float time)
+void Transparency::setWantedTransparency(float x)
 {
 	beginingTransparency = currentTransparency;
 	wantedTransparency = x;
 	transparencyT = 0.f;
-	timeToLERP = time;
+	//timeToLERP = time;
 }
 
 float Transparency::getWantedTransparency()

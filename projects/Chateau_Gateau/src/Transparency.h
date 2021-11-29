@@ -20,7 +20,7 @@ public:
 	void setTransparency(float);
 	void updateTransparency(float);
 	float getTransparency();
-	void setWantedTransparency(float, float time = 1.f);
+	void setWantedTransparency(float);
 	float getWantedTransparency();
 	float getTime();
 	void setTime(float);

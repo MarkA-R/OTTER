@@ -1787,8 +1787,10 @@ int main()
 							trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *doughMat.getMesh(), *doughMat.getMaterial());
 							trayPastry[slot]->Add<Pastry>();
 							trayPastry[slot]->Add<Transparency>(*trayPastry[slot]);
-							trayPastry[slot]->Get<Transparency>().setTransparency(0);
+							trayPastry[slot]->Get<Transparency>().setTransparency(1.f);
+							trayPastry[slot]->Get<Transparency>().setWantedTransparency(0.f);
 							trayPastry[slot]->Get<Transparency>().setTime(0.2);
+							
 
 							trayPastry[slot]->transform.m_scale = glm::vec3(0.009f, 0.009f, 0.009f);
 							trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
