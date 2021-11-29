@@ -39,5 +39,6 @@ public:
 	Entity* getFromFilling();
 	void removeFromFilling();
 	void putInFilling(Entity*);
+	glm::vec3 getFillingPosition();
 };
 

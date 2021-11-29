@@ -40,7 +40,9 @@ namespace nou
 		void SetVerts(const std::vector<glm::vec3>& verts);
 		void SetNormals(const std::vector<glm::vec3>& normals);
 		void SetUVs(const std::vector<glm::vec2>& uvs);
-
+		std::vector<glm::vec3> getVerts();
+		std::vector<glm::vec3> getNormals();
+		std::vector<glm::vec2> getUVS();
 		//Fetches a vertex buffer associated with the desired attribute.
 		//Used by mesh rendering components to grab the requisite data
 		//associated with this model in OpenGL.

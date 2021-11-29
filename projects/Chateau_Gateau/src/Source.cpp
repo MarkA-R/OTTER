@@ -295,6 +295,8 @@ MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
 MaterialCreator* getFillingTile(bakeryUtils::fillType x);
 MaterialCreator* getToppingTile(bakeryUtils::toppingType x);
 MaterialCreator* getDrinkTile(bakeryUtils::drinkType x);
+Mesh& createPastryMat(Entity* e);
+Texture2D& createItemTex(Entity* e);
 void removeFromRendering(Entity* e);
 void resetBubble(int i);
 glm::vec3 trayScale;
@@ -311,6 +313,8 @@ int lineStart = 3;
 float currentGameTime = 0;
 int difficulty = 1;
 std::vector<Order> currentOrders = std::vector<Order>();
+
+MaterialCreator copyMaterials[4];
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -1590,6 +1594,16 @@ int main()
 						isInContinueMenu = true;
 						break;
 					}
+					else
+					{
+						for (int i = 0; i < 3; i++) {
+							if (customerLine[i] != nullptr) {
+								customerLine[i]->Get<CharacterController>().setStopSpot(line.size());
+								customerLine[i] = nullptr;
+								break;
+							}
+						}
+					}
 
 
 					for each (Entity * remover in orderBubbles[i]->returnRenderingEntities()) {
@@ -1680,7 +1694,7 @@ int main()
 		hitEntity = nullptr;
 		for each (Entity* e in renderingEntities) {
 			
-			e->transform.RecomputeGlobal();
+			//e->transform.RecomputeGlobal();
 
 			
 			if (e->Has<Transparency>()) {
@@ -1688,20 +1702,18 @@ int main()
 					
 					e->Get<Transparency>().updateTransparency(deltaTime);	
 				}
+				e->transform.RecomputeGlobal();
 				prog_transparent->Bind();
 				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
 				//std::cout << e->Get<Transparency>().getTransparency() << std::endl;
 				
 				e->Get<CMeshRenderer>().Draw();
-				if (e->Get<Transparency>().getInverseCopy() != nullptr) {
-					e->Get<Transparency>().getInverseCopy()->Get<Transparency>().updateTransparency(deltaTime);
-					prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getInverseCopy()->Get<Transparency>().getTransparency());
-					e->Get<Transparency>().getInverseCopy()->Get<CMeshRenderer>().Draw();					
-				}
+				
 				//prog_transparent.get()->SetUniform("transparency", 0.f);
 			}
 			else
 			{
+				e->transform.RecomputeGlobal();
 				if (e->Has<CMeshRenderer>()) {
 					e->Get<CMeshRenderer>().Draw();
 				}
@@ -1916,10 +1928,20 @@ int main()
 
 								if (wantedSlot >= 0) {
 									trayPastry[wantedSlot] = fillingScript.getFromFilling();
-									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
-									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
-									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
-									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									float currentT, wantedT, time;
+									time = 0.15;
+									currentT = 0.f;
+									wantedT = 1.f;
+									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
+									finalPos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
+									trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
+									trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+									trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 0.1f);
 
 									trayPastry[wantedSlot]->Get<Pastry>().setInFilling(false);
 									fillingScript.removeFromFilling();
@@ -1970,10 +1992,31 @@ int main()
 
 								//std::cout << "B" << std::endl;
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
-								fillingScript.putInFilling(trayPastry[wantedSlot]);
-								trayPastry[wantedSlot]->Get<Pastry>().setInFilling(true);
-								setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+								
 
+								float currentT, wantedT, time;
+								time = 0.3;
+								currentT = 0.f;
+								wantedT = 1.f;
+
+								trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(fillingScript.getFillingPosition(), nullptr,trayPastry[wantedSlot]->transform.m_scale);
+								trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+								trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 10.f);
+								
+
+								fillingScript.putInFilling(trayPastry[wantedSlot]);
+
+								
+								
+
+								trayPastry[wantedSlot]->Get<Pastry>().setInFilling(true);
+								//setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+								
+								
 								trayPastry[wantedSlot] = nullptr;
 
 							}
@@ -1986,11 +2029,26 @@ int main()
 								if (fillingScript.isFillingFull() && wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
 									//std::cout << newSlot << std::endl;
 									trayPastry[wantedSlot] = fillingScript.getFromFilling();
-									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
-									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
-									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+									float currentT, wantedT, time;
+									time = 0.3;
+									currentT = 0.f;
+									wantedT = 1.f;
+									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
+									finalPos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
+									trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
+									trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+									trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 0.1f);
+
+									//trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+									//trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									//trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
 									trayPastry[wantedSlot]->Get<Pastry>().setInFilling(false);
-									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									//setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 
 									fillingScript.removeFromFilling();
 									//dont set texture here cause they just removed it
@@ -2029,10 +2087,20 @@ int main()
 
 								if (wantedSlot >= 0) {
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
-									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
-									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
-									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
-									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									float currentT, wantedT, time;
+									time = 0.15;
+									currentT = 0.f;
+									wantedT = 1.f;
+									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
+									finalPos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+
+									trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
+									trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+									trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 0.1f);
 
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
 									toppingScript.removeFromTopping();
@@ -2081,8 +2149,21 @@ int main()
 								//std::cout << "B" << std::endl;
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
 								toppingScript.putInTopping(trayPastry[wantedSlot]);
+								float currentT, wantedT, time;
+								time = 0.3;
+								currentT = 0.f;
+								wantedT = 1.f;
+
+								trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(toppingScript.getToppingPosition(), nullptr, trayPastry[wantedSlot]->transform.m_scale);
+								trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+								trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 10.f);
+
 								trayPastry[wantedSlot]->Get<Pastry>().setInTopping(true);
-								setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+								//setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 
 								trayPastry[wantedSlot] = nullptr;
 
@@ -2096,11 +2177,21 @@ int main()
 								if (toppingScript.isToppingFull() && wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
 									//std::cout << newSlot << std::endl;
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
-									trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
-									trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
-									setTrayPastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+									float currentT, wantedT, time;
+									time = 0.3;
+									currentT = 0.f;
+									wantedT = 1.f;
+									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
+									finalPos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 
-									trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+									trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
+									trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+									trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 0.1f);
+
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
 									toppingScript.removeFromTopping();
 									//dont set texture here cause they just removed it
@@ -2169,10 +2260,23 @@ int main()
 						if (trayPastry[wantedSlot] == nullptr) {
 							trayPastry[wantedSlot] = drinkScript.releaseFromDrink();
 							//setDrinkMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Drink>().getDrinkType());
-							trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
-							trayPastry[wantedSlot]->transform.m_scale /= 5;
+							//trayPastry[wantedSlot]->transform.m_pos = traySlot[wantedSlot].m_pos;
+							//trayPastry[wantedSlot]->transform.m_scale /= 5;
+							glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
+							//finalPos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
+							float currentT, wantedT, time;
+							time = 0.3;
+							currentT = 0.f;
+							wantedT = 1.f;
 
-							trayPastry[wantedSlot]->transform.SetParent(&globalCameraEntity->transform);
+							trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+							trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
+							trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
+							trayPastry[wantedSlot]->Get<Transparency>().setTime(0.1);
+							trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
+							trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
+							trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * (0.2f));
+
 
 							//trayPastry[wantedSlot]->transform.m_pos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
 
@@ -2194,6 +2298,7 @@ int main()
 				int wantedSlot = getWantedSlot();
 				if (wantedSlot >= 0) {
 					if (trayPastry[wantedSlot] != nullptr) {
+
 						removeFromRendering(trayPastry[wantedSlot]);
 						trayPastry[wantedSlot] = nullptr;
 					}
@@ -2233,6 +2338,7 @@ int main()
 								
 								if (o.returnSatisfied()) {
 									if (pastryIndex != -1) {
+
 										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
 
 										trayPastry[pastryIndex] = nullptr;
@@ -2246,7 +2352,7 @@ int main()
 									}
 									
 									bakeryUtils::addToRounds(1);
-									std::cout << "HERE" << std::endl;
+									//std::cout << "HERE" << std::endl;
 									createNewOrder(u, true);
 									for each (Entity * remover in orderBubbles[u]->returnRenderingEntities()) {
 										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
@@ -2259,8 +2365,13 @@ int main()
 										renderingEntities.push_back(foe);
 									}
 
-									customerLine[0]->Get<CharacterController>().setStopSpot(line.size() - 1);
-									customerLine[0] = nullptr;
+									for (int i = 0; i < 3; i++) {
+										if (customerLine[i] != nullptr) {
+											customerLine[i]->Get<CharacterController>().setStopSpot(line.size());
+											customerLine[i] = nullptr;
+											break;
+										}
+									}
 								}
 							}
 							
@@ -2693,7 +2804,85 @@ int getFirstTraySlot() {
 	}
 	return -1;
 }
+//these will have to change when specific croissant textures are added
+Texture2D& createItemTex(Entity* e) {
+	Texture2D* tex;
+	if (e->Has<Pastry>()) {
+		MaterialCreator* creator;
+		bakeryUtils::pastryType type = e->Get<Pastry>().getPastryType();
+		if (type == bakeryUtils::pastryType::CROISSANT) {
+			return *crossantMat.getTexture().get();
+		}
+		if (type == bakeryUtils::pastryType::COOKIE) {
+			return *cookieMat.getTexture().get();
+		}
+		if (type == bakeryUtils::pastryType::CUPCAKE) {
+			return *cupcakeMat.getTexture().get();
+		}
+		if (type == bakeryUtils::pastryType::BURNT) {
+			return *burntMat.getTexture().get();
+		}
+		if (type == bakeryUtils::pastryType::CAKE) {
+			return *cakeMat.getTexture().get();
+		}
 
+	}
+	if (e->Has<Drink>()) {
+		MaterialCreator* creator;
+		bakeryUtils::drinkType type = e->Get<Drink>().getDrinkType();
+		if (type == bakeryUtils::drinkType::COFFEE) {
+			return *coffeeMat.getTexture().get();
+		}
+		if (type == bakeryUtils::drinkType::TEA) {
+			return *teaMat.getTexture().get();
+		}
+		if (type == bakeryUtils::drinkType::MILKSHAKE) {
+			return *milkshakeMat.getTexture().get();
+		}
+
+
+	}
+}
+Mesh& createPastryMat(Entity* e) {
+	Mesh* mesh;
+	
+	if (e->Has<Pastry>()) {
+		MaterialCreator* creator;
+		bakeryUtils::pastryType type = e->Get<Pastry>().getPastryType();
+		if (type == bakeryUtils::pastryType::CROISSANT) {
+			return *crossantMat.getMesh().get();
+		}
+		if (type == bakeryUtils::pastryType::COOKIE) {
+			return *cookieMat.getMesh().get();
+		}
+		if (type == bakeryUtils::pastryType::CUPCAKE) {
+			return *cupcakeMat.getMesh().get();
+		}
+		if (type == bakeryUtils::pastryType::BURNT) {
+			return *burntMat.getMesh().get();
+		}
+		if (type == bakeryUtils::pastryType::CAKE) {
+			return *cakeMat.getMesh().get();
+		}
+		
+	}
+	if (e->Has<Drink>()) {
+		MaterialCreator* creator;
+		bakeryUtils::drinkType type = e->Get<Drink>().getDrinkType();
+		if (type == bakeryUtils::drinkType::COFFEE) {
+			return *coffeeMat.getMesh().get();
+		}
+		if (type == bakeryUtils::drinkType::TEA) {
+			return *teaMat.getMesh().get();
+		}
+		if (type == bakeryUtils::drinkType::MILKSHAKE) {
+			return *milkshakeMat.getMesh().get();
+		}
+		
+		
+	}
+	
+}
 void setTrayPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 	if (type == bakeryUtils::pastryType::CROISSANT) {
 		e->Remove<CMeshRenderer>();

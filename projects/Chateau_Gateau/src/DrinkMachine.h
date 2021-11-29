@@ -5,6 +5,7 @@
 #include "bakeryUtils.h"
 #include "MaterialCreator.h"
 #include "FillBar.h"
+#include "Transparency.h"
 using namespace nou;
 
 class DrinkMachine

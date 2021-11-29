@@ -28,6 +28,15 @@ namespace nou
 		SetVBO(Attrib::UV, 2, m_uvs);
 	}
 
+	std::vector<glm::vec3> Mesh::getVerts() {
+		return m_verts;
+	}
+	std::vector<glm::vec3> Mesh::getNormals() {
+		return m_normals;
+	}
+	std::vector<glm::vec2> Mesh::getUVS() {
+		return m_uvs;
+	}
 	const VertexBuffer* Mesh::GetVBO(Mesh::Attrib attrib) const
 	{
 		auto it = m_vbo.find(attrib);

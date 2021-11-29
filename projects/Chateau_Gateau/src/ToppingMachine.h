@@ -42,5 +42,6 @@ public:
 	int getSelectedNumber();
 	void addDistance(float t);
 	float getDistance();
+	glm::vec3 getToppingPosition();
 };
 

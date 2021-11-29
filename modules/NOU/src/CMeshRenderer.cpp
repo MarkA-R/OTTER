@@ -28,6 +28,7 @@ namespace nou
 	{
 		m_owner = &owner;
 		m_mat = &mat;
+		
 		m_vao = std::make_unique<VertexArray>();
 		SetMesh(mesh);	
 	}
@@ -55,8 +56,8 @@ namespace nou
 		m_mat = &mat;
 	}
 
-	Material* CMeshRenderer::getMaterial() {
-		return m_mat;
+	Material& CMeshRenderer::getMaterial() {
+		return *m_mat;
 	}
 	
 

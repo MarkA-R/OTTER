@@ -1,6 +1,8 @@
 #pragma once
 #include "NOU/Entity.h"
 #include "MaterialCreator.h"
+#include "NOU/CMeshRenderer.h"
+#include <iostream>
 using namespace nou;
 class Transparency
 {
@@ -8,12 +10,17 @@ protected:
 	float currentTransparency = 0.f;//opaque
 	float wantedTransparency = -1.f;
 	float beginingTransparency = -1.f;
+	float nextWantedTransparency = -1.f;
+	float nextTime = 1.f;
 	float timeToLERP = 1.f;
 	float transparencyT = 0.f;
 	glm::vec3 nextPosition = glm::vec3(-999);
 	Transform* newParent;
 	Entity* owner;
-	Entity* inverseCopy = nullptr;
+	Transform copyPos;
+	Transform* posToCopy = nullptr;
+	glm::vec3 copiedScale = glm::vec3(-1);
+	glm::vec3 nextScale = glm::vec3(-1);
 	
 public:
 	Transparency(Entity&);
@@ -24,8 +31,10 @@ public:
 	float getWantedTransparency();
 	float getTime();
 	void setTime(float);
-	void setNextPosition(glm::vec3, Transform*);
-	void setInverseCopy(Transform*, MaterialCreator*, bool setParent = false);
-	Entity* getInverseCopy();
+	void setNextPosition(glm::vec3, Transform*, glm::vec3 scale = glm::vec3(-1));
+	void setNextWantedTransparency(float);
+	void setNextWantedTime(float);
+	void setNextWantedScale(glm::vec3);
+
 };
 

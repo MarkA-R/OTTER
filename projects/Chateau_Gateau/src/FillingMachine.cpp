@@ -122,6 +122,11 @@ void FillingMachine::removeFromFilling()
 void FillingMachine::putInFilling(Entity* e)
 {
 	inFilling = e;
-	e->transform.m_pos = fillingTransform.m_pos;
-	e->transform.SetParent(nullptr);
+	//e->transform.m_pos = fillingTransform.m_pos;
+	//e->transform.SetParent(nullptr);
+}
+
+glm::vec3 FillingMachine::getFillingPosition()
+{
+	return fillingTransform.m_pos;
 }

@@ -128,8 +128,8 @@ void ToppingMachine::removeFromTopping()
 void ToppingMachine::putInTopping(Entity* e)
 {
 	inTopping = e;
-	e->transform.m_pos = Lerp(topTransformL.m_pos, topTransformR.m_pos, toppingT);
-	e->transform.SetParent(nullptr);
+	//e->transform.m_pos = Lerp(topTransformL.m_pos, topTransformR.m_pos, toppingT);
+	//e->transform.SetParent(nullptr);
 }
 
 int ToppingMachine::getSelectedNumber()
@@ -145,4 +145,9 @@ void ToppingMachine::addDistance(float t)
 float ToppingMachine::getDistance()
 {
 	return totalDistanceTravelled;
+}
+
+glm::vec3 ToppingMachine::getToppingPosition()
+{
+	return Lerp(topTransformL.m_pos, topTransformR.m_pos, toppingT);
 }

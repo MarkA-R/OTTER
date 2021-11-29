@@ -103,7 +103,7 @@ void DrinkMachine::createDrink()
 	inDrink.get()->transform.m_pos = drinkTransformIn.m_pos;
 	inDrink.get()->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0, 0, 1));
 	inDrink.get()->transform.m_scale = glm::vec3(1);
-	
+	inDrink.get()->Add<Transparency>(*inDrink.get());
 }
 
 Entity* DrinkMachine::getFromDrink()
