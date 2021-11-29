@@ -1086,7 +1086,7 @@ int main()
 	carLight.strength = 0.f;
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = true;
+	bool skipMenu = false;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1127,18 +1127,11 @@ int main()
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
 		prog_allLights.get()->SetUniform("lightColor2", carLight.colour);
 		prog_allLights.get()->SetUniform("strength", carLight.strength);
-		//prog_transparent.get()->Bind();
-		
-		//prog_allLights.get()->Bind();
-		//
-		//prog_allLights.get()->Bind();
-		//prog_allLights.get()->SetUniformVec3Array("lightPos", lightPos, 4);
-		//prog_allLights.get()->SetUniformVec3Array("lightColour", lightColour, 4);
-		//prog_allLights.get()->SetUniformFloatArray("lightStrength", lightStrength, 4);
 		
 		
 		
-		//std::cout << lightPos[0].x << " " << lightPos[0].y << " " << lightPos[0].z << " " << std::endl;
+		
+		
 		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
@@ -1886,13 +1879,18 @@ int main()
 								trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
 
 								glm::vec3 finalPos = traySlot[newSlot].m_pos;
-								finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								//finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
 								
 								trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
-								//trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
 								trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
-								trayPastry[newSlot]->Get<Pastry>().setInOven(false);
 								setTrayPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								trayPastry[newSlot]->Get<Pastry>().setInOven(false);
+								trayPastry[newSlot]->Get<Transparency>().setTransparency(1.f);
+								trayPastry[newSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform);
+								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
+								trayPastry[newSlot]->Get<Transparency>().setTime(0.2);
+								
 								
 								/*
 								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
@@ -1901,10 +1899,7 @@ int main()
 								}
 								*/
 								ovenScript->removeFromSlot(wantedSlot);
-								trayPastry[newSlot]->Get<Transparency>().setTransparency(1.f);
-								trayPastry[newSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform);
-								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
-								trayPastry[newSlot]->Get<Transparency>().setTime(0.2);
+								
 							}
 						}
 
