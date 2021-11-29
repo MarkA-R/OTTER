@@ -213,7 +213,7 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 				}
 				currentEntry = table.getAtIndex(currentspot);
 				nextEntry = table.getAtIndex(nextSpot);
-				std::cout << "XXXXXXXXXX" << std::endl;
+				//std::cout << "XXXXXXXXXX" << std::endl;
 			}
 			else
 			{
@@ -287,4 +287,9 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 void CharacterController::continueAnimation(bool x)
 {
 	stopAnimation = !x;
+}
+
+int CharacterController::getStopSpot()
+{
+	return stopSpot;
 }

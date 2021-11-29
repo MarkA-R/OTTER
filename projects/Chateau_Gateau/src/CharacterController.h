@@ -39,6 +39,7 @@ public:
 	void updatePosition(float, float);
 	void updateDistance(float deltaTime, float speed);
 	void continueAnimation(bool);
+	int getStopSpot();
 
 };
 

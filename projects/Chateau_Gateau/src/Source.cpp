@@ -93,6 +93,14 @@ T keepInBounds(T current, T lower, T upper) {
 }
 
 
+template<typename T, typename X>
+bool isInVector(std::vector<T> a, X e) {
+	if (std::find(a.begin(), a.end(), e) != a.end()) {
+		return true;
+	}
+	return false;
+}
+
 float easeInOut(float x) {//the easeInOutQuint function from easings.net (https://easings.net/#easeInOutQuint)
 	if (x < 0.5) {
 		return 16 * x * x * x * x * x;
@@ -221,6 +229,7 @@ bool isInRendering(Entity* e);
 void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
 int placeInLineToIndex(int linePlace);
+int indexToPlaceInLine(int index);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -294,8 +303,9 @@ std::vector<glm::vec3> line;
 float carT = 0.f;
 glm::vec3 firstCarPos = glm::vec3(10, -1, 10);
 glm::vec3 lastCarPos = glm::vec3(-10, -1, 10);
-
-
+Entity* customerLine[3];
+std::vector<Entity*> customers;
+int lineStart = 3;
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -314,6 +324,16 @@ int main()
 	cameraKeys.push_back(insidePos);
 	cameraKeys.push_back(outsidePos);
 	cameraKeys.push_back(menuCameraPos);
+	line.push_back(glm::vec3(3.5, lineY, -9.4));
+	line.push_back(glm::vec3(-1.1, lineY, -8.8));
+	line.push_back(glm::vec3(-1.1, lineY, -7.7));
+	line.push_back(glm::vec3(-1.1, lineY, -5.3));
+	line.push_back(glm::vec3(-1.1, lineY, -3.8));
+	line.push_back(glm::vec3(-1.1, lineY, -3.5));
+	line.push_back(glm::vec3(-1.6, lineY, -3.5));
+	line.push_back(glm::vec3(-1.6, lineY, -4.8));
+	line.push_back(glm::vec3(-2.1, lineY, -9.5));
+	line.push_back(glm::vec3(-7.6, lineY, -9.5));
 	PathSampler::Lerp = Lerp<glm::vec3>;
 	PathSampler::Catmull = Catmull<glm::vec3>;
 	PathSampler::Bezier = Bezier<glm::vec3>;
@@ -774,47 +794,133 @@ int main()
 		MorphAnimation mithunanIdle = MorphAnimation(mithunanIdleFrames, 1, 0);
 		allMithunanFrames.push_back(&mithunanIdle);
 		
-		std::unique_ptr<Texture2D> mithunanTex = std::make_unique<Texture2D>("characters/mithunan/tempChar.png");
+		std::unique_ptr<Texture2D> mithunanTex = std::make_unique<Texture2D>("characters/mithunan/mithunan.png");
 		std::unique_ptr<Material> mithunanMat = std::make_unique<Material>(*prog_morph);
 		mithunanMat->AddTexture("albedo", *mithunanTex);
 
 		
 
 		Entity mithunan = Entity::Create();
+		{
+
+		
 		mithunan.Add<CMorphMeshRenderer>(mithunan, *mithunanWalkFrames[0], *mithunanMat.get());
 		mithunan.Add<CPathAnimator>(mithunan);
 		mithunan.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
 		mithunan.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
 		mithunan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
-		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
-		line.push_back(glm::vec3(3.5, lineY, -9.4));
-		line.push_back(glm::vec3(-1.1, lineY, -8.8));
-		line.push_back(glm::vec3(-1.1, lineY, -7.7));
-		line.push_back(glm::vec3(-1.1, lineY, -5.3));
-		line.push_back(glm::vec3(-1.1, lineY, -3.8));
-		line.push_back(glm::vec3(-1.1, lineY, -3.5));
-		line.push_back(glm::vec3(-1.6, lineY, -3.5));
-		line.push_back(glm::vec3(-1.6, lineY, -4.8));
-		line.push_back(glm::vec3(-2.1, lineY, -9.5));
-		line.push_back(glm::vec3(-7.6, lineY, -9.5));
-		
+		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);			
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
-		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
+		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
 		//mithunan.Get<CharacterController>().continueAnimation(false);
 		auto& mithunanAnimator = mithunan.Add<CMorphAnimator>(mithunan);
 		mithunanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
 		mithunanAnimator.SetFrames(mithunanWalkFrames);
-
-
-
-
+		}
+		
 		renderingEntities.push_back(&mithunan);
 		
-		
+		std::unique_ptr<Texture2D> kainatTex = std::make_unique<Texture2D>("characters/mithunan/kainat.png");
+		std::unique_ptr<Material> kainatMat = std::make_unique<Material>(*prog_morph);
+		kainatMat->AddTexture("albedo", *kainatTex);
+		Entity kainat = Entity::Create();
+		{
 
 
+			kainat.Add<CMorphMeshRenderer>(kainat, *mithunanWalkFrames[0], *kainatMat.get());
+			kainat.Add<CPathAnimator>(kainat);
+			kainat.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
+			kainat.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			kainat.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
+			kainat.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			kainat.Add<CharacterController>(&kainat, allMithunanFrames, line);
+			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
+			//mithunan.Get<CharacterController>().continueAnimation(false);
+			auto& kainatAnimator = kainat.Add<CMorphAnimator>(kainat);
+			kainatAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			kainatAnimator.SetFrames(mithunanWalkFrames);
+		}
+		renderingEntities.push_back(&kainat);
 
+		std::unique_ptr<Texture2D> markTex = std::make_unique<Texture2D>("characters/mithunan/mark.png");
+		std::unique_ptr<Material> markMat = std::make_unique<Material>(*prog_morph);
+		markMat->AddTexture("albedo", *markTex);
+		Entity mark = Entity::Create();
+		{
+
+
+			mark.Add<CMorphMeshRenderer>(mark, *mithunanWalkFrames[0], *markMat.get());
+			mark.Add<CPathAnimator>(mark);
+			mark.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
+			mark.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			mark.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
+			mark.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			mark.Add<CharacterController>(&mark, allMithunanFrames, line);
+			mark.Get<CharacterController>().setStopSpot(placeInLineToIndex(3));
+			//mithunan.Get<CharacterController>().continueAnimation(false);
+			auto& markAnimator = mark.Add<CMorphAnimator>(mark);
+			markAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			markAnimator.SetFrames(mithunanWalkFrames);
+		}
+		renderingEntities.push_back(&mark);
+
+		std::unique_ptr<Texture2D> kyraTex = std::make_unique<Texture2D>("characters/mithunan/kyra.png");
+		std::unique_ptr<Material> kyraMat = std::make_unique<Material>(*prog_morph);
+		kyraMat->AddTexture("albedo", *kyraTex);
+		Entity kyra = Entity::Create();
+		{
+
+
+			kyra.Add<CMorphMeshRenderer>(kyra, *mithunanWalkFrames[0], *kyraMat.get());
+			kyra.Add<CPathAnimator>(kyra);
+			kyra.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
+			kyra.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			kyra.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
+			kyra.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			kyra.Add<CharacterController>(&kyra, allMithunanFrames, line);
+			kyra.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+			//mithunan.Get<CharacterController>().continueAnimation(false);
+			auto& kyraAnimator = kyra.Add<CMorphAnimator>(kyra);
+			kyraAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			kyraAnimator.SetFrames(mithunanWalkFrames);
+		}
+		renderingEntities.push_back(&kyra);
+
+		std::unique_ptr<Texture2D> nathanTex = std::make_unique<Texture2D>("characters/mithunan/nathan.png");
+		std::unique_ptr<Material> nathanMat = std::make_unique<Material>(*prog_morph);
+		nathanMat->AddTexture("albedo", *nathanTex);
+		Entity nathan = Entity::Create();
+		{
+
+
+			nathan.Add<CMorphMeshRenderer>(nathan, *mithunanWalkFrames[0], *nathanMat.get());
+			nathan.Add<CPathAnimator>(nathan);
+			nathan.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
+			nathan.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			nathan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
+			nathan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			nathan.Add<CharacterController>(&nathan, allMithunanFrames, line);
+			nathan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+			//mithunan.Get<CharacterController>().continueAnimation(false);
+			auto& nathanAnimator = nathan.Add<CMorphAnimator>(nathan);
+			nathanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			nathanAnimator.SetFrames(mithunanWalkFrames);
+		}
+		renderingEntities.push_back(&nathan);
+
+		customerLine[0] = &mithunan;
+		customerLine[1] = &kainat;
+		customerLine[2] = &mark;
+		customers.push_back(&mithunan);
+		customers.push_back(&kainat);
+		customers.push_back(&mark);
+		customers.push_back(&kyra);
+		customers.push_back(&nathan);
 	
 	Entity tray = Entity::Create();
 	tray.Add<CMeshRenderer>(tray, *trayMat.getMesh(), *trayMat.getMaterial());
@@ -1043,10 +1149,49 @@ int main()
 		
 
 		
+		//mithunan.Get<CharacterController>().updateAnimation(deltaTime);
+		for (int i = 0; i < customers.size(); i++)
+		{
+			Entity* customer = customers[i];
+			customer->Get<CharacterController>().updateDistance(deltaTime, 3);
+			customer->Get<CharacterController>().updateAnimation(deltaTime);
+			
+			if (customer->Get<CharacterController>().getStopSpot() <= placeInLineToIndex(1)) {
+				int inLine = -1;
+				bool alreadyMoved = false;
+				for (int i = 2; i >= 0; i--) {
+					if (customerLine[i] == customer) {
+						
+						inLine = i;
+						break;
+					}
+				}
+				for (int i = 2; i >= 0; i--) {
+					if (!alreadyMoved) {
+						std::cout << inLine << std::endl;
+						if (customerLine[i] == nullptr && (i + 1) < indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot())) {
+							if (inLine >= 0) {
+								customerLine[inLine] = nullptr;
+							}
+							customer->Get<CharacterController>().setStopSpot(placeInLineToIndex(i + 1));
+							customerLine[i] = customer;
+							alreadyMoved = true;
 
 
+						}
+					}
+					
+					}
+					
+				}
+			
+			
 
-
+			
+		}
+		
+		//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
+		//std::cout << "GGGG" << std::endl;
 
 		if (Input::GetKeyDown(GLFW_KEY_D)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().queueAnimation(1);
@@ -1054,9 +1199,17 @@ int main()
 		if (Input::GetKeyDown(GLFW_KEY_A)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().queueAnimation(0);
 		}
-		if (Input::GetKeyDown(GLFW_KEY_S)) {//put this in the lose spot
-			mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+		if (Input::GetKeyDown(GLFW_KEY_E)) {//put this in the lose spot
+			for (int i = 0; i < 3; i++) {
+				if (customerLine[i] != nullptr) {
+					customerLine[i]->Get<CharacterController>().setStopSpot(line.size());
+					customerLine[i] = nullptr;
+					break;
+				}
+			}
+			
 		}
+		
 		if (Input::GetKey(GLFW_KEY_W)) {//put this in the lose spot
 			carT += deltaTime/3;
 			if (carT > 1) {
@@ -1067,8 +1220,7 @@ int main()
 			carLight.strength = sin(carT * 3.1415926)/2;
 		}
 		//mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
-		mithunan.Get<CharacterController>().updateDistance(deltaTime, 1);
-		mithunan.Get<CharacterController>().updateAnimation(deltaTime);
+	
 
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
@@ -2011,6 +2163,9 @@ int main()
 									for each (Entity * foe in orderBubbles[u]->returnRenderingEntities()) {
 										renderingEntities.push_back(foe);
 									}
+
+									customerLine[0]->Get<CharacterController>().setStopSpot(line.size() - 1);
+									customerLine[0] = nullptr;
 								}
 							}
 							
@@ -2698,17 +2853,22 @@ void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int cou
 int placeInLineToIndex(int linePlace) {
 	if (linePlace >= 1 && linePlace <= 3) {
 		//std::cout << "AMT " << (3 + (3 - linePlace)) << std::endl;
-		return (3 + (3 - linePlace));
+		return (lineStart + (3 - linePlace));
 	}
 	else
 	{
 		if (linePlace < 1) {
-			return 0;
+			return line.size();
+			
 		}
 		if (linePlace > 3) {
-			return line.size();
+			return 0;
 		}
 	}
+}
+
+int indexToPlaceInLine(int index) {
+	return (3 - (index - lineStart));
 }
 
 
