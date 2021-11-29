@@ -55,6 +55,11 @@ namespace nou
 		m_mat = &mat;
 	}
 
+	Material* CMeshRenderer::getMaterial() {
+		return m_mat;
+	}
+	
+
 	void CMeshRenderer::Draw()
 	{
 		m_mat->Use();

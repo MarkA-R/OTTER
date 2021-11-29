@@ -1,5 +1,6 @@
 #pragma once
 #include "NOU/Entity.h"
+#include "MaterialCreator.h"
 using namespace nou;
 class Transparency
 {
@@ -11,6 +12,8 @@ protected:
 	glm::vec3 nextPosition = glm::vec3(-999);
 	Transform* newParent;
 	Entity* owner;
+	Entity* inverseCopy = nullptr;
+	
 public:
 	Transparency(Entity&);
 	void setTransparency(float);
@@ -21,6 +24,7 @@ public:
 	float getTime();
 	void setTime(float);
 	void setNextPosition(glm::vec3, Transform*);
-	
+	void setInverseCopy(Transform*, MaterialCreator*, bool setParent = false);
+	Entity* getInverseCopy();
 };
 

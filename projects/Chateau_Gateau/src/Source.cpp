@@ -1689,6 +1689,10 @@ int main()
 				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
 
 				e->Get<CMeshRenderer>().Draw();
+				if (e->Get<Transparency>().getInverseCopy() != nullptr) {
+					e->Get<Transparency>().getInverseCopy()->Get<Transparency>().updateTransparency(deltaTime);
+					e->Get<Transparency>().getInverseCopy()->Get<CMeshRenderer>().Draw();					
+				}
 				prog_transparent.get()->SetUniform("transparency", 0.f);
 			}
 			else
@@ -1844,6 +1848,7 @@ int main()
 
 							//std::cout << "B" << std::endl;
 							ovenScript->canAdd(trayPastry[wantedSlot], addingSlot);
+							trayPastry[wantedSlot]->Get<Transparency>().setTransparency(0.f);
 							trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(ovenScript->getInsideOven()->m_pos, nullptr);
 							trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(1);
 							trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
@@ -1860,9 +1865,14 @@ int main()
 								//std::cout << newSlot << std::endl;
 								trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
 
-								trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
-								trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
-								trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
+								glm::vec3 finalPos = traySlot[newSlot].m_pos;
+								finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								trayPastry[newSlot]->Get<Transparency>().setTransparency(1.f);
+								trayPastry[newSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform);
+								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
+								//trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
+								//trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								//trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
 								trayPastry[newSlot]->Get<Pastry>().setInOven(false);
 								setTrayPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
 

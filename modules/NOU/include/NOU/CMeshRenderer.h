@@ -45,6 +45,8 @@ namespace nou
 
 		void SetMesh(const Mesh& mesh);
 		void SetMaterial(Material& mat);
+		Material* getMaterial();
+		
 		virtual void Draw();
 
 		protected:
