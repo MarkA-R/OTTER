@@ -214,10 +214,11 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 				currentEntry = table.getAtIndex(currentspot);
 				nextEntry = table.getAtIndex(nextSpot);
 				//std::cout << "XXXXXXXXXX" << std::endl;
+				
 			}
 			else
 			{
-
+				
 				stop = true;
 			}
 			
@@ -225,9 +226,22 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 		
 	
 		
-	
-	
-
+		if (currentspot >= stopRange && stopRange >= (tableSize - (divisions + 1))) {
+			isFinishedMoving = true;
+		}
+		else
+		{
+			isFinishedMoving = false;
+		}
+		if (currentspot >= stopRange)
+		{
+			isStopped = true;
+		}
+		else
+		{
+			isStopped = false;
+		}
+		
 	min = currentEntry.getDistance();
 	max = nextEntry.getDistance();
 
@@ -292,4 +306,22 @@ void CharacterController::continueAnimation(bool x)
 int CharacterController::getStopSpot()
 {
 	return stopSpot;
+}
+
+bool CharacterController::isDoneMoving()
+{
+	return isFinishedMoving;
+}
+
+bool CharacterController::hasStopped()
+{
+	return isStopped;
+}
+
+void CharacterController::resetPosition()
+{
+	currentspot = 0;
+	nextSpot = 1;
+	owner->transform.m_pos = table.getAtIndex(0).getPosition();
+	distanceTravelled = 0.f;
 }

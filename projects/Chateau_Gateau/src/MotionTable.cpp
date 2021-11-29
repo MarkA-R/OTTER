@@ -111,7 +111,7 @@ MotionTable::MotionTable(std::vector<glm::vec3> a)
 		
 		
 		
-		std::cout << p0 << " " << p1 << " " << p2 << " " << p3 << " --- " << u << std::endl;
+		//std::cout << p0 << " " << p1 << " " << p2 << " " << p3 << " --- " << u << std::endl;
 		glm::vec3 currentPos = Catmull(a[p0], a[p1], a[p2], a[p3], u);
 		if (entries.size() >= 1) {
 			Entry previous = entries.back();

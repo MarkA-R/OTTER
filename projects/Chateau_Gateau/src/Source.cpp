@@ -1150,32 +1150,70 @@ int main()
 
 		
 		//mithunan.Get<CharacterController>().updateAnimation(deltaTime);
-		for (int i = 0; i < customers.size(); i++)
+		for (int u = 0; u < customers.size(); u++)
 		{
-			Entity* customer = customers[i];
+			
+			Entity* customer = customers[u];
+			if (customer->Get<CharacterController>().isDoneMoving()) {
+				
+				customer->Get<CharacterController>().setStopSpot(0);
+				customer->Get<CharacterController>().resetPosition();
+			}
+			if (customer->Get<CharacterController>().hasStopped()) {
+				//customer->Get<CharacterController>().queueAnimation(1);//make idle
+			}
+			else
+			{
+				//customer->Get<CharacterController>().queueAnimation(0);//make walk
+
+			}
 			customer->Get<CharacterController>().updateDistance(deltaTime, 3);
 			customer->Get<CharacterController>().updateAnimation(deltaTime);
 			
 			if (customer->Get<CharacterController>().getStopSpot() <= placeInLineToIndex(1)) {
 				int inLine = -1;
+				bool isInLine = false;
 				bool alreadyMoved = false;
 				for (int i = 2; i >= 0; i--) {
 					if (customerLine[i] == customer) {
-						
+						isInLine = true;
 						inLine = i;
 						break;
 					}
 				}
 				for (int i = 2; i >= 0; i--) {
 					if (!alreadyMoved) {
-						std::cout << inLine << std::endl;
+						
 						if (customerLine[i] == nullptr && (i + 1) < indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot())) {
-							if (inLine >= 0) {
-								customerLine[inLine] = nullptr;
-							}
-							customer->Get<CharacterController>().setStopSpot(placeInLineToIndex(i + 1));
-							customerLine[i] = customer;
-							alreadyMoved = true;
+							//std::cout << (i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) << std::endl;
+							
+							
+							
+							
+								bool canKeepMoving = true;
+								if (i < 2 && !isInLine) {
+									canKeepMoving = false;
+								}
+								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -3) {
+									canKeepMoving = false;
+									
+								}
+								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -1 && isInLine) {
+
+									canKeepMoving = false;
+								}
+								if (canKeepMoving) {
+
+									customer->Get<CharacterController>().setStopSpot(placeInLineToIndex(i + 1));
+									customerLine[i] = customer;
+									alreadyMoved = true;
+									if (inLine >= 0) {
+										customerLine[inLine] = nullptr;
+									}
+								}
+								
+							
+							
 
 
 						}

@@ -30,6 +30,8 @@ protected:
 	MotionTable table;
 	int currentTable = 0;
 	int nextTable = 1;
+	bool isFinishedMoving = false;
+	bool isStopped = false;
 public:
 	CharacterController(Entity*, std::vector<MorphAnimation*>, std::vector<glm::vec3>);
 	void setCurrentSpot(int);
@@ -40,6 +42,9 @@ public:
 	void updateDistance(float deltaTime, float speed);
 	void continueAnimation(bool);
 	int getStopSpot();
+	bool isDoneMoving();
+	bool hasStopped();// not necessarily at the end!
+	void resetPosition();
 
 };
 
