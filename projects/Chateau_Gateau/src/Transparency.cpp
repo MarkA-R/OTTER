@@ -1,5 +1,6 @@
 #include "Transparency.h"
 #include "NOU/CMeshRenderer.h"
+#include <iostream>
 // Templated LERP function
 template<typename T>
 T Lerp(const T& p0, const T& p1, float t)
@@ -13,6 +14,7 @@ Transparency::Transparency(Entity& e)
 void Transparency::setTransparency(float x)
 {
 	currentTransparency = x;
+	beginingTransparency = currentTransparency;
 }
 
 void Transparency::updateTransparency(float deltaTime)
@@ -22,6 +24,7 @@ void Transparency::updateTransparency(float deltaTime)
 		transparencyT += deltaTime / timeToLERP;
 	}
 	if (transparencyT > 1) {
+		currentTransparency = wantedTransparency;
 		transparencyT = -1;
 		wantedTransparency = -1;
 		if (newParent != &owner->transform) {
@@ -41,7 +44,7 @@ void Transparency::updateTransparency(float deltaTime)
 	}
 	if (wantedTransparency >= 0) {
 		
-		currentTransparency = Lerp(currentTransparency, wantedTransparency, transparencyT);
+		currentTransparency = Lerp(beginingTransparency, wantedTransparency, transparencyT);
 	}
 	
 	
@@ -54,6 +57,7 @@ float Transparency::getTransparency()
 
 void Transparency::setWantedTransparency(float x , float time)
 {
+	beginingTransparency = currentTransparency;
 	wantedTransparency = x;
 	transparencyT = 0.f;
 	timeToLERP = time;
@@ -78,7 +82,7 @@ void Transparency::setNextPosition(glm::vec3 x, Transform* remove)
 {
 	nextPosition = x;
 	newParent = remove;
-	transparencyT = 0.f;
+	//transparencyT = 0.f;
 }
 
 void Transparency::setInverseCopy(Transform* newT, MaterialCreator* mat, bool setParent)

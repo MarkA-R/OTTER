@@ -7,6 +7,7 @@ class Transparency
 protected:
 	float currentTransparency = 0.f;//opaque
 	float wantedTransparency = -1.f;
+	float beginingTransparency = -1.f;
 	float timeToLERP = 1.f;
 	float transparencyT = 0.f;
 	glm::vec3 nextPosition = glm::vec3(-999);

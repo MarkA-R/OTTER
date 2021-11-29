@@ -1251,7 +1251,9 @@ int main()
 		
 		//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 		//std::cout << "GGGG" << std::endl;
-
+		if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot
+			std::cout << "------------------" << std::endl;
+		}
 		if (Input::GetKeyDown(GLFW_KEY_D)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().queueAnimation(1);
 		}
@@ -1682,18 +1684,21 @@ int main()
 
 			
 			if (e->Has<Transparency>()) {
-				if (e->Get<Transparency>().getWantedTransparency() >= 0) {
+				if (e->Get<Transparency>().getWantedTransparency() > -1) {
+					
 					e->Get<Transparency>().updateTransparency(deltaTime);	
 				}
 				prog_transparent->Bind();
 				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
-
+				//std::cout << e->Get<Transparency>().getTransparency() << std::endl;
+				
 				e->Get<CMeshRenderer>().Draw();
 				if (e->Get<Transparency>().getInverseCopy() != nullptr) {
 					e->Get<Transparency>().getInverseCopy()->Get<Transparency>().updateTransparency(deltaTime);
+					prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getInverseCopy()->Get<Transparency>().getTransparency());
 					e->Get<Transparency>().getInverseCopy()->Get<CMeshRenderer>().Draw();					
 				}
-				prog_transparent.get()->SetUniform("transparency", 0.f);
+				//prog_transparent.get()->SetUniform("transparency", 0.f);
 			}
 			else
 			{
@@ -1851,6 +1856,7 @@ int main()
 							trayPastry[wantedSlot]->Get<Transparency>().setTransparency(0.f);
 							trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(ovenScript->getInsideOven()->m_pos, nullptr);
 							trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(1);
+							trayPastry[wantedSlot]->Get<Transparency>().setTime(0.2);
 							trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
 							trayPastry[wantedSlot] = nullptr;
 
@@ -1867,15 +1873,13 @@ int main()
 
 								glm::vec3 finalPos = traySlot[newSlot].m_pos;
 								finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
-								trayPastry[newSlot]->Get<Transparency>().setTransparency(1.f);
-								trayPastry[newSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform);
-								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
-								//trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
+								
+								trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
 								//trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
-								//trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
+								trayPastry[newSlot]->transform.SetParent(&globalCameraEntity->transform);
 								trayPastry[newSlot]->Get<Pastry>().setInOven(false);
 								setTrayPastryMesh(trayPastry[newSlot], trayPastry[newSlot]->Get<Pastry>().getPastryType());
-
+								
 								/*
 								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
 								{
@@ -1883,6 +1887,10 @@ int main()
 								}
 								*/
 								ovenScript->removeFromSlot(wantedSlot);
+								trayPastry[newSlot]->Get<Transparency>().setTransparency(1.f);
+								trayPastry[newSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform);
+								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
+								trayPastry[newSlot]->Get<Transparency>().setTime(0.2);
 							}
 						}
 
