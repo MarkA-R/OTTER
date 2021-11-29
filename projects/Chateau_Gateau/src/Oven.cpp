@@ -58,8 +58,8 @@ bool Oven::canAdd(Entity* e, int slot)
 	if (e->Has<Pastry>()) {
 		if (slot >= 0 && slot < std::size(inOven)) {
 			if (inOven[slot] == nullptr) {
-				e->transform.SetParent(nullptr);
-				e->transform.m_pos = insideOven.m_pos;
+				//e->transform.SetParent(nullptr);
+				//e->transform.m_pos = insideOven.m_pos;
 				inOven[slot] = e;
 				return true;
 			}
@@ -108,6 +108,11 @@ int Oven::getFirstEmpty() {
 		}
 	}
 	return -1;
+}
+
+Transform* Oven::getInsideOven()
+{
+	return &insideOven;
 }
 
 

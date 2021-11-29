@@ -20,5 +20,6 @@ public:
 	void removeFromSlot(int slot);
 	bool isSlotFull(int slot);
 	int getFirstEmpty();
+	Transform* getInsideOven();
 };
 

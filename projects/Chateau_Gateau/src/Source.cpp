@@ -29,6 +29,7 @@
 #include "MorphAnimation.h"
 #include "CPathAnimator.h"
 #include "Light.h"
+#include "Transparency.h"
 
 #include <algorithm>
 #include <math.h>
@@ -383,7 +384,7 @@ int main()
 	binMat.createMaterial("bakery/models/trash.gltf", "bakery/textures/trash.png", *prog_texLit);
 
 	MaterialCreator ovenMat = MaterialCreator();
-	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_transparent);
+	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit); 
 
 	MaterialCreator toppingMat = MaterialCreator();
 	toppingMat.createMaterial("bakery/models/topping.gltf", "bakery/textures/topping.png", *prog_texLit);
@@ -438,20 +439,20 @@ int main()
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
 	particleMat->AddTexture("albedo", *particleTex);
 
-	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_texLit);
-	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_texLit);
-	cookieMat.createMaterial("bakery/models/cookie.gltf", "bakery/textures/cookie.png", *prog_texLit);
-	cupcakeMat.createMaterial("bakery/models/cupcake.gltf", "bakery/textures/cupcake.png", *prog_texLit);
-	cakeMat.createMaterial("bakery/models/cake.gltf", "bakery/textures/cake.png", *prog_texLit);
-	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_texLit);
+	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_transparent);
+	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_transparent);
+	cookieMat.createMaterial("bakery/models/cookie.gltf", "bakery/textures/cookie.png", *prog_transparent);
+	cupcakeMat.createMaterial("bakery/models/cupcake.gltf", "bakery/textures/cupcake.png", *prog_transparent);
+	cakeMat.createMaterial("bakery/models/cake.gltf", "bakery/textures/cake.png", *prog_transparent);
+	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_transparent);
 
 	coffeeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/coffeeTile.png", *prog_texLit);
 	teaTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/teaTile.png", *prog_texLit);
 	milkshakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/milkshakeTile.png", *prog_texLit);
 
-	coffeeMat.createMaterial("bakery/models/coffee.gltf", "bakery/textures/coffee.png", *prog_texLit);
-	teaMat.createMaterial("bakery/models/tea.gltf", "bakery/textures/tea.png", *prog_texLit);
-	milkshakeMat.createMaterial("bakery/models/milkshake.gltf", "bakery/textures/milkshake.png", *prog_texLit);
+	coffeeMat.createMaterial("bakery/models/coffee.gltf", "bakery/textures/coffee.png", *prog_transparent);
+	teaMat.createMaterial("bakery/models/tea.gltf", "bakery/textures/tea.png", *prog_transparent);
+	milkshakeMat.createMaterial("bakery/models/milkshake.gltf", "bakery/textures/milkshake.png", *prog_transparent);
 	
 	playSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/playSign.png", *prog_texLit);
 	settingsSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/settingsSign.png", *prog_texLit);
@@ -824,6 +825,12 @@ int main()
 		std::unique_ptr<Texture2D> kainatTex = std::make_unique<Texture2D>("characters/mithunan/kainat.png");
 		std::unique_ptr<Material> kainatMat = std::make_unique<Material>(*prog_morph);
 		kainatMat->AddTexture("albedo", *kainatTex);
+
+		std::vector<MorphAnimation*> allKainatFrames;
+		MorphAnimation kainatWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		allKainatFrames.push_back(&kainatWalk);
+		MorphAnimation kainatIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		allKainatFrames.push_back(&kainatIdle);
 		Entity kainat = Entity::Create();
 		{
 
@@ -835,15 +842,20 @@ int main()
 			kainat.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			kainat.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
-			kainat.Add<CharacterController>(&kainat, allMithunanFrames, line);
+			kainat.Add<CharacterController>(&kainat, allKainatFrames, line);
 			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& kainatAnimator = kainat.Add<CMorphAnimator>(kainat);
-			kainatAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			kainatAnimator.SetFrameTime(kainatWalk.getFrameTime());
 			kainatAnimator.SetFrames(mithunanWalkFrames);
 		}
 		renderingEntities.push_back(&kainat);
 
+		std::vector<MorphAnimation*> allmarkFrames;
+		MorphAnimation markWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		allmarkFrames.push_back(&markWalk);
+		MorphAnimation markIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		allmarkFrames.push_back(&markIdle);
 		std::unique_ptr<Texture2D> markTex = std::make_unique<Texture2D>("characters/mithunan/mark.png");
 		std::unique_ptr<Material> markMat = std::make_unique<Material>(*prog_morph);
 		markMat->AddTexture("albedo", *markTex);
@@ -858,15 +870,20 @@ int main()
 			mark.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			mark.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
-			mark.Add<CharacterController>(&mark, allMithunanFrames, line);
+			mark.Add<CharacterController>(&mark, allmarkFrames, line);
 			mark.Get<CharacterController>().setStopSpot(placeInLineToIndex(3));
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& markAnimator = mark.Add<CMorphAnimator>(mark);
-			markAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			markAnimator.SetFrameTime(markWalk.getFrameTime());
 			markAnimator.SetFrames(mithunanWalkFrames);
 		}
 		renderingEntities.push_back(&mark);
 
+		std::vector<MorphAnimation*> allkyraFrames;
+		MorphAnimation kyraWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		allkyraFrames.push_back(&kyraWalk);
+		MorphAnimation kyraIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		allkyraFrames.push_back(&kyraIdle);
 		std::unique_ptr<Texture2D> kyraTex = std::make_unique<Texture2D>("characters/mithunan/kyra.png");
 		std::unique_ptr<Material> kyraMat = std::make_unique<Material>(*prog_morph);
 		kyraMat->AddTexture("albedo", *kyraTex);
@@ -881,15 +898,20 @@ int main()
 			kyra.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			kyra.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
-			kyra.Add<CharacterController>(&kyra, allMithunanFrames, line);
+			kyra.Add<CharacterController>(&kyra, allkyraFrames, line);
 			kyra.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& kyraAnimator = kyra.Add<CMorphAnimator>(kyra);
-			kyraAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			kyraAnimator.SetFrameTime(kyraWalk.getFrameTime());
 			kyraAnimator.SetFrames(mithunanWalkFrames);
 		}
 		renderingEntities.push_back(&kyra);
 
+		std::vector<MorphAnimation*> allnathanFrames;
+		MorphAnimation nathanWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		allnathanFrames.push_back(&nathanWalk);
+		MorphAnimation nathanIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		allnathanFrames.push_back(&nathanIdle);
 		std::unique_ptr<Texture2D> nathanTex = std::make_unique<Texture2D>("characters/mithunan/nathan.png");
 		std::unique_ptr<Material> nathanMat = std::make_unique<Material>(*prog_morph);
 		nathanMat->AddTexture("albedo", *nathanTex);
@@ -904,11 +926,11 @@ int main()
 			nathan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			nathan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
-			nathan.Add<CharacterController>(&nathan, allMithunanFrames, line);
+			nathan.Add<CharacterController>(&nathan, allnathanFrames, line);
 			nathan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& nathanAnimator = nathan.Add<CMorphAnimator>(nathan);
-			nathanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
+			nathanAnimator.SetFrameTime(nathanWalk.getFrameTime());
 			nathanAnimator.SetFrames(mithunanWalkFrames);
 		}
 		renderingEntities.push_back(&nathan);
@@ -1095,8 +1117,7 @@ int main()
 	GLfloat seeThrough = 0.5f;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
-		prog_transparent->Bind();
-		prog_transparent.get()->SetUniform("transparency", seeThrough);
+		
 		
 		prog_allLights->Bind();
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
@@ -1160,11 +1181,11 @@ int main()
 				customer->Get<CharacterController>().resetPosition();
 			}
 			if (customer->Get<CharacterController>().hasStopped()) {
-				//customer->Get<CharacterController>().queueAnimation(1);//make idle
+				customer->Get<CharacterController>().queueAnimation(1);//make idle
 			}
 			else
 			{
-				//customer->Get<CharacterController>().queueAnimation(0);//make walk
+				customer->Get<CharacterController>().queueAnimation(0);//make walk
 
 			}
 			customer->Get<CharacterController>().updateDistance(deltaTime, 3);
@@ -1659,16 +1680,28 @@ int main()
 			
 			e->transform.RecomputeGlobal();
 
-			if (true) {
+			
+			if (e->Has<Transparency>()) {
+				if (e->Get<Transparency>().getWantedTransparency() >= 0) {
+					e->Get<Transparency>().updateTransparency(deltaTime);	
+				}
+				prog_transparent->Bind();
+				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
 
-			}
-			if (e->Has<CMeshRenderer>()) {
 				e->Get<CMeshRenderer>().Draw();
+				prog_transparent.get()->SetUniform("transparency", 0.f);
 			}
+			else
+			{
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
 
-			if (e->Has<CMorphMeshRenderer>()) {
-				e->Get<CMorphMeshRenderer>().Draw();
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
 			}
+			
 			
 			
 			
@@ -1744,6 +1777,9 @@ int main()
 
 							trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *doughMat.getMesh(), *doughMat.getMaterial());
 							trayPastry[slot]->Add<Pastry>();
+							trayPastry[slot]->Add<Transparency>(*trayPastry[slot]);
+							trayPastry[slot]->Get<Transparency>().setTransparency(0);
+							trayPastry[slot]->Get<Transparency>().setTime(0.2);
 
 							trayPastry[slot]->transform.m_scale = glm::vec3(0.009f, 0.009f, 0.009f);
 							trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1808,7 +1844,8 @@ int main()
 
 							//std::cout << "B" << std::endl;
 							ovenScript->canAdd(trayPastry[wantedSlot], addingSlot);
-
+							trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(ovenScript->getInsideOven()->m_pos, nullptr);
+							trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(1);
 							trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
 							trayPastry[wantedSlot] = nullptr;
 

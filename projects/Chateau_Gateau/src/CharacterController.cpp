@@ -265,7 +265,7 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 
 
 		//https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/lookat-function
-		glm::vec3 newDir = (glm::normalize(newPos - oldPos));
+		glm::vec3 newDir = (glm::normalize(oldPos - newPos));
 
 		glm::vec3 subtractedVectors = (oldPos - newPos);
 		if (subtractedVectors.x == 0.f && subtractedVectors.y == 0.f && subtractedVectors.z == 0.f) {
@@ -286,6 +286,7 @@ void CharacterController::updateDistance(float deltaTime, float speed)
 			rotationMatrix[2][2] = newDir.z;
 
 			owner->transform.m_rotation = rotationMatrix;
+			//owner->transform.m_rotation = glm::inverse(owner->transform.m_rotation);
 		}
 
 	}
