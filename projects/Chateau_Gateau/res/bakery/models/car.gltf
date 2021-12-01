@@ -8,40 +8,20 @@
         {
             "name" : "Scene",
             "nodes" : [
-                0,
-                1
+                0
             ]
         }
     ],
     "nodes" : [
         {
-            "name" : "Light",
-            "rotation" : [
-                0.16907575726509094,
-                0.7558803558349609,
-                -0.27217137813568115,
-                0.570947527885437
-            ],
-            "translation" : [
-                4.076245307922363,
-                5.903861999511719,
-                -7.005454063415527
-            ]
-        },
-        {
             "mesh" : 0,
-            "name" : "WallWood.003",
-            "translation" : [
-                -4.093119144439697,
-                0.0006157103925943375,
-                -1.0739860534667969
-            ]
+            "name" : "Car_Object"
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "bakeryMat",
+            "name" : "Car_Material",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
@@ -53,7 +33,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Cube.114",
+            "name" : "Cube",
             "primitives" : [
                 {
                     "attributes" : {
@@ -76,66 +56,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "bakeryTexture",
-            "uri" : "bakeryTexture.png"
+            "name" : "car",
+            "uri" : "car.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 5256,
+            "count" : 1332,
             "max" : [
-                10.393119812011719,
-                3.500007152557373,
-                6.37398624420166
+                1.2009289264678955,
+                2.2965922355651855,
+                4.020776271820068
             ],
             "min" : [
-                -6.305920600891113,
-                -0.0015443733427673578,
-                -6.226014137268066
+                -1.4478187561035156,
+                0.004848748445510864,
+                -0.10300818830728531
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 5256,
+            "count" : 1332,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 5256,
+            "count" : 1332,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 5904,
+            "count" : 3564,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 63072,
+            "byteLength" : 15984,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 63072,
-            "byteOffset" : 63072
+            "byteLength" : 15984,
+            "byteOffset" : 15984
         },
         {
             "buffer" : 0,
-            "byteLength" : 42048,
-            "byteOffset" : 126144
+            "byteLength" : 10656,
+            "byteOffset" : 31968
         },
         {
             "buffer" : 0,
-            "byteLength" : 11808,
-            "byteOffset" : 168192
+            "byteLength" : 7128,
+            "byteOffset" : 42624
         }
     ],
     "samplers" : [
@@ -146,8 +126,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 180000,
-            "uri" : "bakery.bin"
+            "byteLength" : 49752,
+            "uri" : "car.bin"
         }
     ]
 }

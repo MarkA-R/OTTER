@@ -280,6 +280,8 @@ MaterialCreator stawberryTopping = MaterialCreator();
 MaterialCreator plusTile = MaterialCreator();
 MaterialCreator bubbleTile = MaterialCreator();
 
+MaterialCreator carMat = MaterialCreator();
+
 std::unique_ptr<Material> pecanParticle;
 std::unique_ptr<Material> sprinkleParticle;
 std::unique_ptr<Material> strawberryParticle;
@@ -303,9 +305,8 @@ glm::vec3 trayScale;
 glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
 std::vector<glm::vec3> line;
-float carT = 0.f;
-glm::vec3 firstCarPos = glm::vec3(10, -1, 10);
-glm::vec3 lastCarPos = glm::vec3(-10, -1, 10);
+glm::vec3 firstCarPos = glm::vec3(5, -1, 10);
+glm::vec3 lastCarPos = glm::vec3(-15, -1, 10);
 Entity* customerLine[3];
 std::vector<Entity*> customers;
 int lineStart = 3;
@@ -313,6 +314,9 @@ int lineStart = 3;
 float currentGameTime = 0;
 int difficulty = 1;
 std::vector<Order> currentOrders = std::vector<Order>();
+
+bool isCarMoving = false;
+float carT = 0.f;
 
 MaterialCreator copyMaterials[4];
 
@@ -392,7 +396,7 @@ int main()
 
 	MaterialCreator toppingMat = MaterialCreator();
 	toppingMat.createMaterial("bakery/models/topping.gltf", "bakery/textures/topping.png", *prog_texLit);
-
+	
 	MaterialCreator fillingMat1 = MaterialCreator();
 	fillingMat1.createMaterial("bakery/models/fillingMachine1.gltf", "bakery/textures/fillingMachine.png", *prog_morph);
 	
@@ -431,7 +435,7 @@ int main()
 	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_texLit);
 	
 	MaterialCreator bakeryMat = MaterialCreator();
-	bakeryMat.createMaterial("bakery/models/bakery.gltf", "bakery/textures/bakeryTexture.png", *prog_texLit);
+	bakeryMat.createMaterial("bakery/models/interiorJoined.gltf", "bakery/textures/interiorTexture.png", *prog_texLit);
 
 	MaterialCreator receiptMat = MaterialCreator();
 	receiptMat.createMaterial("bakery/models/tile.gltf", "UI/textures/Receipt.png", *prog_texLit);
@@ -487,6 +491,8 @@ int main()
 	plusTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/plusTile.png", *prog_texLit);
 	bubbleTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/bubbleTile.png", *prog_texLit);
 
+	carMat.createMaterial("bakery/models/car.gltf", "bakery/textures/car.png", *prog_texLit);
+
 	
 	std::unique_ptr<Texture2D> pecanTex = std::make_unique<Texture2D>("bakery/textures/pecanParticle.png");
 	pecanParticle = std::make_unique<Material>(*prog_particles);
@@ -507,8 +513,18 @@ int main()
 	bakery.Add<CMeshRenderer>(bakery, *bakeryMat.getMesh(), *bakeryMat.getMaterial());
 	bakery.transform.m_scale = glm::vec3(0.7, 0.7, 0.7);
 	bakery.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	bakery.transform.m_pos = glm::vec3(-2.4, -1.9, -1.2);
+	bakery.transform.m_pos = glm::vec3(-2.4, -1.9, -4.3);
 	renderingEntities.push_back(&bakery);
+
+	Entity car = Entity::Create();
+	car.Add<CMeshRenderer>(car, *carMat.getMesh(), *carMat.getMaterial());
+	car.transform.m_scale = glm::vec3(0.55, 0.55, 0.55);
+	car.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::vec3 carPos = menuCameraPos;
+	car.transform.m_pos = glm::vec3(carPos.x + 0.5, -1.0f, carPos.z - 2.2);
+
+	renderingEntities.push_back(&car);
+
 
 	Entity sign = Entity::Create();
 	sign.Add<CMeshRenderer>(sign, *playSignMat.getMesh(), *playSignMat.getMaterial());
@@ -1084,9 +1100,10 @@ int main()
 	carLight.colour = glm::vec3(1, 1, 0);
 	carLight.pos = glm::vec3(-0.0f, -0.0f, 1.0f);
 	carLight.strength = 0.f;
+	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = false;
+	bool skipMenu = true;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1119,6 +1136,7 @@ int main()
 	DrinkMachine& drinkScript = drink.Get<DrinkMachine>();
 	//renderingEntities.push_back(&receipt);
 	GLfloat seeThrough = 0.5f;
+
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -1131,20 +1149,18 @@ int main()
 		
 		
 		
-		
 		/*
+		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
-		ImGui::DragFloat("X", &(carLight.x), 0.1f);
-		ImGui::DragFloat("Y", &(carLight.y), 0.1f);
-		ImGui::DragFloat("Z", &(carLight.z), 0.1f);
+		ImGui::DragFloat("X", &(bakery.transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(bakery.transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(bakery.transform.m_pos.z), 0.1f);
 		
-		ImGui::DragFloat("X1", &(carLightColour.x), 0.1f);
-		ImGui::DragFloat("Y1", &(carLightColour.y), 0.1f);
-		ImGui::DragFloat("Z1", &(carLightColour.z), 0.1f);
+		
 
-		ImGui::DragFloat("STR", &(strength), 0.1f);
+	
 		
 		
 		
@@ -1269,16 +1285,24 @@ int main()
 		}
 		
 		if (Input::GetKey(GLFW_KEY_W)) {//put this in the lose spot
-			carT += deltaTime/3;
-			if (carT > 1) {
-				carT = 0.f;
-			}
-			
-			carLight.pos = Lerp(firstCarPos, lastCarPos, carT);
-			carLight.strength = sin(carT * 3.1415926)/2;
+			isCarMoving = true;
 		}
 		//mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
-	
+		if (isCarMoving == true) {
+
+
+			carT += deltaTime / 3;
+			if (carT > 1) {
+				carT = 0.f;
+				isCarMoving = false;
+			}
+
+			carLight.pos = Lerp(firstCarPos, lastCarPos, carT);
+			carLight.strength = sin(carT * 3.1415926) / 2;
+			car.transform.m_pos = carLight.pos;
+			car.transform.m_pos.z = -15;
+			car.transform.m_pos.y = -1.7;
+		}
 
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
@@ -1596,6 +1620,7 @@ int main()
 								break;
 							}
 						}
+						isCarMoving = true;
 					}
 
 

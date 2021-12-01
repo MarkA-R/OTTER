@@ -90,7 +90,7 @@ void OrderBubble::create(Order& o)
        // totalEnties += 1;
         hasDrink = true;
     }
-    float width = (scaleX*(scaleAll-0.05)) * 2;
+    float width = ((scaleX-0.05)*(scaleAll-0.05)) * 2;
     //std::cout << "W " << width << std::endl;
     
     float sectionWidth = (width / totalEnties);
