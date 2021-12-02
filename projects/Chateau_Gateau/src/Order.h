@@ -10,7 +10,7 @@ public:
 	bakeryUtils::fillType filling;
 	bakeryUtils::pastryType type;
 	bakeryUtils::drinkType drink;
-	float startTime = 0;
+	float startTime = -1;
 	float workTime = 0;
 	float maxEndTime = 0;
 

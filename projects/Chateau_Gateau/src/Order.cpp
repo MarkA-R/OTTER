@@ -67,10 +67,11 @@ void Order::createOrder(int difficulty)
 		isDrinkSatisfied = false;
 	}
 	std::cout << "DRINKSEC " << addedDrinkSecs << std::endl;
-	float orderSeconds = (60 / (difficulty)) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
+	float orderSeconds = (1 / (difficulty)) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
 	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;
+	startTime = -1;
 }
 
 void Order::translate(bakeryUtils::toppingType topping, bakeryUtils::fillType filling, bakeryUtils::pastryType type, bakeryUtils::drinkType drink)
@@ -153,7 +154,10 @@ void Order::startOrder()
 
 	translate(topping,filling,type,drink);
 	std::cout << "I want a " << s_type << " filled with " << s_filling << " and topped with " << s_topping << " and a " << s_drink << "." << std::endl;
-	startTime = bakeryUtils::getTime(); //bakeryStats.getGameTime();
+	if (startTime < 0) {
+		startTime = bakeryUtils::getTime(); //bakeryStats.getGameTime();
+	}
+	
 	maxEndTime = startTime + workTime;
 	//std::cout << "START" << startTime << std::endl;
 }

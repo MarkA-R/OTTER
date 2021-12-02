@@ -1144,7 +1144,7 @@ int main()
 	for (int i = 0; i < orderBubbles.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
 		for each (Entity * ent in ob->returnRenderingEntities()) {
-			renderingEntities.push_back(ent);
+			//renderingEntities.push_back(ent);
 		}
 	}
 	currentOrders.back().startOrder();
@@ -1170,17 +1170,7 @@ int main()
 		
 		
 		
-		
-		/*
-		App::StartImgui();
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		
-		ImGui::DragFloat("T", &(seeThrough), 0.1f);
-		//ImGui::DragFloat("Y", &(bakery.transform.m_pos.y), 0.1f);
-		//ImGui::DragFloat("Z", &(bakery.transform.m_pos.z), 0.1f);
-
-		App::EndImgui();
-		*/
+	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 		
 		bool keepCheckingRaycast = true;
@@ -1410,7 +1400,11 @@ int main()
 							}
 							
 						}
+						
 						currentOrders.back().startOrder();
+
+						
+
 					}
 					if (isInContinueMenu) {
 						isInContinueMenu = false;
@@ -1636,7 +1630,7 @@ int main()
 			for (int i = 0; i < currentOrders.size(); i++) {//pausing
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
-				//std::cout << bakeryUtils::getTime() << " > " << ob->isOrderExpired() << std::endl;
+				//std::cout << bakeryUtils::getTime() << " > " << currentOrders[i].maxEndTime << std::endl;
 				if (!currentOrders[i].isOnTime()) {
 					//std::cout << "START" << std::endl;
 					createNewOrder(i, false,false);
@@ -1949,7 +1943,7 @@ int main()
 								trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
 
 								glm::vec3 finalPos = traySlot[newSlot].m_pos;
-								//finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
+								finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
 								
 								trayPastry[newSlot]->transform.m_pos = traySlot[newSlot].m_pos;
 								trayPastry[newSlot]->transform.m_pos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());

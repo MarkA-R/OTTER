@@ -39,5 +39,7 @@ public:
 	void clearRenderingEntities();
 	Transform* getTransform();
 	Order* getOrder();
+	float getFill();
+	OvenTimer& getTimer();
 };
 

@@ -275,4 +275,14 @@ Order* OrderBubble::getOrder()
     return &order;
 }
 
+float OrderBubble::getFill()
+{
+    return timer->getFill();
+}
+
+OvenTimer& OrderBubble::getTimer()
+{
+    return *timer;
+}
+
 
