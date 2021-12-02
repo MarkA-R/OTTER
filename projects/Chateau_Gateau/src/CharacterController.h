@@ -45,6 +45,7 @@ public:
 	bool isDoneMoving();
 	bool hasStopped();// not necessarily at the end!
 	void resetPosition();
+	void setDistance(int index);
 
 };
 

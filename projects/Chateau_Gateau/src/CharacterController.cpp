@@ -326,3 +326,13 @@ void CharacterController::resetPosition()
 	owner->transform.m_pos = table.getAtIndex(0).getPosition();
 	distanceTravelled = 0.f;
 }
+
+void CharacterController::setDistance(int index)
+{
+	int tableSize = table.getEntries().size();
+	int divisions = tableSize / linePositions.size();
+
+	currentspot = (divisions * index) -1;
+	nextSpot = (divisions * index);
+	distanceTravelled = table.getAtIndex(nextSpot).getDistance();
+}

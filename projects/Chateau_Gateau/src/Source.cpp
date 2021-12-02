@@ -125,14 +125,14 @@ float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
-float lineY = 0.8;//-1.1f;
+float lineY = -0.7;//-1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
 prog_allLights;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
 glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
-glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.3, cameraPos.y, cameraPos.z);
-glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.3, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
+glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.8, cameraPos.y, cameraPos.z);
+glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.90, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
 std::vector<glm::vec3> cameraKeys = std::vector<glm::vec3>();
 
 
@@ -317,6 +317,9 @@ std::vector<Order> currentOrders = std::vector<Order>();
 
 bool isCarMoving = false;
 float carT = 0.f;
+float dayT = 0.0f;
+float dayBright = 0.9;
+float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
 
@@ -435,10 +438,13 @@ int main()
 	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_texLit);
 	
 	MaterialCreator bakeryMat = MaterialCreator();
-	bakeryMat.createMaterial("bakery/models/interiorJoined.gltf", "bakery/textures/interiorTexture.png", *prog_texLit);
+	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
 
 	MaterialCreator receiptMat = MaterialCreator();
 	receiptMat.createMaterial("bakery/models/tile.gltf", "UI/textures/Receipt.png", *prog_texLit);
+
+	MaterialCreator plexiMat = MaterialCreator();
+	plexiMat.createMaterial("bakery/models/plexiGlass.gltf", "bakery/textures/plexiGlass.png", *prog_transparent);
 
 	
 	
@@ -569,6 +575,14 @@ int main()
 	vase.transform.m_pos = glm::vec3(-0.5, -1.12, -2.29f);
 	renderingEntities.push_back(&vase);
 
+	Entity plexiGlass = Entity::Create();
+	plexiGlass.Add<CMeshRenderer>(plexiGlass, *plexiMat.getMesh(), *plexiMat.getMaterial());
+	plexiGlass.Add<Transparency>(plexiGlass);
+	plexiGlass.transform.m_scale = glm::vec3(0.9f, 0.3f, 0.03f);
+	plexiGlass.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	plexiGlass.transform.m_pos = glm::vec3(-1.f, -0.6, -2.79f);
+	
+
 		
 		//Creating Cash Register Entity
 		Entity ent_register = Entity::Create();
@@ -586,16 +600,15 @@ int main()
 		customerBubbleLocation.m_pos.z -= 1.0;
 		
 
-		upurrBubbleLocation1 = ent_register.transform;
-		upurrBubbleLocation1.m_pos.x -= 1.75;
-		upurrBubbleLocation1.m_pos.y += 2.4;
-		upurrBubbleLocation1.m_pos.z -= 1.0;
-
-
 		upurrBubbleLocation2 = ent_register.transform;
-		upurrBubbleLocation2.m_pos.x -= 1.75;
-		upurrBubbleLocation2.m_pos.y += 2.8;
+		upurrBubbleLocation2.m_pos.x += 1.85;
+		upurrBubbleLocation2.m_pos.y += 2.3;
 		upurrBubbleLocation2.m_pos.z -= 1.0;
+
+		upurrBubbleLocation1 = ent_register.transform;
+		upurrBubbleLocation1.m_pos.x += 1.85;
+		upurrBubbleLocation1.m_pos.y += 1.9;
+		upurrBubbleLocation1.m_pos.z -= 1.0;
 
 
 		Entity counter = Entity::Create();
@@ -828,12 +841,14 @@ int main()
 		mithunan.Add<CMorphMeshRenderer>(mithunan, *mithunanWalkFrames[0], *mithunanMat.get());
 		mithunan.Add<CPathAnimator>(mithunan);
 		mithunan.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
-		mithunan.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+		mithunan.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 		mithunan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);			
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
 		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
+		mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(1));
+		
 		//mithunan.Get<CharacterController>().continueAnimation(false);
 		auto& mithunanAnimator = mithunan.Add<CMorphAnimator>(mithunan);
 		mithunanAnimator.SetFrameTime(mithunanWalk.getFrameTime());
@@ -858,12 +873,14 @@ int main()
 			kainat.Add<CMorphMeshRenderer>(kainat, *mithunanWalkFrames[0], *kainatMat.get());
 			kainat.Add<CPathAnimator>(kainat);
 			kainat.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
-			kainat.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			kainat.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			kainat.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			kainat.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			kainat.Add<CharacterController>(&kainat, allKainatFrames, line);
 			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
+			mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(2));
+
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& kainatAnimator = kainat.Add<CMorphAnimator>(kainat);
 			kainatAnimator.SetFrameTime(kainatWalk.getFrameTime());
@@ -886,12 +903,14 @@ int main()
 			mark.Add<CMorphMeshRenderer>(mark, *mithunanWalkFrames[0], *markMat.get());
 			mark.Add<CPathAnimator>(mark);
 			mark.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
-			mark.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			mark.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			mark.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			mark.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			mark.Add<CharacterController>(&mark, allmarkFrames, line);
 			mark.Get<CharacterController>().setStopSpot(placeInLineToIndex(3));
+			mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(3));
+
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& markAnimator = mark.Add<CMorphAnimator>(mark);
 			markAnimator.SetFrameTime(markWalk.getFrameTime());
@@ -914,7 +933,7 @@ int main()
 			kyra.Add<CMorphMeshRenderer>(kyra, *mithunanWalkFrames[0], *kyraMat.get());
 			kyra.Add<CPathAnimator>(kyra);
 			kyra.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
-			kyra.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			kyra.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			kyra.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			kyra.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
@@ -942,7 +961,7 @@ int main()
 			nathan.Add<CMorphMeshRenderer>(nathan, *mithunanWalkFrames[0], *nathanMat.get());
 			nathan.Add<CPathAnimator>(nathan);
 			nathan.Get<CPathAnimator>().SetMode(PathSampler::PathMode::CATMULL);
-			nathan.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+			nathan.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			nathan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			nathan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
@@ -1103,7 +1122,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = true;
+	bool skipMenu = false;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1145,30 +1164,25 @@ int main()
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
 		prog_allLights.get()->SetUniform("lightColor2", carLight.colour);
 		prog_allLights.get()->SetUniform("strength", carLight.strength);
+		prog_allLights.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
+		
+		
 		
 		
 		
 		
 		/*
-		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
-		ImGui::DragFloat("X", &(bakery.transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(bakery.transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(bakery.transform.m_pos.z), 0.1f);
-		
-		
-
-	
-		
-		
-		
-		//ImGui::DragFloat("Scale", &(sc), 0.1f);
-		//ImGui::SetWindowPos(0,0);
+		ImGui::DragFloat("T", &(seeThrough), 0.1f);
+		//ImGui::DragFloat("Y", &(bakery.transform.m_pos.y), 0.1f);
+		//ImGui::DragFloat("Z", &(bakery.transform.m_pos.z), 0.1f);
 
 		App::EndImgui();
 		*/
+		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
+		
 		bool keepCheckingRaycast = true;
 		isClicking = false;
 		isRightClicking = false;
@@ -1273,6 +1287,33 @@ int main()
 		if (Input::GetKeyDown(GLFW_KEY_A)) {//put this in the lose spot
 			mithunan.Get<CharacterController>().queueAnimation(0);
 		}
+
+		if (Input::GetKey(GLFW_KEY_Z)) {//put this in the lose spot
+			seeThrough += deltaTime;
+			if (seeThrough > 1) {
+				seeThrough = 1;
+			}
+		}
+		if (Input::GetKey(GLFW_KEY_X)) {//put this in the lose spot
+			seeThrough -= deltaTime;
+			if (seeThrough < 0) {
+				seeThrough = 0;
+			}
+		}
+
+		if (Input::GetKey(GLFW_KEY_V)) {//put this in the lose spot
+			dayT += deltaTime;
+			if (dayT > 1) {
+				dayT = 1;
+			}
+		}
+		if (Input::GetKey(GLFW_KEY_C)) {//put this in the lose spot
+			dayT -= deltaTime;
+			if (dayT < 0) {
+				dayT = 0;
+			}
+		}
+		
 		if (Input::GetKeyDown(GLFW_KEY_E)) {//put this in the lose spot
 			for (int i = 0; i < 3; i++) {
 				if (customerLine[i] != nullptr) {
@@ -1352,7 +1393,11 @@ int main()
 							renderingEntities.push_back(&cursor);
 						}
 						
+						if (!isInRendering(&plexiGlass)) {
+							renderingEntities.push_back(&plexiGlass);
+						}
 
+						
 						for (int i = 0; i < orderBubbles.size(); i++) {
 							OrderBubble* ob = orderBubbles[i];
 							for each (Entity * ent in ob->returnRenderingEntities()) {
@@ -1888,7 +1933,7 @@ int main()
 							trayPastry[wantedSlot]->Get<Transparency>().setTransparency(0.f);
 							trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(ovenScript->getInsideOven()->m_pos, nullptr);
 							trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(1);
-							trayPastry[wantedSlot]->Get<Transparency>().setTime(0.2);
+							trayPastry[wantedSlot]->Get<Transparency>().setTime(0.15);
 							trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
 							trayPastry[wantedSlot] = nullptr;
 
@@ -1914,7 +1959,7 @@ int main()
 								trayPastry[newSlot]->Get<Transparency>().setTransparency(1.f);
 								trayPastry[newSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform);
 								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
-								trayPastry[newSlot]->Get<Transparency>().setTime(0.2);
+								trayPastry[newSlot]->Get<Transparency>().setTime(0.15);
 								
 								
 								/*
@@ -2015,7 +2060,7 @@ int main()
 								
 
 								float currentT, wantedT, time;
-								time = 0.3;
+								time = 0.15;
 								currentT = 0.f;
 								wantedT = 1.f;
 
@@ -2050,7 +2095,7 @@ int main()
 									//std::cout << newSlot << std::endl;
 									trayPastry[wantedSlot] = fillingScript.getFromFilling();
 									float currentT, wantedT, time;
-									time = 0.3;
+									time = 0.15;
 									currentT = 0.f;
 									wantedT = 1.f;
 									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
@@ -2170,7 +2215,7 @@ int main()
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
 								toppingScript.putInTopping(trayPastry[wantedSlot]);
 								float currentT, wantedT, time;
-								time = 0.3;
+								time = 0.15;
 								currentT = 0.f;
 								wantedT = 1.f;
 
@@ -2198,7 +2243,7 @@ int main()
 									//std::cout << newSlot << std::endl;
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
 									float currentT, wantedT, time;
-									time = 0.3;
+									time = 0.15;
 									currentT = 0.f;
 									wantedT = 1.f;
 									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
