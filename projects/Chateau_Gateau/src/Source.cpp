@@ -1433,6 +1433,18 @@ int main()
 					isCameraMoving = false;
 					isInMainMenu = false;
 					isPaused = false;
+					for each (Entity * cust in customers) {
+						if (!isInRendering(cust)) {
+							renderingEntities.push_back(cust);
+						}
+					}
+					if (!isInRendering(&car)) {
+						renderingEntities.push_back(&car);
+					}
+					carLight.strength = 0;
+					carLight.pos = Lerp(firstCarPos, lastCarPos, 0);
+					isCarMoving = false;
+					car.transform.m_pos = firstCarPos;
 					tray.transform.SetParent(&cameraEntity.transform);
 					
 
@@ -1522,21 +1534,85 @@ int main()
 				cameraEntity.transform.m_rotation = menuCameraQuat;
 
 				cameraEntity.Get<CCamera>().Update();
-				int mainMenuChosen = getSignSelection(1, false) ;
+				int mainMenuChosen = getSignSelection(2, false) ;
 
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
-				
+				//std::cout << selectedOption << std::endl;
 				if (mainMenuChosen >= 0) {
+					for each (Entity * cust in customers) {
+						if (isInRendering(cust)) {
+							removeFromRendering(cust);
+						}
+					}
 					if (mainMenuChosen == 0) {//CONTINUE						
 						isCameraMoving = true;
 						isInPauseMenu = false;
 						isInMainMenu = true;
-						
+						//std::cout << "ZERO" << std::endl;
 					
 						
 					}
 					else if (mainMenuChosen == 1) {
+						//std::cout << "ONE" << std::endl;
 						restartGame();
+						createNewOrder(0, false, false);
+						for (int i = 0; i < 4; i++) {
+							if (ovenScript->canRemove(i)) {
+								ovenScript->removeFromSlot(i);
+							}
+							
+						}
+						if (isInRendering(drinkScript.getFromDrink())) {
+							removeFromRendering(drinkScript.getFromDrink());
+						}
+						if (isInRendering(&car)) {
+							removeFromRendering(&car);
+						}
+						if (drinkScript.isDrinkFull()) {
+							drinkScript.moveDrink(0);
+						}
+						/*
+						customerLine[0] = &mithunan;
+						customerLine[1] = &kainat;
+						customerLine[2] = &mark;
+						mithunan.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(1));
+						kainat.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(2));
+						mark.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(3));
+						mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
+						kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
+						mark.Get<CharacterController>().setStopSpot(placeInLineToIndex(3));
+						mithunan.Get<CharacterController>().updateDistance(deltaTime,1);
+						kainat.Get<CharacterController>().updateDistance(deltaTime, 1);
+						mark.Get<CharacterController>().updateDistance(deltaTime, 1);
+						*/
+						drinkScript.setT(0);
+						drink.Get<CMorphAnimator>().setFrameAndTime(0, 1, 0);
+						drinkScript.isClosing = false;
+						drinkScript.isOpening = false;
+						drinkScript.releaseFromDrink();
+						drinkScript.removeFromDrink();						
+						drinkScript.setDrinkNum(0);
+						drinkScript.setFill(0);
+						
+						filling.Get<FillingMachine>().setFillNum(0);
+						filling.Get<FillingMachine>().updatePlane();
+						if (isInRendering(filling.Get<FillingMachine>().getFromFilling())) {
+							removeFromRendering(filling.Get<FillingMachine>().getFromFilling());
+						}
+						filling.Get<FillingMachine>().removeFromFilling();
+
+						topping.Get<ToppingMachine>().setTopNum(0);
+						topping.Get<ToppingMachine>().updatePlane();
+						if (isInRendering(topping.Get<ToppingMachine>().getFromTopping())) {
+							removeFromRendering(topping.Get<ToppingMachine>().getFromTopping());
+						}
+						topping.Get<ToppingMachine>().removeFromTopping();
+
+						
+						receipt.transform.m_pos = beginingNumberPos[0];
+						for (int i = 0; i < 6; i++) {
+							numberEntities[i]->transform.m_pos = beginingNumberPos[i];
+						}
 						isCameraMoving = true;
 						isInPauseMenu = false;
 						isInMainMenu = true;
@@ -1616,6 +1692,14 @@ int main()
 						removeFromRendering(numberEntities[i]);
 					}
 				}
+				for each (Entity * cust in customers) {
+					if (isInRendering(cust)) {
+						removeFromRendering(cust);
+					}
+				}
+				if (isInRendering(&car)) {
+					removeFromRendering(&car);
+				}
 				std::reverse(cameraKeys.begin(), cameraKeys.end());
 				selectedOption = -1;
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[0]);
@@ -1636,6 +1720,49 @@ int main()
 					for each (Entity * ent in ob->returnRenderingEntities()) {
 						removeFromRendering(ent);
 					}
+				}
+				restartGame();
+				createNewOrder(0, false, false);
+				for (int i = 0; i < 4; i++) {
+					if (ovenScript->canRemove(i)) {
+						ovenScript->removeFromSlot(i);
+					}
+
+				}
+				if (isInRendering(drinkScript.getFromDrink())) {
+					removeFromRendering(drinkScript.getFromDrink());
+				}
+				if (drinkScript.isDrinkFull()) {
+					drinkScript.moveDrink(0);
+				}
+
+				drinkScript.setT(0);
+				drink.Get<CMorphAnimator>().setFrameAndTime(0, 1, 0);
+				drinkScript.isClosing = false;
+				drinkScript.isOpening = false;
+				drinkScript.releaseFromDrink();
+				drinkScript.removeFromDrink();
+				drinkScript.setDrinkNum(0);
+				drinkScript.setFill(0);
+
+				filling.Get<FillingMachine>().setFillNum(0);
+				filling.Get<FillingMachine>().updatePlane();
+				if (isInRendering(filling.Get<FillingMachine>().getFromFilling())) {
+					removeFromRendering(filling.Get<FillingMachine>().getFromFilling());
+				}
+				filling.Get<FillingMachine>().removeFromFilling();
+
+				topping.Get<ToppingMachine>().setTopNum(0);
+				topping.Get<ToppingMachine>().updatePlane();
+				if (isInRendering(topping.Get<ToppingMachine>().getFromTopping())) {
+					removeFromRendering(topping.Get<ToppingMachine>().getFromTopping());
+				}
+				topping.Get<ToppingMachine>().removeFromTopping();
+
+
+				receipt.transform.m_pos = beginingNumberPos[0];
+				for (int i = 0; i < 6; i++) {
+					numberEntities[i]->transform.m_pos = beginingNumberPos[i];
 				}
 			}
 			for each (Entity * e in renderingEntities) {
@@ -1907,7 +2034,7 @@ int main()
 					
 		}
 
-		if (drinkScript.isOpening || drinkScript.isClosing) {
+		if ((drinkScript.isOpening || drinkScript.isClosing) && !isPaused) {
 			float multiplier = 1;
 			if (drinkScript.isClosing) {
 				multiplier = -1;
@@ -3415,14 +3542,16 @@ int saveHighscore(int hs)
 }
 
 void restartGame() {
-	bakeryUtils::setDifficulty(0);
+	bakeryUtils::setDifficulty(1);
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
 	for (int i = 0; i < orderBubbles.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
+		ob->getTimer().setFill(0);
+		ob->getTimer().updateArrow();
 		ob->getOrder()->setOver(false);
-		createNewOrder(i, false, false);
+		createNewOrder(i, false, true);
 		ob->getOrder()->setStarted(false);
 		for each (Entity * ent in ob->returnRenderingEntities()) {
 			if (isInRendering(ent)) {
@@ -3431,6 +3560,10 @@ void restartGame() {
 			
 			//renderingEntities.push_back(ent);
 		}
+		
+	}
+	for (int i = 1; i < orderBubbles.size(); i++) {
+		orderBubblesToRemove.erase(std::remove(orderBubblesToRemove.begin(), orderBubblesToRemove.end(), i), orderBubblesToRemove.end());
 	}
 	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
 		//removeFromRendering(ent);

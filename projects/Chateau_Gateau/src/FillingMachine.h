@@ -31,6 +31,7 @@ public:
 	float getT();
 	bakeryUtils::fillType getFilling();
 	void addFillNum(int);
+	void setFillNum(int);
 	void setFillingPlane(Entity*);
 	Entity* getFillingPlane();
 	void updatePlane();

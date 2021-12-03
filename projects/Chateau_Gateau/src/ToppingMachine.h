@@ -26,6 +26,7 @@ public:
 	float getT();
 	bakeryUtils::toppingType getTopping();
 	void addTopNum(int);
+	void setTopNum(int);
 	void setTopPlane(Entity*);
 	Entity* getToppingPlane();
 	void updatePlane();

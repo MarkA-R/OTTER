@@ -54,6 +54,11 @@ void DrinkMachine::addDrinkNum(int x)
 	selectedDrink = (prevSelected + adder) % 3;
 }
 
+void DrinkMachine::setDrinkNum(int x)
+{
+	selectedDrink = x;
+}
+
 void DrinkMachine::setDrinkPlane(Entity* plane)
 {
 	drinkPlane = plane;

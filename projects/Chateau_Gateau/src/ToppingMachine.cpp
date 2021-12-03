@@ -53,6 +53,11 @@ void ToppingMachine::addTopNum(int x)
 	//std::cout << selectedTopping << std::endl;
 }
 
+void ToppingMachine::setTopNum(int x)
+{
+	selectedTopping = x;
+}
+
 void ToppingMachine::setTopPlane(Entity* e)
 {
 	toppingPlane = e;

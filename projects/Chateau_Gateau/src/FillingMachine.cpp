@@ -72,6 +72,11 @@ void FillingMachine::addFillNum(int x)
 	selectedFilling = (prevSelected + adder) % 3;
 }
 
+void FillingMachine::setFillNum(int x)
+{
+	selectedFilling = x;
+}
+
 void FillingMachine::setFillingPlane(Entity* x)
 {
 	fillingPlane = x;

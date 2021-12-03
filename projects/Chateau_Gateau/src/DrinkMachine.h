@@ -30,6 +30,7 @@ public:
 	float getT();
 	bakeryUtils::drinkType getDrink();
 	void addDrinkNum(int);
+	void setDrinkNum(int);
 	void setDrinkPlane(Entity*);
 	Entity* getDrinkPlane();
 	void updatePlane();
