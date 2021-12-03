@@ -37,8 +37,8 @@
 
 
 #include <iostream>
-#include <iostream>
 #include <fstream>
+#include <cereal/archives/json.hpp>
 
 #include "imgui.h"
 
@@ -250,6 +250,7 @@ MaterialCreator playSignMat = MaterialCreator();
 MaterialCreator settingsSignMat = MaterialCreator();
 MaterialCreator exitSignMat = MaterialCreator();
 MaterialCreator pauseSignMat = MaterialCreator();
+MaterialCreator restartSignMat = MaterialCreator();
 
 MaterialCreator croissantTile = MaterialCreator();
 MaterialCreator doughTile = MaterialCreator();
@@ -331,6 +332,7 @@ std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
 void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
+void restartGame();
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -486,10 +488,12 @@ int main()
 	settingsSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/settingsSign.png", *prog_texLit);
 	exitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/exitSign.png", *prog_texLit);
 	pauseSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/pauseSign.png", *prog_texLit);
+	restartSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/restartSign.png", *prog_texLit);
 	signFrames.push_back(playSignMat.getMaterial().get());
 	signFrames.push_back(settingsSignMat.getMaterial().get());
 	signFrames.push_back(exitSignMat.getMaterial().get());
 	signFrames.push_back(pauseSignMat.getMaterial().get());
+	signFrames.push_back(restartSignMat.getMaterial().get());
 
 
 	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
@@ -1138,7 +1142,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = false;
+	bool skipMenu = true;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1174,7 +1178,7 @@ int main()
 
 
 
-	//put in main menu and stuff later!
+	
 	//renderingEntities.push_back(&receipt);
 	for (int i = 0; i < 6; i++) {
 		numberEntities.push_back(Entity::Allocate().release());
@@ -1518,7 +1522,7 @@ int main()
 				cameraEntity.transform.m_rotation = menuCameraQuat;
 
 				cameraEntity.Get<CCamera>().Update();
-				int mainMenuChosen = getSignSelection(0, false) ;
+				int mainMenuChosen = getSignSelection(1, false) ;
 
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
 				
@@ -1530,6 +1534,12 @@ int main()
 						
 					
 						
+					}
+					else if (mainMenuChosen == 1) {
+						restartGame();
+						isCameraMoving = true;
+						isInPauseMenu = false;
+						isInMainMenu = true;
 					}
 
 				}
@@ -1697,7 +1707,7 @@ int main()
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
 				//std::cout << bakeryUtils::getTime() << " > " << currentOrders[i].maxEndTime << std::endl;
-				if (currentOrders[i].isOnTime()) {//HERE CHANGE HERE XXX
+				if (!currentOrders[i].isOnTime()) {//HERE CHANGE HERE XXX
 					//std::cout << "START" << std::endl;
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
@@ -3252,8 +3262,12 @@ int getSignSelection(int max, bool reset) {
 		selectedOption = 0;
 	}
 	if (max != 0) {
+		int subtractor = 1;
+		if (max == 1) {
+			subtractor = 0;
+		}
 		if (isClickingUp) {
-			selectedOption += (max - 1);
+			selectedOption += (max - subtractor);
 			selectedOption = selectedOption % max;
 		}
 		if (isClickingDown) {
@@ -3361,13 +3375,82 @@ void setScores(int totalOrders, int highscore) {
 int saveHighscore(int hs)
 {
 	int lastHs = 0;
-	std::string fileName = "highscore.txt";//create file name
-	std::ofstream out;//initialize output stream
-	out.open(fileName);
 	
-
+	std::fstream scoreKeeper("highscore.txt");
+	std::string lastScore;
+	if (scoreKeeper.is_open()) {
+		if (scoreKeeper.good()) {
+			try
+			{
+				std::getline(scoreKeeper, lastScore);
+				lastHs = std::stoi(lastScore);
+			}
+			catch(const std::exception& e){
+				scoreKeeper << "0";
+				scoreKeeper.close();
+				lastHs = 0;
+			}
+			
+		}
+		
+	}
+	if (lastHs < hs) {
+		scoreKeeper.close();
+		scoreKeeper.open("highscore.txt", std::ofstream::out | std::ofstream::trunc);
+		scoreKeeper.close();
+		scoreKeeper.open("highscore.txt");
+		if (scoreKeeper.is_open()) {
+			if (scoreKeeper.good()) {
+				scoreKeeper << std::to_string(hs);
+			}
+			
+		}
+		
+		lastHs = hs;
+		scoreKeeper.close();
+	}
 	
 	
 	return lastHs;
+}
+
+void restartGame() {
+	bakeryUtils::setDifficulty(0);
+	bakeryUtils::setTime(0);
+	bakeryUtils::setOrdersFailed(0);
+	bakeryUtils::setRoundsLasted(0);
+	for (int i = 0; i < orderBubbles.size(); i++) {
+		OrderBubble* ob = orderBubbles[i];
+		ob->getOrder()->setOver(false);
+		createNewOrder(i, false, false);
+		ob->getOrder()->setStarted(false);
+		for each (Entity * ent in ob->returnRenderingEntities()) {
+			if (isInRendering(ent)) {
+				removeFromRendering(ent);
+			}
+			
+			//renderingEntities.push_back(ent);
+		}
+	}
+	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
+		//removeFromRendering(ent);
+		renderingEntities.push_back(ent);
+	}
+	
+	for (int i = 0; i < 6; i++)
+	{
+		if (isInRendering(numberEntities[i])) {
+			removeFromRendering(numberEntities[i]);
+		}
+	}
+	for(int i = 0; i < std::size(trayPastry); i++)
+	{
+		if (isInRendering(trayPastry[i])) {
+			removeFromRendering(trayPastry[i]);
+		}
+		trayPastry[i] = nullptr;
+		
+	}
+
 }
 

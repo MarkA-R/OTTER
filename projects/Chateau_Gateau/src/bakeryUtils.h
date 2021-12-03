@@ -173,6 +173,18 @@ public:
    static int getOrdersFailed() {
        return ordersFailed;
    }
+   static void setOrdersFailed(int x) {
+      ordersFailed = x;
+   }
+   static void setRoundsLasted(int x) {
+       roundsLasted = x;
+   }
+   static void setDifficulty(int x) {
+       difficulty = x;
+   }
+   static void setTime(int x) {
+       gameTime = x;
+   }
 
    static float getDrinkFillAmount() {
        return drinkFillAmount;
