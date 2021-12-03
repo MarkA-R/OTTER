@@ -314,6 +314,8 @@ int lineStart = 3;
 float currentGameTime = 0;
 int difficulty = 1;
 std::vector<Order> currentOrders = std::vector<Order>();
+std::vector<glm::vec3> beginingNumberPos;
+std::vector<glm::vec3> endNumberPos;
 
 bool isCarMoving = false;
 float carT = 0.f;
@@ -322,6 +324,10 @@ float dayBright = 0.9;
 float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
+
+std::vector<MaterialCreator> numberTiles;
+std::vector<Entity*> numberEntities;
+void setScores(int totalOrders, int highscore);
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -332,6 +338,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 bool isPaused = false;
 int main()
 {
+	for (int i = 0; i < 6; i++) {
+		endNumberPos.push_back(glm::vec3(0));
+		beginingNumberPos.push_back(glm::vec3(0));
+	}
+
 	cameraKeys.push_back(cameraPos);
 	cameraKeys.push_back(insidePos);
 	cameraKeys.push_back(outsidePos);
@@ -425,11 +436,11 @@ int main()
 	drinkFrames.push_back(drinkMat2.getMesh().get());
 
 
-	//oven morph targets
-	for (int i = 1; i <= 4; i++) {
-
+	for (int i = 0; i < 10; i++) {
+		numberTiles.push_back(MaterialCreator());
+		std::string newNum = "UI/textures/Number_" + std::to_string(i) + ".png";
+		numberTiles.back().createMaterial("bakery/models/tile.gltf", newNum , *prog_texLit);
 	}
-
 
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
@@ -566,6 +577,8 @@ int main()
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//0
 	
+
+
 	
 	
 	Entity vase = Entity::Create();
@@ -1122,7 +1135,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = false;
+	bool skipMenu = true;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1144,7 +1157,7 @@ int main()
 	for (int i = 0; i < orderBubbles.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
 		for each (Entity * ent in ob->returnRenderingEntities()) {
-			//renderingEntities.push_back(ent);
+			renderingEntities.push_back(ent);
 		}
 	}
 	currentOrders.back().startOrder();
@@ -1156,6 +1169,44 @@ int main()
 	//renderingEntities.push_back(&receipt);
 	GLfloat seeThrough = 0.5f;
 
+
+
+	//put in main menu and stuff later!
+	//renderingEntities.push_back(&receipt);
+	for (int i = 0; i < 6; i++) {
+		numberEntities.push_back(Entity::Allocate().release());
+		//numberEntities.back()->transform.SetParent(&receipt.transform);
+
+		if (i < 3) {
+
+			numberEntities.back()->Add<CMeshRenderer>(*numberEntities.back(), *numberTiles[i].getMesh(), *numberTiles[i].getMaterial());
+			numberEntities.back()->transform.m_scale = glm::vec3(0.007, 0.007, 0.007);
+			numberEntities.back()->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+				* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//0
+			numberEntities.back()->transform.m_pos = receipt.transform.m_pos;
+			//numberEntities.back()->transform.m_pos.z -= 0.001;
+			
+			
+
+		}
+		else
+		{
+			numberEntities.back()->Add<CMeshRenderer>(*numberEntities.back(), *numberTiles[i].getMesh(), *numberTiles[i].getMaterial());
+			numberEntities.back()->transform.m_scale = glm::vec3(0.007, 0.007, 0.007);
+			numberEntities.back()->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+				glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+				* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//0
+			numberEntities.back()->transform.m_pos = receipt.transform.m_pos;
+			numberEntities.back()->transform.m_pos.z += 0.001;
+			numberEntities.back()->transform.m_pos.y -= 0.1;
+
+		}
+		//renderingEntities.push_back(numberEntities.back());
+	}
+	
+	
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -1268,6 +1319,9 @@ int main()
 		
 		//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 		//std::cout << "GGGG" << std::endl;
+		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
+			bakeryUtils::addToFailed(1);
+		}
 		if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot
 			std::cout << "------------------" << std::endl;
 		}
@@ -1384,7 +1438,7 @@ int main()
 						}
 						
 						if (!isInRendering(&plexiGlass)) {
-							renderingEntities.push_back(&plexiGlass);
+							//renderingEntities.push_back(&plexiGlass);
 						}
 
 						
@@ -1535,10 +1589,19 @@ int main()
 			}
 			
 			receipt.transform.m_pos = Lerp(receptBeginPos, receptEndPos,receiptT);
-
-			if (isClickingSpace) {
+			for (int i = 0; i < 6; i++)
+			{
+				numberEntities[i]->transform.m_pos = Lerp(beginingNumberPos[i], endNumberPos[i], receiptT);
+			}
+				if (isClickingSpace) {
 				if (isInRendering(&receipt)) {
 					removeFromRendering(&receipt);
+				}
+				for (int i = 0; i < 6; i++)
+				{
+					if (isInRendering(numberEntities[i])) {
+						removeFromRendering(numberEntities[i]);
+					}
 				}
 				std::reverse(cameraKeys.begin(), cameraKeys.end());
 				selectedOption = -1;
@@ -1631,7 +1694,7 @@ int main()
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
 				//std::cout << bakeryUtils::getTime() << " > " << currentOrders[i].maxEndTime << std::endl;
-				if (!currentOrders[i].isOnTime()) {
+				if (currentOrders[i].isOnTime()) {//HERE CHANGE HERE XXX
 					//std::cout << "START" << std::endl;
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
@@ -1646,6 +1709,12 @@ int main()
 							removeFromRendering(trayEntity);
 						}
 						renderingEntities.push_back(&receipt);
+						for (int i = 0; i < 6; i++)
+						{
+							renderingEntities.push_back(numberEntities[i]);
+							
+						}
+						setScores(030, 974);
 						receiptT = 0;
 						isInContinueMenu = true;
 						break;
@@ -1714,6 +1783,7 @@ int main()
 		cursor.transform.m_rotation = cameraEntity.transform.m_rotation;
 		
 
+
 		receipt.transform.m_pos = cursor.transform.m_pos;
 		receptEndPos = cursor.transform.m_pos;
 		receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
@@ -1727,20 +1797,38 @@ int main()
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
-		ImGui::DragFloat("X", &(seeThrough), 0.1f);
+		ImGui::DragFloat("X", &(tempA), 0.1f);
 		ImGui::DragFloat("Y", &(tempB), 0.1f);
 		ImGui::DragFloat("Z", &(tempC), 0.1f);
-
-		
 		
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
+
 		*/
+		
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
-		receipt.transform.m_pos = receptBeginPos;
+		//receipt.transform.m_pos = receptBeginPos;
+		receipt.transform.m_pos = receptEndPos;
+		//glm::vec3 hundredTopPos = raycastPoints[4] + (left * 0.01f) + (up * 0.03f);
+		
+		for (int i = 0; i < 6; i++) {
 			
+			if (i < 3) {
+				endNumberPos[i] = raycastPoints[4] + (left * (0.02f + (0.01f * i))) + (up * 0.03f);
+			}
+			else
+			{
+				endNumberPos[i] = raycastPoints[4] + (left * (0.02f + (0.01f * (i-3)))) + (up * (-0.003f));
+			}
+			beginingNumberPos[i] = endNumberPos[i] + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
+
+		}
+		for (int i = 0; i < numberEntities.size(); i++) {
+			numberEntities[i]->transform.m_rotation = receipt.transform.m_rotation;
+			numberEntities[i]->transform.m_pos = beginingNumberPos[i];
+		}
 		//receipt.transform.m_rotation = cameraQuat;
 		
 		
@@ -3214,5 +3302,42 @@ int indexToPlaceInLine(int index) {
 	return (3 - (index - lineStart));
 }
 
-
+void setScores(int totalOrders, int highscore) {
+	std::string top = std::to_string(totalOrders);
+	std::string bottom = std::to_string(highscore);
+	char topArray[3];
+	char bottomArray[3];
+	int index = 0;
+	
+	for (int i = 0; i < 3 - top.length(); i++) {
+		topArray[i] = '0';
+		index++;
+	}
+	for each (char c in top) {
+		topArray[index] = c;
+		index++;
+	}
+	index = 0;
+	for (int i = 0; i < 3 - bottom.length(); i++) {
+		bottomArray[i] = '0';
+		index++;
+	}
+	for each (char c in bottom) {
+		bottomArray[index] = c;
+		index++;
+	}
+	index = 0;
+	for each (char c in topArray) {
+		int numberIndex = c - '0';
+		
+		numberEntities[index]->Get<CMeshRenderer>().SetMaterial(*numberTiles[numberIndex].getMaterial());
+		index++;
+	}
+	index = 0;
+	for each (char c in bottomArray) {
+		int numberIndex = c - '0';
+		numberEntities[index + 3]->Get<CMeshRenderer>().SetMaterial(*numberTiles[numberIndex].getMaterial());
+		index++;
+	}
+}
 

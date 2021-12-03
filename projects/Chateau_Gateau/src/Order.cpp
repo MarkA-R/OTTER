@@ -67,7 +67,7 @@ void Order::createOrder(int difficulty)
 		isDrinkSatisfied = false;
 	}
 	std::cout << "DRINKSEC " << addedDrinkSecs << std::endl;
-	float orderSeconds = (1 / (difficulty)) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
+	float orderSeconds = (60 / (difficulty)) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
 	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;
