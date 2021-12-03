@@ -37,6 +37,8 @@
 
 
 #include <iostream>
+#include <iostream>
+#include <fstream>
 
 #include "imgui.h"
 
@@ -328,6 +330,7 @@ MaterialCreator copyMaterials[4];
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
 void setScores(int totalOrders, int highscore);
+int saveHighscore(int);
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -1135,7 +1138,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = true;
+	bool skipMenu = false;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1714,7 +1717,8 @@ int main()
 							renderingEntities.push_back(numberEntities[i]);
 							
 						}
-						setScores(030, 974);
+						int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
+						setScores(bakeryUtils::getRoundsLasted(), highScore);
 						receiptT = 0;
 						isInContinueMenu = true;
 						break;
@@ -1810,7 +1814,7 @@ int main()
 		
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
 		//receipt.transform.m_pos = receptBeginPos;
-		receipt.transform.m_pos = receptEndPos;
+		receipt.transform.m_pos = receptBeginPos;
 		//glm::vec3 hundredTopPos = raycastPoints[4] + (left * 0.01f) + (up * 0.03f);
 		
 		for (int i = 0; i < 6; i++) {
@@ -3303,6 +3307,18 @@ int indexToPlaceInLine(int index) {
 }
 
 void setScores(int totalOrders, int highscore) {
+	if (totalOrders > 999) {
+		totalOrders = 999;
+	}
+	else if (totalOrders < 0) {
+		totalOrders = 0;
+	}
+	if (highscore > 999) {
+		highscore = 999;
+	}
+	else if (highscore < 0) {
+		highscore = 0;
+	}
 	std::string top = std::to_string(totalOrders);
 	std::string bottom = std::to_string(highscore);
 	char topArray[3];
@@ -3314,6 +3330,7 @@ void setScores(int totalOrders, int highscore) {
 		index++;
 	}
 	for each (char c in top) {
+		//std::cout << c << std::endl;
 		topArray[index] = c;
 		index++;
 	}
@@ -3339,5 +3356,18 @@ void setScores(int totalOrders, int highscore) {
 		numberEntities[index + 3]->Get<CMeshRenderer>().SetMaterial(*numberTiles[numberIndex].getMaterial());
 		index++;
 	}
+}
+
+int saveHighscore(int hs)
+{
+	int lastHs = 0;
+	std::string fileName = "highscore.txt";//create file name
+	std::ofstream out;//initialize output stream
+	out.open(fileName);
+	
+
+	
+	
+	return lastHs;
 }
 
