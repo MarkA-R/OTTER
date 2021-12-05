@@ -1419,7 +1419,7 @@ int main()
 						}
 						
 						if (!isInRendering(&plexiGlass)) {
-							renderingEntities.push_back(&plexiGlass);
+						//	renderingEntities.push_back(&plexiGlass);
 						}
 						for (int i = 0; i < currentOrders.size(); i++) {
 							OrderBubble* ob = orderBubbles[i];
