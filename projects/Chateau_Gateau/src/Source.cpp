@@ -611,10 +611,10 @@ int main()
 	Entity plexiGlass = Entity::Create();
 	plexiGlass.Add<CMeshRenderer>(plexiGlass, *plexiMat.getMesh(), *plexiMat.getMaterial());
 	plexiGlass.Add<Transparency>(plexiGlass);
-	plexiGlass.transform.m_scale = glm::vec3(0.9f, 0.3f, 0.03f);
+	plexiGlass.transform.m_scale = glm::vec3(1.4f, 0.3f, 0.03f);
 	plexiGlass.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	plexiGlass.transform.m_pos = glm::vec3(-1.f, -0.6, -2.79f);
-	
+	plexiGlass.transform.m_pos = glm::vec3(-1.1f, -0.6, -2.59f);
+	//renderingEntities.push_back(&plexiGlass);
 
 		
 		//Creating Cash Register Entity
@@ -624,7 +624,7 @@ int main()
 		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		ent_register.transform.m_pos = glm::vec3(-1.6, -2.5, -2.29f);
-		ent_register.Add<BoundingBox>(glm::vec3(0.8, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
+		ent_register.Add<BoundingBox>(glm::vec3(1.2, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
 		renderingEntities.push_back(&ent_register);
 
 		customerBubbleLocation = ent_register.transform;
@@ -1182,7 +1182,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = true;
+	bool skipMenu = false;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1419,7 +1419,7 @@ int main()
 						}
 						
 						if (!isInRendering(&plexiGlass)) {
-							//renderingEntities.push_back(&plexiGlass);
+							renderingEntities.push_back(&plexiGlass);
 						}
 						for (int i = 0; i < currentOrders.size(); i++) {
 							OrderBubble* ob = orderBubbles[i];
@@ -1588,6 +1588,7 @@ int main()
 						for (int i = 0; i < 6; i++) {
 							numberEntities[i]->transform.m_pos = beginingNumberPos[i];
 						}
+						
 						
 						isCameraMoving = true;
 						isInPauseMenu = false;
@@ -1804,6 +1805,11 @@ int main()
 				}
 				for each (Entity * en in trayPastry) {
 					removeFromRendering(en);
+				}
+				for each (Entity * ch in customers) {
+					if (isInRendering(ch)) {
+						removeFromRendering(ch);
+					}
 				}
 				//App::setCursorVisible(true);
 			}
@@ -2769,7 +2775,7 @@ int main()
 
 
 			if ((bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
-				|| currentOrders.size() == 1) {//|| currentOrders.size() == 1
+				) {//|| currentOrders.size() == 1
 			
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(1, false,false);
@@ -2786,7 +2792,7 @@ int main()
 			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
 			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
 			if ((bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
-				|| currentOrders.size() == 2) {//|| currentOrders.size() == 2
+			) {//|| currentOrders.size() == 2
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(2, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1);

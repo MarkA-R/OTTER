@@ -190,7 +190,7 @@ public:
        return drinkFillAmount;
    }
 protected:
-    inline static float timeToCroissant = 1;
+    inline static float timeToCroissant = 10;
     inline static float timeToCookie = 20;
     inline static float timeToCupcake = 30;
     inline static float timeToCake = 50;
