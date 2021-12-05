@@ -302,7 +302,7 @@ MaterialCreator* getDrinkTile(bakeryUtils::drinkType x);
 Mesh& createPastryMat(Entity* e);
 Texture2D& createItemTex(Entity* e);
 void removeFromRendering(Entity* e);
-void resetBubble(int i);
+void resetBubble(int i, bool create = true);
 glm::vec3 trayScale;
 glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
@@ -333,6 +333,8 @@ std::vector<Entity*> numberEntities;
 void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
 void restartGame();
+
+
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -1180,7 +1182,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = false;
+	bool skipMenu = true;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1199,7 +1201,7 @@ int main()
 		renderingEntities.push_back(&cursor);
 	}
 
-	for (int i = 0; i < orderBubbles.size(); i++) {
+	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
 		for each (Entity * ent in ob->returnRenderingEntities()) {
 			renderingEntities.push_back(ent);
@@ -1388,6 +1390,7 @@ int main()
 						cameraX = lastCameraX;
 						cameraY = lastCameraY;
 					}
+
 					
 					isCameraMoving = false;
 					isInMainMenu = false;
@@ -1418,14 +1421,26 @@ int main()
 						if (!isInRendering(&plexiGlass)) {
 							//renderingEntities.push_back(&plexiGlass);
 						}
-
-						
-						for (int i = 0; i < orderBubbles.size(); i++) {
+						for (int i = 0; i < currentOrders.size(); i++) {
 							OrderBubble* ob = orderBubbles[i];
 							for each (Entity * ent in ob->returnRenderingEntities()) {
-								renderingEntities.push_back(ent);
+								
+									removeFromRendering(ent);
+								
+
 							}
 						}
+						for (int i = 0; i < currentOrders.size(); i++) {
+							OrderBubble* ob = orderBubbles[i];
+							for each (Entity * ent in ob->returnRenderingEntities()) {
+								if (!isInRendering(ent)) {
+									renderingEntities.push_back(ent);
+								}
+								
+							}
+						}
+						
+						
 						for each (Entity * en in trayPastry) {
 							if (en != nullptr) {
 								renderingEntities.push_back(en);
@@ -1514,7 +1529,7 @@ int main()
 					else if (mainMenuChosen == 1) {
 						//std::cout << "ONE" << std::endl;
 						restartGame();
-						createNewOrder(0, false, false);
+						//createNewOrder(0, false, false);
 						for (int i = 0; i < 4; i++) {
 							if (ovenScript->canRemove(i)) {
 								ovenScript->removeFromSlot(i);
@@ -1544,21 +1559,7 @@ int main()
 						kainat.Get<CharacterController>().updateDistance(deltaTime, 1);
 						mark.Get<CharacterController>().updateDistance(deltaTime, 1);
 						*/
-						for each (Entity * ent in orderBubbles[1]->returnRenderingEntities()) {
-							if (isInRendering(ent)) {
-								removeFromRendering(ent);
-							}
-
-							//renderingEntities.push_back(ent);
-						}
-						orderBubbles[1]->getOrder()->setStarted(false);
-						orderBubbles[2]->getOrder()->setStarted(false);
-						for each (Entity * ent in orderBubbles[2]->returnRenderingEntities()) {
-							if (isInRendering(ent)) {
-								removeFromRendering(ent);
-							}
-							//renderingEntities.push_back(ent);
-						}
+						
 						drinkScript.setT(0);
 						drink.Get<CMorphAnimator>().setFrameAndTime(0, 1, 0);
 						drinkScript.isClosing = false;
@@ -1690,7 +1691,7 @@ int main()
 				currentCameraQuat = cameraQuat;
 				lastCameraQuat = cameraQuat;
 				
-				for (int i = 0; i < orderBubbles.size(); i++) {
+				for (int i = 0; i < currentOrders.size(); i++) {
 					OrderBubble* ob = orderBubbles[i];
 					for each (Entity * ent in ob->returnRenderingEntities()) {
 						removeFromRendering(ent);
@@ -1795,7 +1796,7 @@ int main()
 				wantedCameraQuat = menuCameraQuat;
 				currentCameraQuat = cameraQuat;
 				lastCameraQuat = cameraQuat;
-				for (int i = 0; i < orderBubbles.size(); i++) {
+				for (int i = 0; i < currentOrders.size(); i++) {
 					OrderBubble* ob = orderBubbles[i];
 					for each (Entity * ent in ob->returnRenderingEntities()) {
 						removeFromRendering(ent);
@@ -1899,7 +1900,7 @@ int main()
 			ovenScript->update(deltaTime);
 			vase.Get<MorphAnimation>().update(&vase, deltaTime, false);
 			//std::cout << vase.Get<MorphAnimation>().getT() << std::endl;
-			
+			//std::cout << currentOrders.size() << std::endl;
 			for (int i = 0; i < currentOrders.size(); i++) {//pausing
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
@@ -2760,7 +2761,7 @@ int main()
 				}
 				
 				resetBubble(orderBubblesToRemove[i]);
-
+				
 				for each (Entity * foe in orderBubbles[orderBubblesToRemove[i]]->returnRenderingEntities()) {
 					renderingEntities.push_back(foe);
 				}
@@ -3414,7 +3415,7 @@ void createNewOrder(int i, bool addDifficulty, bool remove) {
 
 }
 
-void resetBubble(int i) {
+void resetBubble(int i, bool create) {
 	orderBubbles[i]->clearRenderingEntities();
 	orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
 	orderBubbleTimers[i]->setFill(0);
@@ -3422,7 +3423,10 @@ void resetBubble(int i) {
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
 	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping), getDrinkTile(currentOrders[i].drink));
 	orderBubbles[i]->setup(&bubbleTile, &plusTile);
-	orderBubbles[i]->create(currentOrders[i]);
+	if (create) {
+		orderBubbles[i]->create(currentOrders[i]);
+	}
+	
 }
 
 glm::quat getCameraRotation() {
@@ -3617,13 +3621,14 @@ void restartGame() {
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
-	for (int i = 0; i < orderBubbles.size(); i++) {
+	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
 		ob->getTimer().setFill(0);
 		ob->getTimer().updateArrow();
 		ob->getOrder()->setOver(false);
-		createNewOrder(i, false, true);
+		
 		ob->getOrder()->setStarted(false);
+
 		for each (Entity * ent in ob->returnRenderingEntities()) {
 			if (isInRendering(ent)) {
 				removeFromRendering(ent);
@@ -3631,16 +3636,36 @@ void restartGame() {
 			
 			//renderingEntities.push_back(ent);
 		}
-		
+		resetBubble(i,false);
+		//ob->clearRenderingEntities();
+	
 	}
-	currentOrders.erase(currentOrders.begin() + 1);
-	currentOrders.erase(currentOrders.begin() + 1);
-	for (int i = 1; i < orderBubbles.size(); i++) {
+	
+	for (int i = 0; i < orderBubbles.size(); i++) {
 		orderBubblesToRemove.erase(std::remove(orderBubblesToRemove.begin(), orderBubblesToRemove.end(), i), orderBubblesToRemove.end());
 	}
+	
 	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
 		//removeFromRendering(ent);
-		renderingEntities.push_back(ent);
+		if (isInRendering(ent)) {
+			removeFromRendering(ent);
+		}
+		//renderingEntities.push_back(ent);
+	}
+
+	//currentOrders.push_back(Order());
+	currentOrders.back().createOrder(bakeryUtils::getDifficulty());
+
+	orderBubbles[0]->setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping), getDrinkTile(currentOrders.back().drink));
+	orderBubbles[0]->setup(&bubbleTile, &plusTile);
+	orderBubbles[0]->create(currentOrders.back());
+
+	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
+		if (isInRendering(ent)) {
+			removeFromRendering(ent);
+		}
+
+		//renderingEntities.push_back(ent);
 	}
 	for each (Entity * ent in orderBubbles[1]->returnRenderingEntities()) {
 		if (isInRendering(ent)) {
@@ -3649,8 +3674,17 @@ void restartGame() {
 		
 		//renderingEntities.push_back(ent);
 	}
-	orderBubbles[1]->getOrder()->setStarted(false);
-	orderBubbles[2]->getOrder()->setStarted(false);
+	if (currentOrders.size() > 1) {
+		if (currentOrders.size() > 2) {
+			//orderBubbles[2]->getOrder()->setStarted(false);
+			currentOrders.erase(currentOrders.begin() + 1);
+		}
+		//orderBubbles[1]->getOrder()->setStarted(false);
+		
+		currentOrders.erase(currentOrders.begin() + 1);
+		
+	}
+	
 	for each (Entity * ent in orderBubbles[2]->returnRenderingEntities()) {
 		if (isInRendering(ent)) {
 			removeFromRendering(ent);
@@ -3672,6 +3706,7 @@ void restartGame() {
 		trayPastry[i] = nullptr;
 		
 	}
-
+	
+	
 }
 
