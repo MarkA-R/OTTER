@@ -32,6 +32,7 @@ protected:
 	int nextTable = 1;
 	bool isFinishedMoving = false;
 	bool isStopped = false;
+	void setRotation(glm::vec3 oldPos, glm::vec3 newPos);
 public:
 	CharacterController(Entity*, std::vector<MorphAnimation*>, std::vector<glm::vec3>);
 	void setCurrentSpot(int);

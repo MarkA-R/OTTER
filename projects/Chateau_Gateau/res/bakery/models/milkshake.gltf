@@ -8,62 +8,37 @@
         {
             "name" : "Scene",
             "nodes" : [
-                0,
-                1,
-                2
+                0
             ]
         }
     ],
     "nodes" : [
         {
-            "name" : "Light",
-            "rotation" : [
-                0.16907575726509094,
-                0.7558803558349609,
-                -0.27217137813568115,
-                0.570947527885437
-            ],
-            "translation" : [
-                4.076245307922363,
-                5.903861999511719,
-                -1.0054539442062378
-            ]
-        },
-        {
-            "name" : "Camera",
-            "rotation" : [
-                0.483536034822464,
-                0.33687159419059753,
-                -0.20870360732078552,
-                0.7804827094078064
-            ],
-            "translation" : [
-                7.358891487121582,
-                4.958309173583984,
-                6.925790786743164
-            ]
-        },
-        {
             "mesh" : 0,
-            "name" : "Cylinder"
+            "name" : "Milkshake_Object",
+            "scale" : [
+                0.13612185418605804,
+                0.13612185418605804,
+                0.13612185418605804
+            ]
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Material.001",
+            "name" : "Material",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
                 },
                 "metallicFactor" : 0,
-                "roughnessFactor" : 0.5
+                "roughnessFactor" : 0.4000000059604645
             }
         }
     ],
     "meshes" : [
         {
-            "name" : "Cylinder",
+            "name" : "Cube",
             "primitives" : [
                 {
                     "attributes" : {
@@ -94,58 +69,58 @@
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 183,
+            "count" : 435,
             "max" : [
-                0.25375568866729736,
-                1.3049132823944092,
-                0.2930118441581726
+                1.7825424671173096,
+                6.881312370300293,
+                1.7825424671173096
             ],
             "min" : [
-                -0.25375568866729736,
-                -0.05499845743179321,
-                -0.29301178455352783
+                -1.7825424671173096,
+                0,
+                -1.7825424671173096
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 183,
+            "count" : 435,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 183,
+            "count" : 435,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 282,
+            "count" : 1524,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 2196,
+            "byteLength" : 5220,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 2196,
-            "byteOffset" : 2196
+            "byteLength" : 5220,
+            "byteOffset" : 5220
         },
         {
             "buffer" : 0,
-            "byteLength" : 1464,
-            "byteOffset" : 4392
+            "byteLength" : 3480,
+            "byteOffset" : 10440
         },
         {
             "buffer" : 0,
-            "byteLength" : 564,
-            "byteOffset" : 5856
+            "byteLength" : 3048,
+            "byteOffset" : 13920
         }
     ],
     "samplers" : [
@@ -156,7 +131,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 6420,
+            "byteLength" : 16968,
             "uri" : "milkshake.bin"
         }
     ]

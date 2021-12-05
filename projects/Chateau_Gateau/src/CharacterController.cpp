@@ -327,6 +327,33 @@ void CharacterController::resetPosition()
 	distanceTravelled = 0.f;
 }
 
+void CharacterController::setRotation(glm::vec3 oldPos, glm::vec3 newPos) {
+	bool keepComputing = true;
+	//https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/lookat-function
+	glm::vec3 newDir = (glm::normalize(oldPos - newPos));
+
+	glm::vec3 subtractedVectors = (oldPos - newPos);
+	if (subtractedVectors.x == 0.f && subtractedVectors.y == 0.f && subtractedVectors.z == 0.f) {
+		keepComputing = false;
+	}
+	if (keepComputing) {
+		glm::vec3 up = glm::vec3(0, 1, 0);
+		glm::vec3 right = glm::cross(up, newDir);
+		glm::mat3 rotationMatrix;
+		rotationMatrix[0][0] = right.x;
+		rotationMatrix[0][1] = right.y;
+		rotationMatrix[0][2] = right.z;
+		rotationMatrix[1][0] = up.x;
+		rotationMatrix[1][1] = up.y;
+		rotationMatrix[1][2] = up.z;
+		rotationMatrix[2][0] = newDir.x;
+		rotationMatrix[2][1] = newDir.y;
+		rotationMatrix[2][2] = newDir.z;
+
+		owner->transform.m_rotation = rotationMatrix;
+	}
+}
+
 void CharacterController::setDistance(int index)
 {
 	int tableSize = table.getEntries().size();
@@ -334,5 +361,7 @@ void CharacterController::setDistance(int index)
 
 	currentspot = (divisions * index) -1;
 	nextSpot = (divisions * index);
+	setRotation(table.getAtIndex(currentspot).getPosition(), table.getAtIndex(nextSpot).getPosition());
+
 	distanceTravelled = table.getAtIndex(nextSpot).getDistance();
 }

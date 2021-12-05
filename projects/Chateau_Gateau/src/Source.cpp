@@ -127,7 +127,7 @@ float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
-float lineY = -0.7;//-1.1f;
+float lineY = -1.7;//-1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
 prog_allLights;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
@@ -392,8 +392,11 @@ int main()
 	MaterialCreator cursorMat = MaterialCreator();
 	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_unlit);
 
-	MaterialCreator vaseMat = MaterialCreator();
-	vaseMat.createMaterialOBJ("bakery/models/vase.obj", "bakery/textures/vase.png", *prog_texLit);
+	MaterialCreator flowerMat1 = MaterialCreator();
+	flowerMat1.createMaterialOBJ("bakery/models/flower1.obj", "bakery/textures/flower.png", *prog_morph);
+
+	MaterialCreator flowerMat2 = MaterialCreator();
+	flowerMat2.createMaterialOBJ("bakery/models/flower2.obj", "bakery/textures/flower.png", *prog_morph);
 
 	MaterialCreator registerMaterial = MaterialCreator();
 	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_allLights);
@@ -473,7 +476,7 @@ int main()
 	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_transparent);
 	cookieMat.createMaterial("bakery/models/cookie.gltf", "bakery/textures/cookie.png", *prog_transparent);
 	cupcakeMat.createMaterial("bakery/models/cupcake.gltf", "bakery/textures/cupcake.png", *prog_transparent);
-	cakeMat.createMaterial("bakery/models/cake.gltf", "bakery/textures/cake.png", *prog_transparent);
+	cakeMat.createMaterial("bakery/models/weddingcake.gltf", "bakery/textures/cake.png", *prog_transparent);
 	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_transparent);
 
 	coffeeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/coffeeTile.png", *prog_texLit);
@@ -481,7 +484,7 @@ int main()
 	milkshakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/milkshakeTile.png", *prog_texLit);
 
 	coffeeMat.createMaterial("bakery/models/coffee.gltf", "bakery/textures/coffee.png", *prog_transparent);
-	teaMat.createMaterial("bakery/models/tea.gltf", "bakery/textures/tea.png", *prog_transparent);
+	teaMat.createMaterial("bakery/models/bubbletea.gltf", "bakery/textures/tea.png", *prog_transparent);
 	milkshakeMat.createMaterial("bakery/models/milkshake.gltf", "bakery/textures/milkshake.png", *prog_transparent);
 	
 	playSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/playSign.png", *prog_texLit);
@@ -587,12 +590,19 @@ int main()
 
 
 	
-	
+	std::vector<Mesh*> flowerAnim;
+	flowerAnim.push_back(flowerMat1.getMesh().get());
+	flowerAnim.push_back(flowerMat2.getMesh().get());
 	Entity vase = Entity::Create();
-	vase.Add<CMeshRenderer>(vase, *vaseMat.getMesh(), *vaseMat.getMaterial());
-	vase.transform.m_scale = glm::vec3(0.08f, 0.08f, 0.08f);
+	vase.Add<CMorphMeshRenderer>(vase, *flowerMat1.getMesh(), *flowerMat1.getMaterial());
+	vase.transform.m_scale = glm::vec3(0.3f, 0.3f, 0.3f);
 	vase.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	vase.transform.m_pos = glm::vec3(-0.5, -1.12, -2.29f);
+	vase.transform.m_pos = glm::vec3(-0.5, -1.22, -2.29f);
+	auto& animatorF = vase.Add<CMorphAnimator>(vase);
+	animatorF.SetFrameTime(1.0f);
+	animatorF.SetFrames(flowerAnim);
+	vase.Add<MorphAnimation>(flowerAnim,0.5,0);
+	//MorphAnimation flowerAnimation = MorphAnimation(flowerAnim, 0.5);
 	renderingEntities.push_back(&vase);
 
 	Entity plexiGlass = Entity::Create();
@@ -610,8 +620,8 @@ int main()
 		ent_register.Add<Register>();
 		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		ent_register.transform.m_pos = glm::vec3(-1.f, -2.4, -2.29f);
-		ent_register.Add<BoundingBox>(glm::vec3(0.5, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
+		ent_register.transform.m_pos = glm::vec3(-1.6, -2.5, -2.29f);
+		ent_register.Add<BoundingBox>(glm::vec3(0.8, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
 		renderingEntities.push_back(&ent_register);
 
 		customerBubbleLocation = ent_register.transform;
@@ -635,7 +645,7 @@ int main()
 		counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
 		counter.transform.m_scale = glm::vec3(1.f, 0.4f, 0.4f);
 		counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		counter.transform.m_pos = glm::vec3(-1.f, -2.4, -2.29f);
+		counter.transform.m_pos = glm::vec3(-1.f, -2.5, -2.29f);
 		renderingEntities.push_back(&counter);
 
 
@@ -659,7 +669,7 @@ int main()
 		fridge.transform.m_scale = glm::vec3(0.5f, 1.f, .5f);
 		fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 0.4f);
-		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.3), fridge);
+		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
 		renderingEntities.push_back(&fridge);
 
 		Entity oven = Entity::Create();
@@ -670,7 +680,7 @@ int main()
 		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		oven.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 0.5f);
-		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.25), oven);
+		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.35), oven);
 		renderingEntities.push_back(&oven);
 	
 		Entity filling = Entity::Create();
@@ -839,12 +849,12 @@ int main()
 		std::vector<MorphAnimation*> allMithunanFrames;
 		
 		std::vector<Mesh*> mithunanWalkFrames;
-		loadAnimationData(mithunanWalkFrames,"characters/mithunan/walk/walk",8);
-		MorphAnimation mithunanWalk = MorphAnimation(mithunanWalkFrames,0.5,0);
+		loadAnimationData(mithunanWalkFrames,"characters/mithunan/walk/walk",16);
+		MorphAnimation mithunanWalk = MorphAnimation(mithunanWalkFrames,0.1,0);
 		allMithunanFrames.push_back(&mithunanWalk);
 
 		std::vector<Mesh*> mithunanIdleFrames;
-		loadAnimationData(mithunanIdleFrames, "characters/mithunan/idle/idle", 4);
+		loadAnimationData(mithunanIdleFrames, "characters/mithunan/idle/bearIdle", 4);
 		MorphAnimation mithunanIdle = MorphAnimation(mithunanIdleFrames, 1, 0);
 		allMithunanFrames.push_back(&mithunanIdle);
 		
@@ -867,7 +877,11 @@ int main()
 		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);			
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
 		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
+		mithunan.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(1));
 		mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(1));
+		
+		//mithunan.Get<CharacterController>().updateDistance(0.0001, 1);
+
 		
 		//mithunan.Get<CharacterController>().continueAnimation(false);
 		auto& mithunanAnimator = mithunan.Add<CMorphAnimator>(mithunan);
@@ -882,9 +896,14 @@ int main()
 		kainatMat->AddTexture("albedo", *kainatTex);
 
 		std::vector<MorphAnimation*> allKainatFrames;
-		MorphAnimation kainatWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+
+		std::vector<Mesh*> kainatWalkFrames;
+		loadAnimationData(kainatWalkFrames, "characters/kainat/walk/walk", 16);
+		MorphAnimation kainatWalk = MorphAnimation(kainatWalkFrames, 0.1, 0);
 		allKainatFrames.push_back(&kainatWalk);
-		MorphAnimation kainatIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		std::vector<Mesh*> kainatIdleFrames;
+		loadAnimationData(kainatIdleFrames, "characters/kainat/idle/bearIdle", 4);
+		MorphAnimation kainatIdle = MorphAnimation(kainatIdleFrames, 0.5, 0);
 		allKainatFrames.push_back(&kainatIdle);
 		Entity kainat = Entity::Create();
 		{
@@ -898,9 +917,10 @@ int main()
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			kainat.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			kainat.Add<CharacterController>(&kainat, allKainatFrames, line);
+			kainat.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(2));
 			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
-			mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(2));
-
+			kainat.Get<CharacterController>().setDistance(placeInLineToIndex(2));
+			
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& kainatAnimator = kainat.Add<CMorphAnimator>(kainat);
 			kainatAnimator.SetFrameTime(kainatWalk.getFrameTime());
@@ -909,9 +929,13 @@ int main()
 		renderingEntities.push_back(&kainat);
 
 		std::vector<MorphAnimation*> allmarkFrames;
-		MorphAnimation markWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		std::vector<Mesh*> markWalkFrames;
+		loadAnimationData(markWalkFrames, "characters/mark/walk/walk", 16);
+		MorphAnimation markWalk = MorphAnimation(markWalkFrames, 0.1, 0);
 		allmarkFrames.push_back(&markWalk);
-		MorphAnimation markIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		std::vector<Mesh*> markIdleFrames;
+		loadAnimationData(markIdleFrames, "characters/mark/idle/bearIdle", 4);
+		MorphAnimation markIdle = MorphAnimation(markIdleFrames, 0.5, 0);
 		allmarkFrames.push_back(&markIdle);
 		std::unique_ptr<Texture2D> markTex = std::make_unique<Texture2D>("characters/mithunan/mark.png");
 		std::unique_ptr<Material> markMat = std::make_unique<Material>(*prog_morph);
@@ -929,7 +953,7 @@ int main()
 			mark.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			mark.Add<CharacterController>(&mark, allmarkFrames, line);
 			mark.Get<CharacterController>().setStopSpot(placeInLineToIndex(3));
-			mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(3));
+			//mark.Get<CharacterController>().setDistance(placeInLineToIndex(4));
 
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& markAnimator = mark.Add<CMorphAnimator>(mark);
@@ -939,9 +963,13 @@ int main()
 		renderingEntities.push_back(&mark);
 
 		std::vector<MorphAnimation*> allkyraFrames;
-		MorphAnimation kyraWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		std::vector<Mesh*> kyraWalkFrames;
+		loadAnimationData(kyraWalkFrames, "characters/kyra/walk/walk", 16);
+		MorphAnimation kyraWalk = MorphAnimation(kyraWalkFrames, 0.1, 0);
 		allkyraFrames.push_back(&kyraWalk);
-		MorphAnimation kyraIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		std::vector<Mesh*> kyraIdleFrames;
+		loadAnimationData(kyraIdleFrames, "characters/kyra/idle/bearIdle", 4);
+		MorphAnimation kyraIdle = MorphAnimation(kyraIdleFrames, 0.5, 0);
 		allkyraFrames.push_back(&kyraIdle);
 		std::unique_ptr<Texture2D> kyraTex = std::make_unique<Texture2D>("characters/mithunan/kyra.png");
 		std::unique_ptr<Material> kyraMat = std::make_unique<Material>(*prog_morph);
@@ -967,9 +995,13 @@ int main()
 		renderingEntities.push_back(&kyra);
 
 		std::vector<MorphAnimation*> allnathanFrames;
-		MorphAnimation nathanWalk = MorphAnimation(mithunanWalkFrames, 0.3, 0);
+		std::vector<Mesh*> nathanWalkFrames;
+		loadAnimationData(nathanWalkFrames, "characters/nathan/walk/walk", 16);
+		MorphAnimation nathanWalk = MorphAnimation(nathanWalkFrames, 0.1, 0);
 		allnathanFrames.push_back(&nathanWalk);
-		MorphAnimation nathanIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
+		std::vector<Mesh*> nathanIdleFrames;
+		loadAnimationData(nathanIdleFrames, "characters/nathan/idle/bearIdle", 4);
+		MorphAnimation nathanIdle = MorphAnimation(nathanIdleFrames, 0.5, 0);
 		allnathanFrames.push_back(&nathanIdle);
 		std::unique_ptr<Texture2D> nathanTex = std::make_unique<Texture2D>("characters/mithunan/nathan.png");
 		std::unique_ptr<Material> nathanMat = std::make_unique<Material>(*prog_morph);
@@ -1263,7 +1295,7 @@ int main()
 				customer->Get<CharacterController>().queueAnimation(0);//make walk
 
 			}
-			customer->Get<CharacterController>().updateDistance(deltaTime, 3);
+			customer->Get<CharacterController>().updateDistance(deltaTime, 1);
 			customer->Get<CharacterController>().updateAnimation(deltaTime);
 			
 			if (customer->Get<CharacterController>().getStopSpot() <= placeInLineToIndex(1)) {
@@ -1380,7 +1412,7 @@ int main()
 			isCarMoving = true;
 		}
 		//mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
-		if (isCarMoving == true) {
+		if (isCarMoving == true && !isPaused) {
 
 
 			carT += deltaTime / 3;
@@ -1828,7 +1860,8 @@ int main()
 		
 			bakeryUtils::addToGameTime(deltaTime);
 			ovenScript->update(deltaTime);
-
+			vase.Get<MorphAnimation>().update(&vase, deltaTime, false);
+			//std::cout << vase.Get<MorphAnimation>().getT() << std::endl;
 			
 			for (int i = 0; i < currentOrders.size(); i++) {//pausing
 				OrderBubble* ob = orderBubbles[i];
@@ -3214,14 +3247,14 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type) {
 			e->Remove<CMeshRenderer>();
 		}
 		e->Add<CMeshRenderer>(*e, *teaMat.getMesh(), *teaMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
+		e->transform.m_scale = glm::vec3(0.04f, 0.04f, 0.04f);
 	}
 	if (type == bakeryUtils::drinkType::MILKSHAKE) {
 		if (e->Has<CMeshRenderer>()) {
 			e->Remove<CMeshRenderer>();
 		}
 		e->Add<CMeshRenderer>(*e, *milkshakeMat.getMesh(), *milkshakeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.2f, 0.2f, 0.2f);
+		e->transform.m_scale = glm::vec3(0.04f, 0.04f, 0.04f);
 	}
 }
 
