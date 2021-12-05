@@ -126,7 +126,7 @@ float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
-float lineY = -1.72;//-1.1f;
+float lineY = -1.89;//-1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
 prog_allLights;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
@@ -358,9 +358,9 @@ int main()
 	line.push_back(glm::vec3(-1.1, lineY, -7.7));
 	line.push_back(glm::vec3(-1.1, lineY, -5.3));
 	line.push_back(glm::vec3(-1.1, lineY, -3.8));
-	line.push_back(glm::vec3(-1.1, lineY, -3.5));
-	line.push_back(glm::vec3(-1.8, lineY, -3.2));
-	line.push_back(glm::vec3(-2.0, lineY, -4.8));
+	line.push_back(glm::vec3(-1.2, lineY, -3.5));
+	line.push_back(glm::vec3(-1.9, lineY, -3.2));
+	line.push_back(glm::vec3(-2.9, lineY, -4.8));
 	line.push_back(glm::vec3(-2.9, lineY, -10.5));
 	line.push_back(glm::vec3(-7.6, lineY, -11.4));
 	PathSampler::Lerp = Lerp<glm::vec3>;
