@@ -185,8 +185,8 @@ bool isClickingSpace = false;
 
 //Mouse State
 bool firstMouse = true;
-int width = 1280;
-int height = 720;
+int width = 1600;//1600Å~900
+int height = 900;
 float lastX = width / 2;
 float lastY = height / 2;
 float scrollX;
@@ -875,7 +875,7 @@ int main()
 		mithunan.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 		mithunan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
-		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);			
+		mithunan.transform.m_pos = glm::vec3(-1.f, -5.5, -2.29f);			
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
 		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
 	
@@ -916,7 +916,7 @@ int main()
 			kainat.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			kainat.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
-			kainat.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			kainat.transform.m_pos = glm::vec3(-1.f, -5.5, -2.29f);
 			kainat.Add<CharacterController>(&kainat, allKainatFrames, line);
 			
 			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
@@ -952,7 +952,7 @@ int main()
 			mark.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			mark.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
-			mark.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			mark.transform.m_pos = glm::vec3(-1.f, -5.5, -2.29f);
 			mark.Add<CharacterController>(&mark, allmarkFrames, line);
 			mark.Get<CharacterController>().setStopSpot(placeInLineToIndex(3));
 			//mark.Get<CharacterController>().setDistance(placeInLineToIndex(4));
@@ -986,7 +986,7 @@ int main()
 			kyra.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			kyra.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
-			kyra.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			kyra.transform.m_pos = glm::vec3(-1.f, -5.5, -2.29f);
 			kyra.Add<CharacterController>(&kyra, allkyraFrames, line);
 			kyra.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
 			
@@ -1020,7 +1020,7 @@ int main()
 			nathan.transform.m_scale = glm::vec3(0.44f, 0.44f, 0.44f);
 			nathan.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
-			nathan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
+			nathan.transform.m_pos = glm::vec3(-1.f, -5.5, -2.29f);
 			nathan.Add<CharacterController>(&nathan, allnathanFrames, line);
 			nathan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
 			
@@ -1180,7 +1180,7 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
 	
-	bool skipMenu = true;
+	bool skipMenu = false;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
 	globalCameraEntity->transform.m_pos = cameraPos;
@@ -1284,87 +1284,6 @@ int main()
 		
 
 		
-		//mithunan.Get<CharacterController>().updateAnimation(deltaTime);
-		for (int u = 0; u < customers.size(); u++)
-		{
-			
-			Entity* customer = customers[u];
-			if (customer->Get<CharacterController>().isDoneMoving()) {
-				
-				customer->Get<CharacterController>().setStopSpot(0);
-				customer->Get<CharacterController>().resetPosition();
-			}
-			if (customer->Get<CharacterController>().hasStopped()) {
-				customer->Get<CharacterController>().queueAnimation(1);//make idle
-			}
-			else
-			{
-				customer->Get<CharacterController>().queueAnimation(0);//make walk
-
-			}
-			customer->Get<CharacterController>().updateDistance(deltaTime, 1);
-			customer->Get<CharacterController>().updateAnimation(deltaTime);
-			
-			if (customer->Get<CharacterController>().getStopSpot() <= placeInLineToIndex(1)) {
-				int inLine = -1;
-				bool isInLine = false;
-				bool alreadyMoved = false;
-				for (int i = 2; i >= 0; i--) {
-					if (customerLine[i] == customer) {
-						isInLine = true;
-						inLine = i;
-						break;
-					}
-				}
-				for (int i = 2; i >= 0; i--) {
-					if (!alreadyMoved) {
-						
-						if (customerLine[i] == nullptr && (i + 1) < indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot())) {
-							//std::cout << (i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) << std::endl;
-							
-							
-							
-							
-								bool canKeepMoving = true;
-								if (i < 2 && !isInLine) {
-									canKeepMoving = false;
-									//std::cout << "HERE2" << std::endl;
-								}
-								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -lineStart) {
-									canKeepMoving = false;
-									//std::cout << (i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) << std::endl;
-								}
-								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -1 && isInLine) {
-									//std::cout << "HERE1" << std::endl;
-									canKeepMoving = false;
-								}
-								if (canKeepMoving) {
-									//std::cout << u << " " <<  placeInLineToIndex(i + 1) << std::endl;
-									customer->Get<CharacterController>().setStopSpot(placeInLineToIndex(i + 1));
-									customerLine[i] = customer;
-									alreadyMoved = true;
-									if (inLine >= 0) {
-										customerLine[inLine] = nullptr;
-									}
-								}
-								
-							
-							
-
-
-						}
-					}
-					
-					}
-					
-				}
-			
-			
-
-			
-		}
-		
-		//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 		//std::cout << "GGGG" << std::endl;
 		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
 			bakeryUtils::addToFailed(1);
@@ -1625,6 +1544,21 @@ int main()
 						kainat.Get<CharacterController>().updateDistance(deltaTime, 1);
 						mark.Get<CharacterController>().updateDistance(deltaTime, 1);
 						*/
+						for each (Entity * ent in orderBubbles[1]->returnRenderingEntities()) {
+							if (isInRendering(ent)) {
+								removeFromRendering(ent);
+							}
+
+							//renderingEntities.push_back(ent);
+						}
+						orderBubbles[1]->getOrder()->setStarted(false);
+						orderBubbles[2]->getOrder()->setStarted(false);
+						for each (Entity * ent in orderBubbles[2]->returnRenderingEntities()) {
+							if (isInRendering(ent)) {
+								removeFromRendering(ent);
+							}
+							//renderingEntities.push_back(ent);
+						}
 						drinkScript.setT(0);
 						drink.Get<CMorphAnimator>().setFrameAndTime(0, 1, 0);
 						drinkScript.isClosing = false;
@@ -1653,6 +1587,7 @@ int main()
 						for (int i = 0; i < 6; i++) {
 							numberEntities[i]->transform.m_pos = beginingNumberPos[i];
 						}
+						
 						isCameraMoving = true;
 						isInPauseMenu = false;
 						isInMainMenu = true;
@@ -1804,6 +1739,21 @@ int main()
 				for (int i = 0; i < 6; i++) {
 					numberEntities[i]->transform.m_pos = beginingNumberPos[i];
 				}
+				for each (Entity * ent in orderBubbles[1]->returnRenderingEntities()) {
+					if (isInRendering(ent)) {
+						removeFromRendering(ent);
+					}
+
+					//renderingEntities.push_back(ent);
+				}
+				orderBubbles[1]->getOrder()->setStarted(false);
+				orderBubbles[2]->getOrder()->setStarted(false);
+				for each (Entity * ent in orderBubbles[2]->returnRenderingEntities()) {
+					if (isInRendering(ent)) {
+						removeFromRendering(ent);
+					}
+					//renderingEntities.push_back(ent);
+				}
 			}
 			for each (Entity * e in renderingEntities) {
 				
@@ -1863,7 +1813,86 @@ int main()
 			//std::cout << isPaused << std::endl;
 			GetInput();
 			
-			
+			//mithunan.Get<CharacterController>().updateAnimation(deltaTime);
+			for (int u = 0; u < customers.size(); u++)
+			{
+				Entity* customer = customers[u];
+				if (customer->Get<CharacterController>().isDoneMoving()) {
+
+					customer->Get<CharacterController>().setStopSpot(0);
+					customer->Get<CharacterController>().resetPosition();
+				}
+				if (customer->Get<CharacterController>().hasStopped()) {
+					customer->Get<CharacterController>().queueAnimation(1);//make idle
+				}
+				else
+				{
+					customer->Get<CharacterController>().queueAnimation(0);//make walk
+
+				}
+				customer->Get<CharacterController>().updateDistance(deltaTime, 1);
+				customer->Get<CharacterController>().updateAnimation(deltaTime);
+
+				if (customer->Get<CharacterController>().getStopSpot() <= placeInLineToIndex(1)) {
+					int inLine = -1;
+					bool isInLine = false;
+					bool alreadyMoved = false;
+					for (int i = 2; i >= 0; i--) {
+						if (customerLine[i] == customer) {
+							isInLine = true;
+							inLine = i;
+							break;
+						}
+					}
+					for (int i = 2; i >= 0; i--) {
+						if (!alreadyMoved) {
+
+							if (customerLine[i] == nullptr && (i + 1) < indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot())) {
+								//std::cout << (i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) << std::endl;
+
+
+
+
+								bool canKeepMoving = true;
+								if (i < 2 && !isInLine) {
+									canKeepMoving = false;
+									//std::cout << "HERE2" << std::endl;
+								}
+								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -lineStart) {
+									canKeepMoving = false;
+									//std::cout << (i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) << std::endl;
+								}
+								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -1 && isInLine) {
+									//std::cout << "HERE1" << std::endl;
+									canKeepMoving = false;
+								}
+								if (canKeepMoving) {
+									//std::cout << u << " " <<  placeInLineToIndex(i + 1) << std::endl;
+									customer->Get<CharacterController>().setStopSpot(placeInLineToIndex(i + 1));
+									customerLine[i] = customer;
+									alreadyMoved = true;
+									if (inLine >= 0) {
+										customerLine[inLine] = nullptr;
+									}
+								}
+
+
+
+
+
+							}
+						}
+
+					}
+
+				}
+
+
+
+
+			}
+
+			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 			// Update our LERP timers
 		
 			bakeryUtils::addToGameTime(deltaTime);
@@ -1934,6 +1963,7 @@ int main()
 		
 
 		
+
 		
 	
 		
@@ -2738,7 +2768,7 @@ int main()
 
 
 			if ((bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
-				) {//|| currentOrders.size() == 1
+				|| currentOrders.size() == 1) {//|| currentOrders.size() == 1
 			
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(1, false,false);
@@ -2755,7 +2785,7 @@ int main()
 			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
 			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
 			if ((bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
-				) {//|| currentOrders.size() == 2
+				|| currentOrders.size() == 2) {//|| currentOrders.size() == 2
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(2, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1);
@@ -3603,12 +3633,29 @@ void restartGame() {
 		}
 		
 	}
+	currentOrders.erase(currentOrders.begin() + 1);
+	currentOrders.erase(currentOrders.begin() + 1);
 	for (int i = 1; i < orderBubbles.size(); i++) {
 		orderBubblesToRemove.erase(std::remove(orderBubblesToRemove.begin(), orderBubblesToRemove.end(), i), orderBubblesToRemove.end());
 	}
 	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
 		//removeFromRendering(ent);
 		renderingEntities.push_back(ent);
+	}
+	for each (Entity * ent in orderBubbles[1]->returnRenderingEntities()) {
+		if (isInRendering(ent)) {
+			removeFromRendering(ent);
+		}
+		
+		//renderingEntities.push_back(ent);
+	}
+	orderBubbles[1]->getOrder()->setStarted(false);
+	orderBubbles[2]->getOrder()->setStarted(false);
+	for each (Entity * ent in orderBubbles[2]->returnRenderingEntities()) {
+		if (isInRendering(ent)) {
+			removeFromRendering(ent);
+		}
+		//renderingEntities.push_back(ent);
 	}
 	
 	for (int i = 0; i < 6; i++)
