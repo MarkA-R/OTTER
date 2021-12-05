@@ -1837,8 +1837,13 @@ int main()
 					customer->Get<CharacterController>().queueAnimation(0);//make walk
 
 				}
-				customer->Get<CharacterController>().updateDistance(deltaTime, 1);
+				float speed = 1;
+				if (customer->Get<CharacterController>().getStopSpot() > placeInLineToIndex(1)) {
+					speed = 0.8;
+				}
+				customer->Get<CharacterController>().updateDistance(deltaTime, speed);
 				customer->Get<CharacterController>().updateAnimation(deltaTime);
+				
 
 				if (customer->Get<CharacterController>().getStopSpot() <= placeInLineToIndex(1)) {
 					int inLine = -1;
