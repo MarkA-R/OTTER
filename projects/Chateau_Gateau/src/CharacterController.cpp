@@ -27,12 +27,17 @@ CharacterController::CharacterController(Entity* e, std::vector<MorphAnimation*>
 
 void CharacterController::setCurrentSpot(int x)
 {
-	currentspot = x;
+	int tableSize = table.getEntries().size();
+	int divisions = tableSize / linePositions.size();
+
+	currentspot = x * divisions;
+	nextSpot = currentspot + 1;
 	
 }
 
 void CharacterController::setStopSpot(int x)
 {
+	
 	stopSpot = x;
 }
 

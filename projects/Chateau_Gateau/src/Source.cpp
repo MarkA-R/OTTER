@@ -122,12 +122,11 @@ float easeIn(float x) {
 	return 1 - cos((x * 3.1415926) / 2);
 }
 
-
 float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
 float tempD = 0.f;
-float lineY = -1.7;//-1.1f;
+float lineY = -1.72;//-1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
 prog_allLights;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
@@ -308,11 +307,12 @@ glm::vec3 trayScale;
 glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
 std::vector<glm::vec3> line;
+int lineStart = 4;
 glm::vec3 firstCarPos = glm::vec3(5, -1, 10);
 glm::vec3 lastCarPos = glm::vec3(-15, -1, 10);
 Entity* customerLine[3];
 std::vector<Entity*> customers;
-int lineStart = 3;
+
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -352,16 +352,17 @@ int main()
 	cameraKeys.push_back(insidePos);
 	cameraKeys.push_back(outsidePos);
 	cameraKeys.push_back(menuCameraPos);
-	line.push_back(glm::vec3(3.5, lineY, -9.4));
-	line.push_back(glm::vec3(-1.1, lineY, -8.8));
+	line.push_back(glm::vec3(3.5, lineY, -11.4));
+	line.push_back(glm::vec3(0.f, lineY, -11.4));
+	line.push_back(glm::vec3(-2.1, lineY, -8.8));
 	line.push_back(glm::vec3(-1.1, lineY, -7.7));
 	line.push_back(glm::vec3(-1.1, lineY, -5.3));
 	line.push_back(glm::vec3(-1.1, lineY, -3.8));
 	line.push_back(glm::vec3(-1.1, lineY, -3.5));
-	line.push_back(glm::vec3(-1.6, lineY, -3.5));
-	line.push_back(glm::vec3(-1.6, lineY, -4.8));
-	line.push_back(glm::vec3(-2.1, lineY, -9.5));
-	line.push_back(glm::vec3(-7.6, lineY, -9.5));
+	line.push_back(glm::vec3(-1.8, lineY, -3.2));
+	line.push_back(glm::vec3(-2.0, lineY, -4.8));
+	line.push_back(glm::vec3(-2.9, lineY, -10.5));
+	line.push_back(glm::vec3(-7.6, lineY, -11.4));
 	PathSampler::Lerp = Lerp<glm::vec3>;
 	PathSampler::Catmull = Catmull<glm::vec3>;
 	PathSampler::Bezier = Bezier<glm::vec3>;
@@ -849,7 +850,7 @@ int main()
 		std::vector<MorphAnimation*> allMithunanFrames;
 		
 		std::vector<Mesh*> mithunanWalkFrames;
-		loadAnimationData(mithunanWalkFrames,"characters/mithunan/walk/walk",16);
+		loadAnimationData(mithunanWalkFrames,"characters/mithunan/walk/bearWalk",16);
 		MorphAnimation mithunanWalk = MorphAnimation(mithunanWalkFrames,0.1,0);
 		allMithunanFrames.push_back(&mithunanWalk);
 
@@ -877,9 +878,9 @@ int main()
 		mithunan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);			
 		mithunan.Add<CharacterController>(&mithunan, allMithunanFrames, line);
 		mithunan.Get<CharacterController>().setStopSpot(placeInLineToIndex(1));
-		mithunan.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(1));
-		mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(1));
-		
+	
+		mithunan.Get<CharacterController>().setDistance(placeInLineToIndex(2));
+		mithunan.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(2));
 		//mithunan.Get<CharacterController>().updateDistance(0.0001, 1);
 
 		
@@ -898,7 +899,7 @@ int main()
 		std::vector<MorphAnimation*> allKainatFrames;
 
 		std::vector<Mesh*> kainatWalkFrames;
-		loadAnimationData(kainatWalkFrames, "characters/kainat/walk/walk", 16);
+		loadAnimationData(kainatWalkFrames, "characters/kainat/walk/bearWalk", 16);
 		MorphAnimation kainatWalk = MorphAnimation(kainatWalkFrames, 0.1, 0);
 		allKainatFrames.push_back(&kainatWalk);
 		std::vector<Mesh*> kainatIdleFrames;
@@ -917,10 +918,11 @@ int main()
 				glm::angleAxis(glm::radians(00.f), glm::vec3(1.0f, 0.0f, 0.0f));
 			kainat.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			kainat.Add<CharacterController>(&kainat, allKainatFrames, line);
-			kainat.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(2));
-			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
-			kainat.Get<CharacterController>().setDistance(placeInLineToIndex(2));
 			
+			kainat.Get<CharacterController>().setStopSpot(placeInLineToIndex(2));
+			
+			kainat.Get<CharacterController>().setDistance(placeInLineToIndex(3));
+			kainat.Get<CharacterController>().setCurrentSpot(placeInLineToIndex(3));
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& kainatAnimator = kainat.Add<CMorphAnimator>(kainat);
 			kainatAnimator.SetFrameTime(kainatWalk.getFrameTime());
@@ -930,7 +932,7 @@ int main()
 
 		std::vector<MorphAnimation*> allmarkFrames;
 		std::vector<Mesh*> markWalkFrames;
-		loadAnimationData(markWalkFrames, "characters/mark/walk/walk", 16);
+		loadAnimationData(markWalkFrames, "characters/mark/walk/bearWalk", 16);
 		MorphAnimation markWalk = MorphAnimation(markWalkFrames, 0.1, 0);
 		allmarkFrames.push_back(&markWalk);
 		std::vector<Mesh*> markIdleFrames;
@@ -964,7 +966,7 @@ int main()
 
 		std::vector<MorphAnimation*> allkyraFrames;
 		std::vector<Mesh*> kyraWalkFrames;
-		loadAnimationData(kyraWalkFrames, "characters/kyra/walk/walk", 16);
+		loadAnimationData(kyraWalkFrames, "characters/kyra/walk/bearWalk", 16);
 		MorphAnimation kyraWalk = MorphAnimation(kyraWalkFrames, 0.1, 0);
 		allkyraFrames.push_back(&kyraWalk);
 		std::vector<Mesh*> kyraIdleFrames;
@@ -987,6 +989,8 @@ int main()
 			kyra.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			kyra.Add<CharacterController>(&kyra, allkyraFrames, line);
 			kyra.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+			
+			
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& kyraAnimator = kyra.Add<CMorphAnimator>(kyra);
 			kyraAnimator.SetFrameTime(kyraWalk.getFrameTime());
@@ -996,7 +1000,7 @@ int main()
 
 		std::vector<MorphAnimation*> allnathanFrames;
 		std::vector<Mesh*> nathanWalkFrames;
-		loadAnimationData(nathanWalkFrames, "characters/nathan/walk/walk", 16);
+		loadAnimationData(nathanWalkFrames, "characters/nathan/walk/bearWalk", 16);
 		MorphAnimation nathanWalk = MorphAnimation(nathanWalkFrames, 0.1, 0);
 		allnathanFrames.push_back(&nathanWalk);
 		std::vector<Mesh*> nathanIdleFrames;
@@ -1019,6 +1023,8 @@ int main()
 			nathan.transform.m_pos = glm::vec3(-1.f, -0.5, -2.29f);
 			nathan.Add<CharacterController>(&nathan, allnathanFrames, line);
 			nathan.Get<CharacterController>().setStopSpot(placeInLineToIndex(4));
+			
+			
 			//mithunan.Get<CharacterController>().continueAnimation(false);
 			auto& nathanAnimator = nathan.Add<CMorphAnimator>(nathan);
 			nathanAnimator.SetFrameTime(nathanWalk.getFrameTime());
@@ -1254,7 +1260,8 @@ int main()
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
 		prog_allLights.get()->SetUniform("lightColor2", carLight.colour);
 		prog_allLights.get()->SetUniform("strength", carLight.strength);
-		prog_allLights.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
+		prog_texLit->Bind();
+		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
 		
 		
 		
@@ -1321,17 +1328,18 @@ int main()
 								bool canKeepMoving = true;
 								if (i < 2 && !isInLine) {
 									canKeepMoving = false;
+									//std::cout << "HERE2" << std::endl;
 								}
-								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -3) {
+								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -lineStart) {
 									canKeepMoving = false;
-									
+									//std::cout << (i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) << std::endl;
 								}
 								if ((i + 1) - indexToPlaceInLine(customer->Get<CharacterController>().getStopSpot()) < -1 && isInLine) {
-
+									//std::cout << "HERE1" << std::endl;
 									canKeepMoving = false;
 								}
 								if (canKeepMoving) {
-
+									//std::cout << u << " " <<  placeInLineToIndex(i + 1) << std::endl;
 									customer->Get<CharacterController>().setStopSpot(placeInLineToIndex(i + 1));
 									customerLine[i] = customer;
 									alreadyMoved = true;
@@ -3477,7 +3485,7 @@ int placeInLineToIndex(int linePlace) {
 }
 
 int indexToPlaceInLine(int index) {
-	return (3 - (index - lineStart));
+	return 3 - (index - lineStart);
 }
 
 void setScores(int totalOrders, int highscore) {

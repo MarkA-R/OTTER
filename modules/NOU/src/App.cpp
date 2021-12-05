@@ -49,7 +49,7 @@ namespace nou
 		//amount of time (i.e., a second or more) - so resizing a window by dragging is a no-no.
 		glfwWindowHint(GLFW_RESIZABLE, false);
 		
-		m_window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+		m_window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);//replcae first nullptr with  glfwGetPrimaryMonitor()
 
 		//This tells OpenGL we want to draw to the window we just created.
 		//If you had multiple windows, you'd be calling this on each one before
