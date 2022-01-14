@@ -41,6 +41,9 @@ public:
 	void setPastryValidated(bool x);
 	void setDrinkValidated(bool x);
 
+	bool isPastryValidated();
+	bool isDrinkValidated();
+
 	Pastry toPastry();
 
 	Drink toDrink();

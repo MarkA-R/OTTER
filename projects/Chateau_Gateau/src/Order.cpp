@@ -233,6 +233,16 @@ void Order::setDrinkValidated(bool x)
 	isDrinkSatisfied = x;
 }
 
+bool Order::isPastryValidated()
+{
+	return isPastrySatisfied;
+}
+
+bool Order::isDrinkValidated()
+{
+	return isDrinkSatisfied;
+}
+
 Pastry Order::toPastry()
 {
 	Pastry p = Pastry();

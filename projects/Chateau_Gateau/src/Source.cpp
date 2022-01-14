@@ -312,6 +312,7 @@ glm::vec3 firstCarPos = glm::vec3(5, -1, 10);
 glm::vec3 lastCarPos = glm::vec3(-15, -1, 10);
 Entity* customerLine[3];
 std::vector<Entity*> customers;
+float lastActionTime = 0.f;
 
 
 float currentGameTime = 0;
@@ -386,7 +387,7 @@ int main()
 	glfwSetMouseButtonCallback(gameWindow, mouse_button_callback);
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	glfwSetScrollCallback(gameWindow, scroll_callback);
-
+	glfwSwapInterval(1);
 	//gameScenes.push_back(&GameScene());
 	//gameScenes[activeScene]->Setup();
 
@@ -624,7 +625,7 @@ int main()
 		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
 		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		ent_register.transform.m_pos = glm::vec3(-1.6, -2.5, -2.29f);
-		ent_register.Add<BoundingBox>(glm::vec3(1.2, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
+		ent_register.Add<BoundingBox>(glm::vec3(1.9, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
 		renderingEntities.push_back(&ent_register);
 
 		customerBubbleLocation = ent_register.transform;
@@ -1181,7 +1182,7 @@ int main()
 	carLight.strength = 0.f;
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! #################################
-	
+	bool canCheat = false;
 	bool skipMenu = false;
 	if(skipMenu) {
 	cameraEntity.transform.m_pos = cameraPos;
@@ -1285,61 +1286,63 @@ int main()
 		
 		
 
-		
-		//std::cout << "GGGG" << std::endl;
-		if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
-			bakeryUtils::addToFailed(1);
-		}
-		if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot
-			std::cout << "------------------" << std::endl;
-		}
-		if (Input::GetKeyDown(GLFW_KEY_D)) {//put this in the lose spot
-			mithunan.Get<CharacterController>().queueAnimation(1);
-		}
-		if (Input::GetKeyDown(GLFW_KEY_A)) {//put this in the lose spot
-			mithunan.Get<CharacterController>().queueAnimation(0);
-		}
+		if (canCheat) {
+			//std::cout << "GGGG" << std::endl;
+			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
+				bakeryUtils::addToFailed(1);
+			}
+			if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot
+				std::cout << "------------------" << std::endl;
+			}
+			if (Input::GetKeyDown(GLFW_KEY_D)) {//put this in the lose spot
+				mithunan.Get<CharacterController>().queueAnimation(1);
+			}
+			if (Input::GetKeyDown(GLFW_KEY_A)) {//put this in the lose spot
+				mithunan.Get<CharacterController>().queueAnimation(0);
+			}
 
-		if (Input::GetKey(GLFW_KEY_Z)) {//put this in the lose spot
-			seeThrough += deltaTime;
-			if (seeThrough > 1) {
-				seeThrough = 1;
-			}
-		}
-		if (Input::GetKey(GLFW_KEY_X)) {//put this in the lose spot
-			seeThrough -= deltaTime;
-			if (seeThrough < 0) {
-				seeThrough = 0;
-			}
-		}
-
-		if (Input::GetKey(GLFW_KEY_V)) {//put this in the lose spot
-			dayT += deltaTime;
-			if (dayT > 1) {
-				dayT = 1;
-			}
-		}
-		if (Input::GetKey(GLFW_KEY_C)) {//put this in the lose spot
-			dayT -= deltaTime;
-			if (dayT < 0) {
-				dayT = 0;
-			}
-		}
-		
-		if (Input::GetKeyDown(GLFW_KEY_E)) {//put this in the lose spot
-			for (int i = 0; i < 3; i++) {
-				if (customerLine[i] != nullptr) {
-					customerLine[i]->Get<CharacterController>().setStopSpot(line.size());
-					customerLine[i] = nullptr;
-					break;
+			if (Input::GetKey(GLFW_KEY_Z)) {//put this in the lose spot
+				seeThrough += deltaTime;
+				if (seeThrough > 1) {
+					seeThrough = 1;
 				}
 			}
-			
+			if (Input::GetKey(GLFW_KEY_X)) {//put this in the lose spot
+				seeThrough -= deltaTime;
+				if (seeThrough < 0) {
+					seeThrough = 0;
+				}
+			}
+
+			if (Input::GetKey(GLFW_KEY_V)) {//put this in the lose spot
+				dayT += deltaTime;
+				if (dayT > 1) {
+					dayT = 1;
+				}
+			}
+			if (Input::GetKey(GLFW_KEY_C)) {//put this in the lose spot
+				dayT -= deltaTime;
+				if (dayT < 0) {
+					dayT = 0;
+				}
+			}
+
+			if (Input::GetKeyDown(GLFW_KEY_E)) {//put this in the lose spot
+				for (int i = 0; i < 3; i++) {
+					if (customerLine[i] != nullptr) {
+						customerLine[i]->Get<CharacterController>().setStopSpot(line.size());
+						customerLine[i] = nullptr;
+						break;
+					}
+				}
+
+			}
+
+			if (Input::GetKey(GLFW_KEY_W)) {//put this in the lose spot
+				isCarMoving = true;
+			}
 		}
 		
-		if (Input::GetKey(GLFW_KEY_W)) {//put this in the lose spot
-			isCarMoving = true;
-		}
 		//mithunan.Get<CharacterController>().updatePosition(deltaTime, 0.5);
 		if (isCarMoving == true && !isPaused) {
 
@@ -1567,6 +1570,7 @@ int main()
 						drinkScript.releaseFromDrink();
 						drinkScript.removeFromDrink();						
 						drinkScript.setDrinkNum(0);
+						drinkScript.updatePlane();
 						drinkScript.setFill(0);
 						
 						filling.Get<FillingMachine>().setFillNum(0);
@@ -2059,7 +2063,7 @@ int main()
 
 
 
-
+		lastActionTime += deltaTime;
 		hitEntity = nullptr;
 		for each (Entity* e in renderingEntities) {
 			
@@ -2095,7 +2099,8 @@ int main()
 			
 			
 			
-			if (keepCheckingRaycast && !isPaused) {
+			if (keepCheckingRaycast && !isPaused ) {
+				
 				if (e->Has<BoundingBox>()) {
 
 					for each (glm::vec3	pos in raycastPoints) {
@@ -2147,7 +2152,7 @@ int main()
 
 		
 
-		if (raycastHit && hitEntity != nullptr) {
+		if (raycastHit && hitEntity != nullptr && lastActionTime > deltaTime) {
 			Entity* e = hitEntity;
 			if (e->Has<Machine>()) {//check for fridge tomorrow
 				
@@ -2158,11 +2163,11 @@ int main()
 					if (isClicking) {
 						wantedSlot = getFirstTraySlot();
 					}
-					if (wantedSlot >= 0) {
+					if (wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
 						int slot = wantedSlot;
-						
+						lastActionTime = 0;
 							trayPastry[slot] = Entity::Allocate().release();
-
+							
 
 
 							trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *doughMat.getMesh(), *doughMat.getMaterial());
@@ -2233,7 +2238,7 @@ int main()
 							}
 						}
 						if (putInOven) {
-
+							lastActionTime = 0;
 							//std::cout << "B" << std::endl;
 							ovenScript->canAdd(trayPastry[wantedSlot], addingSlot);
 							trayPastry[wantedSlot]->Get<Transparency>().setTransparency(0.f);
@@ -2246,6 +2251,7 @@ int main()
 						}
 						else
 						{
+							lastActionTime = 0;
 							//std::cout << "C" << std::endl;
 							int newSlot = getFirstTraySlot();
 							//std::cout << newSlot << std::endl;
@@ -2285,6 +2291,7 @@ int main()
 					FillingMachine& fillingScript = e->Get<FillingMachine>();
 					//std::cout << "FILLING" << std::endl;
 					if (isLeftButtonHeld) {
+						
 						if (fillingScript.isFillingFull()) {
 							float yChange = (currentPoint.y - lastPoint.y) * -1.25;//the 1.25 is the shortness scale
 							fillingScript.setT(abs(fillingScript.getT() + yChange));
@@ -2293,6 +2300,7 @@ int main()
 							filling.Get<CMorphMeshRenderer>().Draw();
 
 							if (fillingScript.getT() >= 1.0f) {//in case 1.0 wont work lol
+								lastActionTime = 0;
 								fillingScript.getFromFilling()->Get<Pastry>().setFilling(fillingScript.getFilling());
 								//put into tray now
 								int wantedSlot = getFirstTraySlot();
@@ -2331,6 +2339,7 @@ int main()
 						
 					}
 					else if (scrollY != 0) {
+						lastActionTime = 0;
 						//std::cout << "SCROLLY: " << scrollY << std::endl;
 						fillingScript.setT(0);
 						filling.Get<CMorphAnimator>().setFrameAndTime(0, 1, 0);
@@ -2344,6 +2353,7 @@ int main()
 					{
 						int wantedSlot = getWantedSlot();
 						if (wantedSlot >= 0) {
+							
 							bool putinFill = false;
 							if (trayPastry[wantedSlot] != nullptr) {
 								if (!fillingScript.isFillingFull()) {
@@ -2360,7 +2370,7 @@ int main()
 								}
 							}
 							if (putinFill) {
-
+								lastActionTime = 0;
 								//std::cout << "B" << std::endl;
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot);
 								
@@ -2393,6 +2403,7 @@ int main()
 							}
 							else
 							{
+								lastActionTime = 0;
 								//put in tray slot
 								//std::cout << "C" << std::endl;
 								//int newSlot = wantedSlot();
@@ -2446,6 +2457,7 @@ int main()
 				
 					if (isLeftButtonHeld) {
 						if (toppingScript.isToppingFull()) {
+
 							float xChange = (currentPoint.x - lastPoint.x) * 1.5;//the 1.25 is the shortness scale
 							toppingScript.setT(abs(toppingScript.getT() + xChange));
 							toppingScript.moveTopping(toppingScript.getT());
@@ -2457,6 +2469,7 @@ int main()
 								int wantedSlot = getFirstTraySlot();
 
 								if (wantedSlot >= 0) {
+									lastActionTime = 0;
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
 									float currentT, wantedT, time;
 									time = 0.15;
@@ -2586,12 +2599,14 @@ int main()
 				else if (e->Has<DrinkMachine>()) {
 				if (!drinkScript.isOpening && !drinkScript.isClosing && !drinkScript.isDrinkFull()) {
 					if (isLeftButtonHeld) {
+						lastActionTime = 0;
 						drinkScript.addFill(deltaTime / bakeryUtils::getDrinkFillAmount());
 						drinkScript.getFillBar()->setT(drinkScript.getFill());
 						drinkScript.getFillBar()->updateArrow();
 						
 					}
 					else if (scrollY != 0) {
+						lastActionTime = 0;
 						drinkScript.addDrinkNum(scrollY);
 						drinkScript.updatePlane();
 					}
@@ -2599,9 +2614,11 @@ int main()
 					{
 						 if (drinkScript.getFill() > 0.9f && drinkScript.getFill() < 1.05f
 							&& (!drinkScript.isOpening || !drinkScript.isClosing)) {
+
 							drinkScript.isOpening = true;
 							drinkScript.isClosing = false;
 							if (!drinkScript.isDrinkFull()) {
+								lastActionTime = 0;
 								drinkScript.createDrink();
 								setDrinkMesh(drinkScript.getFromDrink(), drinkScript.getDrink());
 								//drinkScript.getFromDrink()->transform.m_scale = glm::vec3(0.002);
@@ -2615,6 +2632,7 @@ int main()
 						}
 						else
 						{
+
 							drinkScript.setFill(0.f);
 							drinkScript.getFillBar()->setT(drinkScript.getFill());
 							drinkScript.getFillBar()->updateArrow();
@@ -2625,6 +2643,7 @@ int main()
 				}
 				else if (drinkScript.isDrinkFull()) {
 					if (getWantedSlot() != -1) {
+						lastActionTime = 0;
 						//put in tray
 						//std::cout << getWantedSlot() << std::endl;
 						int wantedSlot = getWantedSlot();
@@ -2669,7 +2688,7 @@ int main()
 				int wantedSlot = getWantedSlot();
 				if (wantedSlot >= 0) {
 					if (trayPastry[wantedSlot] != nullptr) {
-
+						lastActionTime = 0;
 						removeFromRendering(trayPastry[wantedSlot]);
 						trayPastry[wantedSlot] = nullptr;
 					}
@@ -2684,7 +2703,7 @@ int main()
 			}
 			else if (e->Has<Register>()) {
 				//check if order is complete here
-				if (isClicking) {
+				if (isClicking || getWantedSlot() >= 0) {
 					for (int u = 0; u < currentOrders.size(); u++) {
 						Order& o = currentOrders[u];
 						int pastryIndex = -1;
@@ -2694,14 +2713,14 @@ int main()
 							if (tray != nullptr) {
 								if (tray->Has<Pastry>())
 								{
-									if (o.validateOrder(tray->Get<Pastry>())) {//for drinks just have a check here for if it has a pastry or not and to check if an order is completed, have an internal counter or something
+									if (o.validateOrder(tray->Get<Pastry>()) && !o.isPastryValidated()) {//for drinks just have a check here for if it has a pastry or not and to check if an order is completed, have an internal counter or something
 										o.setPastryValidated(true);
 										pastryIndex = i;
 									}
 								}
 								
 								if (tray->Has<Drink>()) {
-									if (o.validateDrink(tray->Get<Drink>())) {
+									if (o.validateDrink(tray->Get<Drink>()) && !o.isDrinkValidated()) {
 										o.setDrinkValidated(true);
 										drinkIndex = i;
 									}
@@ -2710,14 +2729,14 @@ int main()
 								if (o.returnSatisfied()) {
 									if (pastryIndex != -1) {
 
-										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
-
+										//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
+										removeFromRendering(trayPastry[pastryIndex]);
 										trayPastry[pastryIndex] = nullptr;
 
 									}
 									if (drinkIndex != -1) {
-										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[drinkIndex]), renderingEntities.end());
-
+										//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[drinkIndex]), renderingEntities.end());
+										removeFromRendering(trayPastry[drinkIndex]);
 										trayPastry[drinkIndex] = nullptr;
 
 									}
@@ -2726,8 +2745,8 @@ int main()
 									//std::cout << "HERE" << std::endl;
 									createNewOrder(u, true);
 									for each (Entity * remover in orderBubbles[u]->returnRenderingEntities()) {
-										renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
-
+										//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
+										removeFromRendering(remover);
 									}
 
 									resetBubble(u);
@@ -2736,13 +2755,14 @@ int main()
 										renderingEntities.push_back(foe);
 									}
 
-									for (int i = 0; i < 3; i++) {
-										if (customerLine[i] != nullptr) {
-											customerLine[i]->Get<CharacterController>().setStopSpot(line.size());
-											customerLine[i] = nullptr;
+									for (int f = 0; f < 3; f++) {
+										if (customerLine[f] != nullptr) {
+											customerLine[f]->Get<CharacterController>().setStopSpot(line.size());
+											customerLine[f] = nullptr;
 											break;
 										}
 									}
+									
 								}
 							}
 							
@@ -2763,6 +2783,7 @@ int main()
 		}
 
 		if (orderBubblesToRemove.size() > 0) {
+			
 
 			for (int i = 0; i < orderBubblesToRemove.size(); i++) {//orderBubblesToRemove.size()
 				
@@ -2797,7 +2818,7 @@ int main()
 			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
 			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
 			if ((bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
-			) {//|| currentOrders.size() == 2
+				) {//|| currentOrders.size() == 2
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(2, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1);
