@@ -46,6 +46,8 @@
 #include "OrderBubble.h"
 #include "Register.h"
 
+#include <unordered_map>
+
 using namespace nou;
 
 // Templated LERP function
@@ -210,6 +212,15 @@ std::vector<Material*> signFrames = std::vector<Material*>();
 std::vector<Mesh*> drinkFrames = std::vector<Mesh*>();
 std::vector<glm::vec2> mouseMovements;
 
+GLuint tray1 = GLFW_KEY_1;
+GLuint tray2 = GLFW_KEY_2;
+GLuint tray3 = GLFW_KEY_3;
+GLuint tray4 = GLFW_KEY_4;
+bool musicOn = true;
+bool soundOn = true;
+//float sensitivity = 1;
+bool largeFont = false;
+std::unordered_map<GLuint, int> alphanumeric = std::unordered_map<GLuint, int>();
 
 // Keep our main cleaner
 void LoadDefaultResources();
@@ -232,6 +243,10 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
 int placeInLineToIndex(int linePlace);
 int indexToPlaceInLine(int index);
+void loadSettings();
+void loadNumberHashMap();
+GLuint pictureIndexToGLuint(int i);
+int GLuintToPictureIndex(GLuint);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -370,15 +385,17 @@ int main()
 	PathSampler::Catmull = Catmull<glm::vec3>;
 	PathSampler::Bezier = Bezier<glm::vec3>;
 	srand(static_cast<unsigned int>(time(0)));
+	loadSettings();
+	loadNumberHashMap();
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
 	App::SetClearColor(glm::vec4(1, 0.964, 0.929,1.f));
 	App::setCursorVisible(false);
 	gameWindow = glfwGetCurrentContext();
-	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	
 	// Initialize ImGui
 	App::InitImgui();
-	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	
 	// Load in our model/texture resources
 	LoadDefaultResources();
 	
@@ -388,10 +405,7 @@ int main()
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	glfwSetScrollCallback(gameWindow, scroll_callback);
 	glfwSwapInterval(1);
-	//gameScenes.push_back(&GameScene());
-	//gameScenes[activeScene]->Setup();
 
-	//glfwSetKeyCallback(gameWindow, key_callback);
 
 	MaterialCreator cursorMat = MaterialCreator();
 	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_unlit);
@@ -3740,5 +3754,39 @@ void restartGame() {
 	}
 	
 	
+}
+
+void loadSettings() {
+
+}
+
+void loadNumberHashMap() {
+	
+	for (int i = 0; i < 10; i++) {
+		alphanumeric.insert(std::pair<GLuint, int>(48 + i, i));
+	}
+	for (int i = 10; i < 36; i++) {
+		alphanumeric.insert(std::pair<GLuint, int>(65 + (i - 10), i));
+	}
+}
+
+
+
+GLuint pictureIndexToGLuint(int j) {
+	for (auto& it : alphanumeric) {
+		if (it.second == j) {
+			return it.first;
+		}
+	}
+	return 0;
+}
+
+int GLuintToPictureIndex(GLuint j) {
+	for (auto& it : alphanumeric) {
+		if (it.first == j) {
+			return it.second;
+		}
+	}
+	return 0;
 }
 
