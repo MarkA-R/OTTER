@@ -1,4 +1,9 @@
 #pragma once
+#include "NOU/Entity.h"
+#include "NOU/CMeshRenderer.h"
+#include "MotionTable.h"
+#include "MaterialCreator.h"
+using namespace nou;
 class PictureSelector
 {
 	//make an entity list for the picture selectors and put them at the board
@@ -9,5 +14,18 @@ class PictureSelector
 
 	//for the other ones, you use space to select and the arrow keys to go up or down
 	//and press space on the back button (thats on the board) to go back to the main menu
+
+private:
+	std::vector<MaterialCreator*> allMaterials = std::vector<MaterialCreator*>();
+	int currentOption = 0;
+	Entity* owner;
+public:
+	PictureSelector(Entity*);
+	void setPictures(std::vector<MaterialCreator*>);
+	void setIndex(int);
+	void addToIndex(int);
+	int getIndex();
+	void updatePicture();
+
 };
 

@@ -161,6 +161,7 @@ double sensitivity = -0.1;
 bool isInMainMenu = true;
 bool isInPauseMenu = false;
 bool isInContinueMenu = false;
+bool isInOptionsMenu = false;
 int selectedOption = 0;
 glm::quat getCameraRotation();
 glm::quat menuCameraQuat;
@@ -220,7 +221,8 @@ bool musicOn = true;
 bool soundOn = true;
 //float sensitivity = 1;
 bool largeFont = false;
-std::unordered_map<GLuint, int> alphanumeric = std::unordered_map<GLuint, int>();
+std::unordered_map<GLuint, int> alphanumeric;
+std::vector<MaterialCreator> alphanumericMat;
 
 // Keep our main cleaner
 void LoadDefaultResources();
@@ -343,6 +345,9 @@ float dayBright = 0.9;
 float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
+
+Transform accessStart[4];
+Transform accessTray[4];
 
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
@@ -467,7 +472,13 @@ int main()
 		std::string newNum = "UI/textures/Number_" + std::to_string(i) + ".png";
 		numberTiles.back().createMaterial("bakery/models/tile.gltf", newNum , *prog_texLit);
 	}
-
+	std::string orderToCheck = "012345";//"0123456789ABCEDFGHIJKLMNOPQRSTUVWXYZ";
+	for (char& c : orderToCheck) {
+		alphanumericMat.push_back(MaterialCreator());
+		std::string newString = "UI/textures/alphanumeric/type" + std::string(1, c) + ".png";
+		alphanumericMat.back().createMaterial("bakery/models/tile.gltf", newString, *prog_texLit);
+		
+	}
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
 	
@@ -592,7 +603,7 @@ int main()
 	// Create and set up camera
 	Entity cameraEntity = Entity::Create();
 	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
-	cam.Perspective(60.0f, (float) width/height, 0.1f, 100.0f);
+	cam.Perspective(60.0f, (float) width/height, 0.001f, 100.0f);
 	//cam.Perspective(100.f, (float) width/height, 0.1f, 100.0f);
 	cameraEntity.transform.m_pos = cameraPos;
 	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1065,7 +1076,7 @@ int main()
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
 	
-	//renderingEntities.push_back(&tray);
+	
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
 	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.017;
@@ -1088,6 +1099,8 @@ int main()
 	traySlot[3].SetParent(&tray.transform);
 
 	
+
+
 
 	Transform slot1Transform = oven.transform;
 	//1.f, -1.5f, 0.5f
@@ -1267,6 +1280,38 @@ int main()
 		//renderingEntities.push_back(numberEntities.back());
 	}
 	
+	Entity access1 = Entity::Create();//make into other entity for accessibility and re use them for tray abd sign board
+	access1.Add<CMeshRenderer>(access1, *alphanumericMat[0].getMesh(), *alphanumericMat[0].getMaterial());
+	access1.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+	access1.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	Entity access2 = Entity::Create();
+	access2.Add<CMeshRenderer>(access2, *alphanumericMat[1].getMesh(), *alphanumericMat[1].getMaterial());
+	access2.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+	access2.transform.m_rotation = access1.transform.m_rotation;
+
+	Entity access3 = Entity::Create();
+	access3.Add<CMeshRenderer>(access3, *alphanumericMat[2].getMesh(), *alphanumericMat[2].getMaterial());
+	access3.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+	access3.transform.m_rotation = access1.transform.m_rotation;
+
+
+	Entity access4 = Entity::Create();
+	access4.Add<CMeshRenderer>(access4, *alphanumericMat[3].getMesh(), *alphanumericMat[3].getMaterial());
+	access4.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+	access4.transform.m_rotation = access1.transform.m_rotation;
+
+
+	
+
+	tray.transform.m_pos = glm::vec3(menuCameraPos.x -0.1 , menuCameraPos.y -0.040, menuCameraPos.z );// 0.552
+	tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	accessTray[0].m_pos = glm::vec3(-0.82, -1.230, -10.68);
+	accessTray[1].m_pos = glm::vec3(-0.82, -1.230, -10.725);
+	accessTray[2].m_pos = glm::vec3(-0.78, -1.230, -10.68);
+	accessTray[3].m_pos = glm::vec3(-0.78, -1.230, -10.725);
 	
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
@@ -1279,8 +1324,6 @@ int main()
 		prog_allLights.get()->SetUniform("strength", carLight.strength);
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
-		
-		
 		
 		
 		
@@ -1373,7 +1416,51 @@ int main()
 			car.transform.m_pos.z = -15;
 			car.transform.m_pos.y = -1.7;
 		}
+		if (isInOptionsMenu) {
+			std::cout << "TRAY:" << tray.transform.m_pos.x << " " << tray.transform.m_pos.y << " " << tray.transform.m_pos.z << " " << std::endl;
+			std::cout << "POS1:" << tempA << " " << tempB << " " << tempC << std::endl;
 
+			//trayPastry[0] = &access1;
+			access1.transform.m_pos = accessTray[0].m_pos;//glm::vec3(tempA, tempB,tempC);
+			access2.transform.m_pos = accessTray[1].m_pos;//glm::vec3(tempA, tempB,tempC);
+			access3.transform.m_pos = accessTray[2].m_pos;//glm::vec3(tempA, tempB,tempC);
+			access4.transform.m_pos = accessTray[3].m_pos;//glm::vec3(tempA, tempB,tempC);
+			//trayPastry[0]->transform.SetParent(&globalCameraEntity->transform);
+
+			App::StartImgui();
+			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+
+			ImGui::DragFloat("X", &(tempA), 0.01);
+			ImGui::DragFloat("Y", &(tempB), 0.01);
+			ImGui::DragFloat("Z", &(tempC), 0.01);
+			ImGui::DragFloat("D", &(tempD), 0.01);
+
+			//ImGui::DragFloat("Scale", &(sc), 0.1f);
+			//ImGui::SetWindowPos(0,0);
+
+			App::EndImgui();
+
+			
+			
+
+			for each (Entity * e in renderingEntities) {
+
+				e->transform.RecomputeGlobal();
+
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
+
+			}
+
+			App::SwapBuffers();
+			continue;
+		}
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
 				
@@ -1388,10 +1475,20 @@ int main()
 				
 				if (mainMenuChosen >= 0) {	
 					if (mainMenuChosen == 0) {//PLAY	
-						
+						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
+
 						isCameraMoving = true;
 					}
+					if (mainMenuChosen == 1) {
 
+						isInOptionsMenu = true;
+						isInMainMenu = false;
+						renderingEntities.push_back(&access1);
+						renderingEntities.push_back(&access2);
+						renderingEntities.push_back(&access3);
+						renderingEntities.push_back(&access4);
+						renderingEntities.push_back(&tray);
+					}
 					if (mainMenuChosen == 2) {
 						break;
 					}
@@ -2035,20 +2132,10 @@ int main()
 		
 		//receipt.transform.SetParent(&cameraEntity.transform);
 		//receipt.transform.m_pos = cursor.transform.m_pos;
-		/*
-		App::StartImgui();
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		
-		ImGui::DragFloat("X", &(tempA), 0.1f);
-		ImGui::DragFloat("Y", &(tempB), 0.1f);
-		ImGui::DragFloat("Z", &(tempC), 0.1f);
 		
-		//ImGui::DragFloat("Scale", &(sc), 0.1f);
-		//ImGui::SetWindowPos(0,0);
 
-		App::EndImgui();
-
-		*/
+		
 		
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
 		//receipt.transform.m_pos = receptBeginPos;
@@ -3146,16 +3233,16 @@ void getKeyInput() {
 }
 int getWantedSlot() {
 	int wantedSlot = -1;
-	if (Input::GetKeyDown(GLFW_KEY_1)) {
+	if (Input::GetKeyDown(tray1)) {
 		wantedSlot = 0;
 	}
-	if (Input::GetKeyDown(GLFW_KEY_2)) {
+	if (Input::GetKeyDown(tray2)) {
 		wantedSlot = 1;
 	}
-	if (Input::GetKeyDown(GLFW_KEY_3)) {
+	if (Input::GetKeyDown(tray3)) {
 		wantedSlot = 2;
 	}
-	if (Input::GetKeyDown(GLFW_KEY_4)) {
+	if (Input::GetKeyDown(tray4)) {
 		wantedSlot = 3;
 	}
 	return wantedSlot;
@@ -3768,6 +3855,8 @@ void loadNumberHashMap() {
 	for (int i = 10; i < 36; i++) {
 		alphanumeric.insert(std::pair<GLuint, int>(65 + (i - 10), i));
 	}
+
+	
 }
 
 
