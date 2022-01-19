@@ -30,6 +30,7 @@
 #include "CPathAnimator.h"
 #include "Light.h"
 #include "Transparency.h"
+#include "PictureSelector.h"
 
 #include <algorithm>
 #include <math.h>
@@ -213,10 +214,8 @@ std::vector<Material*> signFrames = std::vector<Material*>();
 std::vector<Mesh*> drinkFrames = std::vector<Mesh*>();
 std::vector<glm::vec2> mouseMovements;
 
-GLuint tray1 = GLFW_KEY_1;
-GLuint tray2 = GLFW_KEY_2;
-GLuint tray3 = GLFW_KEY_3;
-GLuint tray4 = GLFW_KEY_4;
+
+GLuint trayKeys[4] = { GLFW_KEY_1 ,GLFW_KEY_2 ,GLFW_KEY_3 ,GLFW_KEY_4 };
 bool musicOn = true;
 bool soundOn = true;
 //float sensitivity = 1;
@@ -249,6 +248,7 @@ void loadSettings();
 void loadNumberHashMap();
 GLuint pictureIndexToGLuint(int i);
 int GLuintToPictureIndex(GLuint);
+int getWhichKeyPressed();
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -348,6 +348,8 @@ MaterialCreator copyMaterials[4];
 
 Transform accessStart[4];
 Transform accessTray[4];
+Entity* accessEntities[4];
+int accessButtonPressed = -1;
 
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
@@ -472,7 +474,7 @@ int main()
 		std::string newNum = "UI/textures/Number_" + std::to_string(i) + ".png";
 		numberTiles.back().createMaterial("bakery/models/tile.gltf", newNum , *prog_texLit);
 	}
-	std::string orderToCheck = "012345";//"0123456789ABCEDFGHIJKLMNOPQRSTUVWXYZ";
+	std::string orderToCheck = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	for (char& c : orderToCheck) {
 		alphanumericMat.push_back(MaterialCreator());
 		std::string newString = "UI/textures/alphanumeric/type" + std::string(1, c) + ".png";
@@ -1280,28 +1282,22 @@ int main()
 		//renderingEntities.push_back(numberEntities.back());
 	}
 	
-	Entity access1 = Entity::Create();//make into other entity for accessibility and re use them for tray abd sign board
-	access1.Add<CMeshRenderer>(access1, *alphanumericMat[0].getMesh(), *alphanumericMat[0].getMaterial());
-	access1.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
-	access1.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-		* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
+	std::vector<MaterialCreator*> alphanumericPointer;
+	for (int i = 0; i < alphanumericMat.size(); i++) {
+		alphanumericPointer.push_back(&alphanumericMat[i]);
+	}
+	for (int i = 0; i < 4; i++) {
+		accessEntities[i] = Entity::Allocate().release();//make into other entity for accessibility and re use them for tray abd sign board
+		accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *alphanumericMat[i].getMesh(), *alphanumericMat[i].getMaterial());
+		accessEntities[i]->transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+		accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
+		accessEntities[i]->Add<PictureSelector>(accessEntities[i]);
+		accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+	}
+	
 
-	Entity access2 = Entity::Create();
-	access2.Add<CMeshRenderer>(access2, *alphanumericMat[1].getMesh(), *alphanumericMat[1].getMaterial());
-	access2.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
-	access2.transform.m_rotation = access1.transform.m_rotation;
-
-	Entity access3 = Entity::Create();
-	access3.Add<CMeshRenderer>(access3, *alphanumericMat[2].getMesh(), *alphanumericMat[2].getMaterial());
-	access3.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
-	access3.transform.m_rotation = access1.transform.m_rotation;
-
-
-	Entity access4 = Entity::Create();
-	access4.Add<CMeshRenderer>(access4, *alphanumericMat[3].getMesh(), *alphanumericMat[3].getMaterial());
-	access4.transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
-	access4.transform.m_rotation = access1.transform.m_rotation;
 
 
 	
@@ -1325,7 +1321,21 @@ int main()
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
 		
-		
+		/*
+			App::StartImgui();
+			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+
+			ImGui::DragFloat("X", &(tempA), 0.01);
+			ImGui::DragFloat("Y", &(tempB), 0.01);
+			ImGui::DragFloat("Z", &(tempC), 0.01);
+			ImGui::DragFloat("D", &(tempD), 0.01);
+
+			//ImGui::DragFloat("Scale", &(sc), 0.1f);
+			//ImGui::SetWindowPos(0,0);
+
+			App::EndImgui();
+
+			*/
 		
 	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
@@ -1417,29 +1427,68 @@ int main()
 			car.transform.m_pos.y = -1.7;
 		}
 		if (isInOptionsMenu) {
-			std::cout << "TRAY:" << tray.transform.m_pos.x << " " << tray.transform.m_pos.y << " " << tray.transform.m_pos.z << " " << std::endl;
-			std::cout << "POS1:" << tempA << " " << tempB << " " << tempC << std::endl;
-
+			
 			//trayPastry[0] = &access1;
-			access1.transform.m_pos = accessTray[0].m_pos;//glm::vec3(tempA, tempB,tempC);
-			access2.transform.m_pos = accessTray[1].m_pos;//glm::vec3(tempA, tempB,tempC);
-			access3.transform.m_pos = accessTray[2].m_pos;//glm::vec3(tempA, tempB,tempC);
-			access4.transform.m_pos = accessTray[3].m_pos;//glm::vec3(tempA, tempB,tempC);
+			
+			
+			if (accessButtonPressed >= 0) {
+				for (int i = 0; i < std::size(accessEntities); i++) {
+					accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
+				}
+				
+				//show tray and stuff
+				if (accessButtonPressed < 4) {
+					for (int i = 0; i < accessButtonPressed + 1; i++) {
+						if (!isInRendering(accessEntities[i])) {
+							renderingEntities.push_back(accessEntities[i]);
+						}
+					}
+				}
+				
+				if (getWhichKeyPressed() != -1) {
+					if (accessButtonPressed >= 4) {
+						accessButtonPressed = -1;
+						//accessButtonPressed = 0;
+						for (int i = 0; i < 4 + 1; i++) {
+							if (isInRendering(accessEntities[i])) {
+								renderingEntities.push_back(accessEntities[i]);
+								removeFromRendering(accessEntities[i]);
+							}
+						}
+						isInMainMenu = true;
+						isInOptionsMenu = false;
+						if (isInRendering(&tray)) {
+							removeFromRendering(&tray);
+						}
+					}
+					else
+					{
+						
+						int keyPressed = getWhichKeyPressed();
+						bool alreadyUsed = false;
+						for (int i = 0; i < accessButtonPressed; i++) {
+							if (accessEntities[i]->Get<PictureSelector>().getIndex() == keyPressed) {
+								alreadyUsed = true;
+							}
+						}
+						if (!alreadyUsed) {
+							trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
+							accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
+							accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
+							accessButtonPressed++;
+						}
+						
+					}
+					
+				}
+				
+			}
+			else
+			{
+				
+				//accessButtonPressed = 0;
+			}
 			//trayPastry[0]->transform.SetParent(&globalCameraEntity->transform);
-
-			App::StartImgui();
-			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-
-			ImGui::DragFloat("X", &(tempA), 0.01);
-			ImGui::DragFloat("Y", &(tempB), 0.01);
-			ImGui::DragFloat("Z", &(tempC), 0.01);
-			ImGui::DragFloat("D", &(tempD), 0.01);
-
-			//ImGui::DragFloat("Scale", &(sc), 0.1f);
-			//ImGui::SetWindowPos(0,0);
-
-			App::EndImgui();
-
 			
 			
 
@@ -1475,6 +1524,8 @@ int main()
 				
 				if (mainMenuChosen >= 0) {	
 					if (mainMenuChosen == 0) {//PLAY	
+						tray.transform.m_scale = trayScale;
+						tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
 
 						isCameraMoving = true;
@@ -1483,11 +1534,9 @@ int main()
 
 						isInOptionsMenu = true;
 						isInMainMenu = false;
-						renderingEntities.push_back(&access1);
-						renderingEntities.push_back(&access2);
-						renderingEntities.push_back(&access3);
-						renderingEntities.push_back(&access4);
+						
 						renderingEntities.push_back(&tray);
+						accessButtonPressed = 0;
 					}
 					if (mainMenuChosen == 2) {
 						break;
@@ -3233,16 +3282,16 @@ void getKeyInput() {
 }
 int getWantedSlot() {
 	int wantedSlot = -1;
-	if (Input::GetKeyDown(tray1)) {
+	if (Input::GetKeyDown(trayKeys[0])) {
 		wantedSlot = 0;
 	}
-	if (Input::GetKeyDown(tray2)) {
+	if (Input::GetKeyDown(trayKeys[1])) {
 		wantedSlot = 1;
 	}
-	if (Input::GetKeyDown(tray3)) {
+	if (Input::GetKeyDown(trayKeys[2])) {
 		wantedSlot = 2;
 	}
-	if (Input::GetKeyDown(tray4)) {
+	if (Input::GetKeyDown(trayKeys[3])) {
 		wantedSlot = 3;
 	}
 	return wantedSlot;
@@ -3877,5 +3926,131 @@ int GLuintToPictureIndex(GLuint j) {
 		}
 	}
 	return 0;
+}
+
+int getWhichKeyPressed() {
+	/*for(int i = 0; i < 10; i++){
+       std::cout << "if(Input::GetKeyDown(GLFW_KEY_" << std::to_string(i) << ")){" << std::endl;
+       std::cout << "return " << std::to_string(i) << ";" << std::endl;
+       std::cout << "}" << std::endl;
+   }
+   int start = 10;
+   std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+   for (char& c : letters) {
+		 std::cout << "if(Input::GetKeyDown(GLFW_KEY_" << std::string(1, c) << ")){" << std::endl;
+       std::cout << "return " << std::to_string(start) << ";" << std::endl;
+       std::cout << "}" << std::endl;
+	start++;
+	}
+	*/
+	if (Input::GetKeyDown(GLFW_KEY_0)) {
+		return 0;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_1)) {
+		return 1;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_2)) {
+		return 2;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_3)) {
+		return 3;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_4)) {
+		return 4;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_5)) {
+		return 5;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_6)) {
+		return 6;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_7)) {
+		return 7;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_8)) {
+		return 8;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_9)) {
+		return 9;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_A)) {
+		return 10;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_B)) {
+		return 11;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_C)) {
+		return 12;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_D)) {
+		return 13;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_E)) {
+		return 14;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_F)) {
+		return 15;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_G)) {
+		return 16;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_H)) {
+		return 17;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_I)) {
+		return 18;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_J)) {
+		return 19;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_K)) {
+		return 20;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_L)) {
+		return 21;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_M)) {
+		return 22;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_N)) {
+		return 23;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_O)) {
+		return 24;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_P)) {
+		return 25;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_Q)) {
+		return 26;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_R)) {
+		return 27;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_S)) {
+		return 28;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_T)) {
+		return 29;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_U)) {
+		return 30;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_V)) {
+		return 31;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_W)) {
+		return 32;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_X)) {
+		return 33;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_Y)) {
+		return 34;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_Z)) {
+		return 35;
+	}
+	return -1;
 }
 
