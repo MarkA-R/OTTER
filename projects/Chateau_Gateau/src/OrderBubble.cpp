@@ -100,6 +100,9 @@ void OrderBubble::create(Order& o, float scaleAll)
     toRender.push_back(timer->getArrow());
     toRender.push_back(timer->getCircle());
     toRender.push_back(timer->getTile());
+    timer->getArrow()->transform.m_scale *= (scaleAll + 0.05);
+    timer->getCircle()->transform.m_scale *= (scaleAll + 0.05);
+    timer->getTile()->transform.m_scale *= (scaleAll + 0.05);
    
     glm::vec3 timerPos = bubbleTransform.m_pos;
     timerPos.y -= (0.29 * scaleX * (scaleAll + 0.05));

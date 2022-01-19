@@ -158,7 +158,7 @@ glm::quat lastCameraQuat;
 double xPos, yPos;
 double cameraX = 0, cameraY = 0;
 double lastCameraX = 0, lastCameraY = 0;
-double sensitivity = -0.1;
+float sensitivity = -0.15;
 bool isInMainMenu = true;
 bool isInPauseMenu = false;
 bool isInContinueMenu = false;
@@ -216,8 +216,9 @@ std::vector<glm::vec2> mouseMovements;
 
 
 GLuint trayKeys[4] = { GLFW_KEY_1 ,GLFW_KEY_2 ,GLFW_KEY_3 ,GLFW_KEY_4 };
-bool musicOn = true;
-bool soundOn = true;
+int soundVolume = 3;
+int musicVolume = 3;
+float UIScale = 0.95;//1.35
 //float sensitivity = 1;
 bool largeFont = false;
 std::unordered_map<GLuint, int> alphanumeric;
@@ -249,6 +250,9 @@ void loadNumberHashMap();
 GLuint pictureIndexToGLuint(int i);
 int GLuintToPictureIndex(GLuint);
 int getWhichKeyPressed();
+void saveSettings();
+void loadSettings();
+void applySettings();
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -350,6 +354,7 @@ Transform accessStart[4];
 Transform accessTray[4];
 Entity* accessEntities[4];
 int accessButtonPressed = -1;
+int accessSettings[8] = {1,2,3,4,3,3,3,0};
 
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
@@ -1309,7 +1314,8 @@ int main()
 	accessTray[2].m_pos = glm::vec3(-0.78, -1.230, -10.68);
 	accessTray[3].m_pos = glm::vec3(-0.78, -1.230, -10.725);
 	
-	
+	loadSettings();
+	applySettings();
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -1325,10 +1331,10 @@ int main()
 			App::StartImgui();
 			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 
-			ImGui::DragFloat("X", &(tempA), 0.01);
-			ImGui::DragFloat("Y", &(tempB), 0.01);
-			ImGui::DragFloat("Z", &(tempC), 0.01);
-			ImGui::DragFloat("D", &(tempD), 0.01);
+			ImGui::DragFloat("X", &(sensitivity), 0.01);
+			//ImGui::DragFloat("Y", &(tempB), 0.01);
+			//ImGui::DragFloat("Z", &(tempC), 0.01);
+			//ImGui::DragFloat("D", &(tempD), 0.01);
 
 			//ImGui::DragFloat("Scale", &(sc), 0.1f);
 			//ImGui::SetWindowPos(0,0);
@@ -1460,6 +1466,8 @@ int main()
 						if (isInRendering(&tray)) {
 							removeFromRendering(&tray);
 						}
+						saveSettings();
+						applySettings();
 					}
 					else
 					{
@@ -1475,6 +1483,7 @@ int main()
 							trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
 							accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
 							accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
+							accessSettings[accessButtonPressed] = keyPressed;
 							accessButtonPressed++;
 						}
 						
@@ -3892,9 +3901,7 @@ void restartGame() {
 	
 }
 
-void loadSettings() {
 
-}
 
 void loadNumberHashMap() {
 	
@@ -4052,5 +4059,84 @@ int getWhichKeyPressed() {
 		return 35;
 	}
 	return -1;
+}
+
+void saveSettings() {
+	std::fstream scoreKeeper("settings.txt");
+	std::string lastScore;
+	int index = 0;
+	scoreKeeper.close();
+	scoreKeeper.open("settings.txt", std::ofstream::out | std::ofstream::trunc);
+	scoreKeeper.close();
+	scoreKeeper.open("settings.txt");
+	if (scoreKeeper.is_open()) {
+		for (int i = 0; i < 8; i++) {
+			scoreKeeper << std::to_string(accessSettings[index]) << std::endl;
+			index++;
+		}
+		scoreKeeper.close();
+	}
+	else
+	{
+		for (int i = 0; i < 8; i++) {
+			scoreKeeper << std::to_string(accessSettings[index]) << std::endl;
+			index++;
+		}
+		scoreKeeper.close();
+	}
+	
+}
+
+void loadSettings() {
+	std::ifstream MyReadFile("settings.txt");
+	std::string readLine;
+	int index = 0;
+	
+	if (MyReadFile.is_open()) {
+		if (MyReadFile.good()) {
+			while (std::getline(MyReadFile, readLine)) {
+
+
+				accessSettings[index] = std::stoi(readLine);
+				index++;
+			}
+		}
+		
+		MyReadFile.close();
+	}
+	
+	
+	
+}
+
+void applySettings() {
+	for (int i = 0; i < 4; i++) {
+		trayKeys[i] = pictureIndexToGLuint(accessSettings[i]);
+	}
+	if (accessSettings[4] == 3) {
+		sensitivity = -0.1;
+	}
+	if (accessSettings[4] == 2) {
+		sensitivity = -0.075;
+	}
+	if (accessSettings[4] == 1) {
+		sensitivity = -0.05;
+	}
+	if (accessSettings[4] == 4) {
+		sensitivity = -0.125;
+	}
+	if (accessSettings[4] == 5) {
+		sensitivity = -0.15;
+	}
+	soundVolume = accessSettings[5];
+	musicVolume = accessSettings[6];
+	if (accessSettings[7] == 1) {
+		UIScale = 1.35;
+	}
+	else
+	{
+		UIScale = 0.95;
+	}
+
 }
 
