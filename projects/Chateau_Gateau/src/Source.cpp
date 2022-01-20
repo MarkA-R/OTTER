@@ -367,10 +367,12 @@ Entity* accessEntities[4];
 int accessButtonPressed = -1;
 int accessSettings[8] = {1,2,3,4,3,3,3,0};
 bool isInOption = false;
+glm::vec3 accessScale = glm::vec3(0.01f, 0.01f, 0.01f);
 
 
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
+glm::vec3 numberScale;
 void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
 void restartGame();
@@ -1309,7 +1311,7 @@ int main()
 	for (int i = 0; i < 6; i++) {
 		numberEntities.push_back(Entity::Allocate().release());
 		//numberEntities.back()->transform.SetParent(&receipt.transform);
-
+		numberScale = glm::vec3(0.007, 0.007, 0.007);
 		if (i < 3) {
 
 			numberEntities.back()->Add<CMeshRenderer>(*numberEntities.back(), *numberTiles[i].getMesh(), *numberTiles[i].getMaterial());
@@ -1350,10 +1352,12 @@ int main()
 	for (int i = 0; i < booleanMat.size(); i++) {
 		booleanPointer.push_back(&booleanMat[i]);
 	}
+	loadSettings();
+	applySettings();
 	for (int i = 0; i < 4; i++) {
 		accessEntities[i] = Entity::Allocate().release();//make into other entity for accessibility and re use them for tray abd sign board
 		accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *alphanumericMat[i].getMesh(), *alphanumericMat[i].getMaterial());
-		accessEntities[i]->transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+		accessEntities[i]->transform.m_scale = accessScale;
 		accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 			* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1371,17 +1375,16 @@ int main()
 
 	tray.transform.m_pos = glm::vec3(menuCameraPos.x -0.1 , menuCameraPos.y -0.040, menuCameraPos.z );// 0.552
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	accessTray[0].m_pos = glm::vec3(-0.82, -1.230, -10.68);
-	accessTray[1].m_pos = glm::vec3(-0.82, -1.230, -10.725);
-	accessTray[2].m_pos = glm::vec3(-0.78, -1.230, -10.68);
-	accessTray[3].m_pos = glm::vec3(-0.78, -1.230, -10.725);
+	accessTray[0].m_pos = glm::vec3(-0.82, -1.228, -10.68);
+	accessTray[1].m_pos = glm::vec3(-0.82, -1.228, -10.725);
+	accessTray[2].m_pos = glm::vec3(-0.78, -1.228, -10.68);
+	accessTray[3].m_pos = glm::vec3(-0.78, -1.228, -10.725);
 	accessTray[4].m_pos = glm::vec3(-1, -1.190, -10.620);
 	accessTray[5].m_pos = glm::vec3(-1, -1.230, -10.620);
 	accessTray[6].m_pos = glm::vec3(-1, -1.270, -10.620);
 	accessTray[7].m_pos = glm::vec3(-1, -1.310, -10.620);
 	
-	loadSettings();
-	applySettings();
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
@@ -1428,7 +1431,30 @@ int main()
 		if (canCheat) {
 			//std::cout << "GGGG" << std::endl;
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
+				bakeryUtils::addToFailed(3);
+				//createNewOrder(i, false, false);
 				bakeryUtils::addToFailed(1);
+				if (bakeryUtils::getOrdersFailed() == 3) {
+					receipt.transform.m_pos = cursor.transform.m_pos;
+					receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+						glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+						* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+					removeFromRendering(&cursor);
+					removeFromRendering(&tray);
+					for each (Entity * trayEntity in trayPastry) {
+						removeFromRendering(trayEntity);
+					}
+					renderingEntities.push_back(&receipt);
+					for (int i = 0; i < 6; i++)
+					{
+						renderingEntities.push_back(numberEntities[i]);
+
+					}
+					int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
+					setScores(bakeryUtils::getRoundsLasted(), highScore);
+					receiptT = 0;
+					isInContinueMenu = true;
+				}
 			}
 			if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot
 				std::cout << "------------------" << std::endl;
@@ -1513,10 +1539,14 @@ int main()
 							accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
 							accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
 							accessEntities[i]->Get<PictureSelector>().updatePicture();
+							accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
+						}
+						for (int i = 0; i < 4; i++) {
 							if (isInRendering(accessEntities[i])) {
 								removeFromRendering(accessEntities[i]);
 							}
 						}
+						accessButtonPressed = 0;
 					}
 					else if (selectedOption == 5) {
 						isInMainMenu = true;
@@ -1548,15 +1578,19 @@ int main()
 					for (int i = 0; i < 4; i++) {
 						accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
 					}
+					saveSettings();
+					applySettings();
 					for (int i = 0; i < 4; i++) {
 						
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
+								
+
 							}
-						
+							accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+							accessEntities[i]->transform.m_pos = accessTray[i+4].m_pos;
 					}
-					saveSettings();
-					applySettings();
+					
 				}
 				
 			}
@@ -1713,6 +1747,7 @@ int main()
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
 								accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
 								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
 								accessEntities[i]->Get<PictureSelector>().updatePicture();
 							}
@@ -2269,6 +2304,10 @@ int main()
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
 					if (bakeryUtils::getOrdersFailed() == 3) {
+						if (cameraX == 0 && cameraY == 0) {
+							cameraX = 1;
+							cameraY = 1;
+						}
 						 receipt.transform.m_pos = cursor.transform.m_pos;
 						receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 							glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
@@ -2390,6 +2429,7 @@ int main()
 		for (int i = 0; i < numberEntities.size(); i++) {
 			numberEntities[i]->transform.m_rotation = receipt.transform.m_rotation;
 			numberEntities[i]->transform.m_pos = beginingNumberPos[i];
+			numberEntities[i]->transform.m_scale = numberScale;
 		}
 		//receipt.transform.m_rotation = cameraQuat;
 		
@@ -3791,9 +3831,12 @@ void resetBubble(int i, bool create) {
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
 	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping), getDrinkTile(currentOrders[i].drink));
 	orderBubbles[i]->setup(&bubbleTile, &plusTile);
+	orderBubbles[i]->updateScale(UIScale);
 	if (create) {
 		orderBubbles[i]->create(currentOrders[i]);
+		orderBubbles[i]->updateScale(UIScale);
 	}
+	
 	
 }
 
@@ -4282,7 +4325,15 @@ void loadSettings() {
 		MyReadFile.close();
 	}
 	
-	
+	for (int i = 4; i < 7; i++) {
+		if (accessSettings[i] > 4 || accessSettings[i] < 0) {
+			accessSettings[i] = 3;
+		}
+		
+	}
+	if (accessSettings[7] > 1 || accessSettings[7] < 0) {
+		accessSettings[7] = 0;
+	}
 	
 }
 
@@ -4290,25 +4341,26 @@ void applySettings() {
 	for (int i = 0; i < 4; i++) {
 		trayKeys[i] = pictureIndexToGLuint(accessSettings[i]);
 	}
-	if (accessSettings[4] == 3) {
+	if (accessSettings[4] == 2) {
 		sensitivity = -0.1;
 	}
-	if (accessSettings[4] == 2) {
+	if (accessSettings[4] == 1) {
 		sensitivity = -0.075;
 	}
-	if (accessSettings[4] == 1) {
+	if (accessSettings[4] == 0) {
 		sensitivity = -0.05;
 	}
-	if (accessSettings[4] == 4) {
+	if (accessSettings[4] == 3) {
 		sensitivity = -0.125;
 	}
-	if (accessSettings[4] == 5) {
+	if (accessSettings[4] == 4) {
 		sensitivity = -0.15;
 	}
 	soundVolume = accessSettings[5];
 	musicVolume = accessSettings[6];
 	if (accessSettings[7] == 1) {
 		UIScale = 1.35;
+		
 	}
 	else
 	{

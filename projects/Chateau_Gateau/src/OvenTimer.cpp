@@ -13,6 +13,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));// *
 		//;
 	tile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * transformScale;
+	tileScale = glm::vec3(0.8, 0.8, 0.8) * transformScale;
 	tile.get()->transform.m_pos = position.m_pos;
 	
 	
@@ -22,6 +23,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 	circle.get()->transform.SetParent(&position);
 	circle.get()->transform.m_pos = position.m_pos;
 	circle.get()->transform.m_scale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
+	circleScale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
 	circle.get()->transform.m_rotation =  
 		glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -30,6 +32,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 	arrow.get()->Add<CMeshRenderer>(*arrow, *a.getMesh(), *a.getMaterial());	
 	arrow.get()->transform.SetParent(&position);
 	arrow.get()->transform.m_scale = glm::vec3(0.1,0.5,0.1) * transformScale;
+	arrowScale = glm::vec3(0.1, 0.5, 0.1) * transformScale;
 	arrow.get()->transform.m_pos = position.m_pos;
 	
 
@@ -115,5 +118,22 @@ void OvenTimer::dontShow(int i)
 		circle->transform.m_scale = glm::vec3(0);
 	}
 }
+
+glm::vec3 OvenTimer::getTileScale()
+{
+	return tileScale;
+}
+
+glm::vec3 OvenTimer::getArrowScale()
+{
+	return arrowScale;
+}
+
+glm::vec3 OvenTimer::getCircleScale()
+{
+	return circleScale;
+}
+
+
 
 

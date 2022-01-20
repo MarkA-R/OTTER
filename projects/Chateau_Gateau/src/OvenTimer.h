@@ -20,12 +20,18 @@ public:
 	void setTransform(Transform&);
 	void setPosition(glm::vec3);
 	void dontShow(int);//0 for tile, 1 for arrow, 2 for circle
-
+	glm::vec3 getTileScale();
+	glm::vec3 getArrowScale();
+	glm::vec3 getCircleScale();
 protected:
 	float fill = 0;
+	glm::vec3 tileScale;
+	glm::vec3 arrowScale;
+	glm::vec3 circleScale;
 	std::unique_ptr<Entity> tile;
 	std::unique_ptr<Entity> arrow;
 	std::unique_ptr<Entity> circle;
+	
 	Transform position;
 };
 

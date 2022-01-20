@@ -100,9 +100,9 @@ void OrderBubble::create(Order& o, float scaleAll)
     toRender.push_back(timer->getArrow());
     toRender.push_back(timer->getCircle());
     toRender.push_back(timer->getTile());
-    timer->getArrow()->transform.m_scale *= (scaleAll + 0.05);
-    timer->getCircle()->transform.m_scale *= (scaleAll + 0.05);
-    timer->getTile()->transform.m_scale *= (scaleAll + 0.05);
+    timer->getArrow()->transform.m_scale = timer->getArrowScale() * (scaleAll + 0.05f);
+    timer->getCircle()->transform.m_scale = timer->getCircleScale() * (scaleAll + 0.05f);
+    timer->getTile()->transform.m_scale = timer->getTileScale() * (scaleAll + 0.05f);
    
     glm::vec3 timerPos = bubbleTransform.m_pos;
     timerPos.y -= (0.29 * scaleX * (scaleAll + 0.05));
@@ -316,9 +316,9 @@ void OrderBubble::updateScale(float scaleAll)
     //std::cout << "W " << width << std::endl;
 
     float sectionWidth = (width / totalEnties);
-    timer->getArrow()->transform.m_scale *= (scaleAll + 0.05);
-    timer->getCircle()->transform.m_scale *= (scaleAll + 0.05);
-    timer->getTile()->transform.m_scale *= (scaleAll + 0.05);
+    timer->getArrow()->transform.m_scale = timer->getArrowScale() * (scaleAll + 0.05f);
+    timer->getCircle()->transform.m_scale = timer->getCircleScale() * (scaleAll + 0.05f);
+    timer->getTile()->transform.m_scale = timer->getTileScale() * (scaleAll + 0.05f);
 
     glm::vec3 timerPos = bubbleTransform.m_pos;
     timerPos.y -= (0.29 * scaleX * (scaleAll + 0.05));
@@ -345,27 +345,31 @@ void OrderBubble::updateScale(float scaleAll)
       //std::cout << "FINAL " << (bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place) << std::endl;
 
     if (hasDrink) {
+        if (drinkTile.get() != nullptr) {
+            drinkTile.get()->transform.m_rotation =
+                glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+            drinkTile.get()->transform.m_scale = (glm::vec3(0.7, 0.7, 0.7) * 0.3f) * scaleAll;
 
+
+            drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+
+        }
         
-        drinkTile.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        drinkTile.get()->transform.m_scale = (glm::vec3(0.7, 0.7, 0.7) * 0.3f) * scaleAll;
+       
+
+        if (plusR.get() != nullptr) {
+
+            plusR.get()->transform.m_rotation =
+                glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+            plusR.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
 
 
-        drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
-      
+            plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
 
-      
-        
-        plusR.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        plusR.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
-
-
-        plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
-        toRender.push_back(plusR.get());
+      }
+     
         //place++;
 
 
@@ -374,22 +378,28 @@ void OrderBubble::updateScale(float scaleAll)
 
     if (hasTopping) {
 
-        toppingTile.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        toppingTile.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.3f) * scaleAll;
+        if (toppingTile.get() != nullptr) {
+            toppingTile.get()->transform.m_rotation =
+                glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+            toppingTile.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.3f) * scaleAll;
 
 
-        toppingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+            toppingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+
+        }
         place++;
 
-        plusM.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        plusM.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
+        if (plusM.get() != nullptr) {
+            plusM.get()->transform.m_rotation =
+                glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+            plusM.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
 
 
-        plusM.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+            plusM.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+
+        }
        
         place++;
 
@@ -398,32 +408,36 @@ void OrderBubble::updateScale(float scaleAll)
 
     if (hasFilling) {
 
-       
-        fillingTile.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        fillingTile.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.3f) * scaleAll;
+        if (fillingTile.get() != nullptr) {
+            fillingTile.get()->transform.m_rotation =
+                glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+            fillingTile.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.3f) * scaleAll;
 
 
-        fillingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-       
+            fillingTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+             
+       }
         place++;
-
        
-        plusL.get()->transform.m_rotation =
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        plusL.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
+
+        if (plusL.get() != nullptr) {
+            plusL.get()->transform.m_rotation =
+                glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
+            plusL.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
 
 
-        plusL.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+            plusL.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+            
        
+            
+        }
+
         place++;
-
-
     }
 
-    
+    if (pastryTile != nullptr) {
         pastryTile.get()->transform.m_rotation =
             glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
             glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -433,6 +447,8 @@ void OrderBubble::updateScale(float scaleAll)
 
         pastryTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
 
+    }
+       
    
     
 }
