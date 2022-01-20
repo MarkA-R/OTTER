@@ -423,16 +423,18 @@ void OrderBubble::updateScale(float scaleAll)
 
     }
 
+    
+        pastryTile.get()->transform.m_rotation =
+            glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        // * glm::angleAxis(glm::radians(45.f), glm::vec3(0.0f, 0.0f, 1.0f));// *
+        pastryTile.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.3f) * scaleAll;
+
+        pastryTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
+
    
-    pastryTile.get()->transform.m_rotation =
-        glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-        glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    // * glm::angleAxis(glm::radians(45.f), glm::vec3(0.0f, 0.0f, 1.0f));// *
-    pastryTile.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.3f) * scaleAll;
-
-    pastryTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + ((sectionWidth / 2) * place), bubblePos.y + yAdder, bubblePos.z - 0.01);
-    toRender.push_back(pastryTile.get());
+    
 }
 
 

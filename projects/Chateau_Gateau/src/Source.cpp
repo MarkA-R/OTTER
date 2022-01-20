@@ -1531,12 +1531,29 @@ int main()
 						}
 						
 					}
+					else
+					{
+						for (int i = 0; i < 4; i++) {
+							if (selectedOption - 1 != i) {
+								if (isInRendering(accessEntities[i])) {
+									removeFromRendering(accessEntities[i]);
+								}
+							}
+						}
+					}
 					
 				}
 				else
 				{
 					for (int i = 0; i < 4; i++) {
 						accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
+					}
+					for (int i = 0; i < 4; i++) {
+						
+							if (!isInRendering(accessEntities[i])) {
+								renderingEntities.push_back(accessEntities[i]);
+							}
+						
 					}
 					saveSettings();
 					applySettings();
@@ -3765,9 +3782,10 @@ void createNewOrder(int i, bool addDifficulty, bool remove) {
 }
 
 void resetBubble(int i, bool create) {
+	orderBubbles[i]->updateScale(UIScale);
 	orderBubbles[i]->clearRenderingEntities();
 	orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
-	orderBubbles[i]->updateScale(UIScale);
+	
 	orderBubbleTimers[i]->setFill(0);
 	orderBubbleTimers[i]->updateArrow();
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
