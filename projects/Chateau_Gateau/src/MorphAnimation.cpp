@@ -108,3 +108,8 @@ int MorphAnimation::getFrameSize()
 {
 	return frames.size();
 }
+
+void MorphAnimation::reverseFrames()
+{
+	std::reverse(frames.begin(), frames.end());
+}

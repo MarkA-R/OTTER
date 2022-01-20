@@ -376,7 +376,7 @@ glm::vec3 numberScale;
 void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
 void restartGame();
-
+Entity* ovenEntites[4];
 
 
 void log(std::string s) {
@@ -459,7 +459,7 @@ int main()
 	binMat.createMaterial("bakery/models/trash.gltf", "bakery/textures/trash.png", *prog_texLit);
 
 	MaterialCreator ovenMat = MaterialCreator();
-	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit); 
+	ovenMat.createMaterial("bakery/models/legs.gltf", "bakery/textures/ovenTexture.png", *prog_texLit); 
 
 	MaterialCreator toppingMat = MaterialCreator();
 	toppingMat.createMaterial("bakery/models/topping.gltf", "bakery/textures/topping.png", *prog_texLit);
@@ -522,6 +522,15 @@ int main()
 	
 	MaterialCreator arrowMat = MaterialCreator();
 	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_texLit);
+
+	MaterialCreator ovenDial = MaterialCreator();
+	ovenDial.createMaterial("bakery/models/dial.gltf", "bakery/textures/ovenTexture.png", *prog_texLit);
+
+	MaterialCreator ovenOpenMat = MaterialCreator();
+	ovenOpenMat.createMaterial("bakery/models/ovenopen.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenClosedMat = MaterialCreator();
+	ovenClosedMat.createMaterial("bakery/models/ovenClosed.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
 	
 	MaterialCreator bakeryMat = MaterialCreator();
 	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
@@ -622,7 +631,7 @@ int main()
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
 
 	
-	
+
 
 	Entity bakery = Entity::Create();
 	bakery.Add<CMeshRenderer>(bakery, *bakeryMat.getMesh(), *bakeryMat.getMaterial());
@@ -765,12 +774,29 @@ int main()
 		
 		oven.Add<Machine>();
 		oven.Add<Oven>();
-		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
+		oven.transform.m_scale = glm::vec3(0.075f, 0.05f, 0.075f);
 		oven.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 0.5f);
+		oven.transform.m_pos = glm::vec3(0.5f, -1.5f, 0.1f);
 		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.35), oven);
 		renderingEntities.push_back(&oven);
 	
+		std::vector<Mesh*> openingFrames;
+		openingFrames.push_back(ovenClosedMat.getMesh().get());
+		openingFrames.push_back(ovenOpenMat.getMesh().get());
+	
+		for (int i = 0; i < 4; i++) {
+			ovenEntites[i] = Entity::Allocate().release();
+			ovenEntites[i]->transform = oven.transform;
+			ovenEntites[i]->transform.m_pos.y += 0.19 + (i * 0.3);
+			ovenEntites[i]->transform.m_scale= glm::vec3(0.3);
+			ovenEntites[i]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+			ovenEntites[i]->Add<CMorphMeshRenderer>(*ovenEntites[i], *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
+			ovenEntites[i]->Add<MorphAnimation>(openingFrames,0.3f,0);
+			renderingEntities.push_back(ovenEntites[i]);
+		}
+
+
 		Entity filling = Entity::Create();
 		filling.Add<CMorphMeshRenderer>(filling, *fillingMat1.getMesh(), *fillingMat1.getMaterial());
 		
@@ -1163,40 +1189,41 @@ int main()
 
 	Transform slot1Transform = oven.transform;
 	//1.f, -1.5f, 0.5f
-	slot1Transform.m_pos.x += -0.39;
-	slot1Transform.m_pos.y += 0.53;
-	slot1Transform.m_pos.z -= 0.440;
-	OvenTimer slot1 = OvenTimer(nothingTile,arrowMat, timerMat, slot1Transform);
+	slot1Transform.m_pos.x = 0.145;
+	slot1Transform.m_pos.y = -1.000;
+	slot1Transform.m_pos.z = -0.175;
+	slot1Transform.m_scale = glm::vec3(0.25);
+	OvenTimer slot1 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3);
 	renderingEntities.push_back(slot1.getArrow());
-	renderingEntities.push_back(slot1.getCircle());
+	//renderingEntities.push_back(slot1.getCircle());
 	renderingEntities.push_back(slot1.getTile());
 
-	Transform slot2Transform = oven.transform;
-	slot2Transform.m_pos.x += -0.27;
-	slot2Transform.m_pos.y += 0.53;
-	slot2Transform.m_pos.z -= 0.140;
-	OvenTimer slot2 = OvenTimer(nothingTile, arrowMat, timerMat, slot2Transform);
+	Transform slot2Transform = slot1Transform;
+	//slot2Transform.m_pos.x += -0.27;
+	slot2Transform.m_pos.y = -0.70;
+	//slot2Transform.m_pos.z -= 0.140;
+	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3);
 	renderingEntities.push_back(slot2.getArrow());
-	renderingEntities.push_back(slot2.getCircle());
+	//renderingEntities.push_back(slot2.getCircle());
 	renderingEntities.push_back(slot2.getTile());
 
 
-	Transform slot3Transform = oven.transform;
-	slot3Transform.m_pos.x += -0.39;
-	slot3Transform.m_pos.y += 0.27;
-	slot3Transform.m_pos.z -= 0.440;
-	OvenTimer slot3 = OvenTimer(nothingTile, arrowMat, timerMat, slot3Transform);
+	Transform slot3Transform = slot1Transform;
+	//slot3Transform.m_pos.x += -0.39;
+	slot3Transform.m_pos.y = -0.4;
+	//slot3Transform.m_pos.z -= 0.440;
+	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3);
 	renderingEntities.push_back(slot3.getArrow());
-	renderingEntities.push_back(slot3.getCircle());
+	//renderingEntities.push_back(slot3.getCircle());
 	renderingEntities.push_back(slot3.getTile());
 
-	Transform slot4Transform = oven.transform;
-	slot4Transform.m_pos.x += -0.27;
-	slot4Transform.m_pos.y += 0.27;
-	slot4Transform.m_pos.z -= 0.140;
-	OvenTimer slot4 = OvenTimer(nothingTile, arrowMat, timerMat, slot4Transform);
+	Transform slot4Transform = slot1Transform;
+	//slot4Transform.m_pos.x += -0.27;
+	slot4Transform.m_pos.y = -0.1;
+	//slot4Transform.m_pos.z -= 0.140;
+	OvenTimer slot4 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3);
 	renderingEntities.push_back(slot4.getArrow());
-	renderingEntities.push_back(slot4.getCircle());
+	//renderingEntities.push_back(slot4.getCircle());
 	renderingEntities.push_back(slot4.getTile());
 
 
@@ -1364,25 +1391,29 @@ int main()
 		accessEntities[i]->Add<PictureSelector>(accessEntities[i]);
 		accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
 	}
-	//accessEntities[0]->transform.m_pos = accessTray[0].m_pos;
-	accessEntities[0]->Get<PictureSelector>().setPictures(sliderPointer);
-	accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
-	accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
-	accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
+	{//accessEntities stuff
+		//accessEntities[0]->transform.m_pos = accessTray[0].m_pos;
+		accessEntities[0]->Get<PictureSelector>().setPictures(sliderPointer);
+		accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
+		accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
+		accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
 
 
+
+
+		tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552
+		tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		accessTray[0].m_pos = glm::vec3(-0.82, -1.228, -10.68);
+		accessTray[1].m_pos = glm::vec3(-0.82, -1.228, -10.725);
+		accessTray[2].m_pos = glm::vec3(-0.78, -1.228, -10.68);
+		accessTray[3].m_pos = glm::vec3(-0.78, -1.228, -10.725);
+		accessTray[4].m_pos = glm::vec3(-1, -1.190, -10.620);
+		accessTray[5].m_pos = glm::vec3(-1, -1.230, -10.620);
+		accessTray[6].m_pos = glm::vec3(-1, -1.270, -10.620);
+		accessTray[7].m_pos = glm::vec3(-1, -1.310, -10.620);
+
+	}
 	
-
-	tray.transform.m_pos = glm::vec3(menuCameraPos.x -0.1 , menuCameraPos.y -0.040, menuCameraPos.z );// 0.552
-	tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	accessTray[0].m_pos = glm::vec3(-0.82, -1.228, -10.68);
-	accessTray[1].m_pos = glm::vec3(-0.82, -1.228, -10.725);
-	accessTray[2].m_pos = glm::vec3(-0.78, -1.228, -10.68);
-	accessTray[3].m_pos = glm::vec3(-0.78, -1.228, -10.725);
-	accessTray[4].m_pos = glm::vec3(-1, -1.190, -10.620);
-	accessTray[5].m_pos = glm::vec3(-1, -1.230, -10.620);
-	accessTray[6].m_pos = glm::vec3(-1, -1.270, -10.620);
-	accessTray[7].m_pos = glm::vec3(-1, -1.310, -10.620);
 	
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
@@ -1396,13 +1427,13 @@ int main()
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
 		
-		/*
+		/**/
 			App::StartImgui();
 			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 
-			ImGui::DragFloat("X", &(accessEntities[0]->transform.m_pos.x), 0.01);
-			ImGui::DragFloat("Y", &(accessEntities[0]->transform.m_pos.y), 0.01);
-			ImGui::DragFloat("Z", &(accessEntities[0]->transform.m_pos.z), 0.01);
+			ImGui::DragFloat("X", &(slot1.getTransform().m_pos.x), 0.01);
+			ImGui::DragFloat("Y", &(slot1.getTransform().m_pos.y), 0.01);
+			ImGui::DragFloat("Z", &(slot1.getTransform().m_pos.z), 0.01);
 			//ImGui::DragFloat("D", &(tempD), 0.01);
 
 			//ImGui::DragFloat("Scale", &(sc), 0.1f);
@@ -1411,7 +1442,7 @@ int main()
 			App::EndImgui();
 
 			
-		*/
+		
 	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 		

@@ -24,6 +24,7 @@ public:
 	Mesh* getMeshAtFrame(int i);
 	std::vector<Mesh*> getFrames();
 	int getFrameSize();
+	void reverseFrames();
 
 
 };

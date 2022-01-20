@@ -8,13 +8,14 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 	tile.get()->Add<CMeshRenderer>(*tile, *t.getMesh(), *t.getMaterial());
 	position = pos;
 	tile.get()->transform.SetParent(&position);
+	tile.get()->transform.m_pos = position.m_pos;
 	tile.get()->transform.m_rotation =
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));// *
 		//;
 	tile.get()->transform.m_scale = glm::vec3(0.8, 0.8, 0.8) * transformScale;
 	tileScale = glm::vec3(0.8, 0.8, 0.8) * transformScale;
-	tile.get()->transform.m_pos = position.m_pos;
+	
 	
 	
 	circle = Entity::Allocate();
@@ -31,7 +32,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 
 	arrow.get()->Add<CMeshRenderer>(*arrow, *a.getMesh(), *a.getMaterial());	
 	arrow.get()->transform.SetParent(&position);
-	arrow.get()->transform.m_scale = glm::vec3(0.1,0.5,0.1) * transformScale;
+	arrow.get()->transform.m_scale = glm::vec3(0.1,0.1,0.1) * transformScale;
 	arrowScale = glm::vec3(0.1, 0.5, 0.1) * transformScale;
 	arrow.get()->transform.m_pos = position.m_pos;
 	
