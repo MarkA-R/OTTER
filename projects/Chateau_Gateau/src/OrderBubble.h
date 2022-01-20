@@ -41,5 +41,6 @@ public:
 	Order* getOrder();
 	float getFill();
 	OvenTimer& getTimer();
+	void updateScale(float scale);
 };
 

@@ -223,6 +223,8 @@ float UIScale = 0.95;//1.35
 bool largeFont = false;
 std::unordered_map<GLuint, int> alphanumeric;
 std::vector<MaterialCreator> alphanumericMat;
+std::vector<MaterialCreator> sliderMat;
+std::vector<MaterialCreator> booleanMat;
 
 // Keep our main cleaner
 void LoadDefaultResources();
@@ -271,6 +273,15 @@ MaterialCreator settingsSignMat = MaterialCreator();
 MaterialCreator exitSignMat = MaterialCreator();
 MaterialCreator pauseSignMat = MaterialCreator();
 MaterialCreator restartSignMat = MaterialCreator();
+
+MaterialCreator optionTraySignMat = MaterialCreator();
+MaterialCreator optionSensitivitySignMat = MaterialCreator();
+MaterialCreator optionMusicSignMat = MaterialCreator();
+MaterialCreator optionSoundSignMat = MaterialCreator();
+MaterialCreator optionEnlargeSignMat = MaterialCreator();
+MaterialCreator optionExitSignMat = MaterialCreator();
+MaterialCreator optionKeybindSignMat = MaterialCreator();
+MaterialCreator optionKeybindDoneSignMat = MaterialCreator();
 
 MaterialCreator croissantTile = MaterialCreator();
 MaterialCreator doughTile = MaterialCreator();
@@ -351,10 +362,12 @@ float dayDark = 0.2;
 MaterialCreator copyMaterials[4];
 
 Transform accessStart[4];
-Transform accessTray[4];
+Transform accessTray[8];
 Entity* accessEntities[4];
 int accessButtonPressed = -1;
 int accessSettings[8] = {1,2,3,4,3,3,3,0};
+bool isInOption = false;
+
 
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
@@ -486,6 +499,22 @@ int main()
 		alphanumericMat.back().createMaterial("bakery/models/tile.gltf", newString, *prog_texLit);
 		
 	}
+	booleanMat.push_back(MaterialCreator());
+	booleanMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeCross.png", *prog_texLit);
+	booleanMat.push_back(MaterialCreator());
+	booleanMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeCheck.png", *prog_texLit);
+
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeLow.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMidLow.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMiddle.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMidHigh.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeHigh.png", *prog_texLit);
+
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
 	
@@ -528,11 +557,32 @@ int main()
 	exitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/exitSign.png", *prog_texLit);
 	pauseSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/pauseSign.png", *prog_texLit);
 	restartSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/restartSign.png", *prog_texLit);
+
+	optionTraySignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionTraySign.png", *prog_texLit);
+	optionSensitivitySignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionSensitivitySign.png", *prog_texLit);
+	optionMusicSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionMusicSign.png", *prog_texLit);
+	optionSoundSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionSoundSign.png", *prog_texLit);
+	optionEnlargeSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionEnlargeSign.png", *prog_texLit);
+	optionExitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionExitSign.png", *prog_texLit);
+
+	optionKeybindSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionKeybindSign.png", *prog_texLit);
+	optionKeybindDoneSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionKeybindDoneSign.png", *prog_texLit);
+
 	signFrames.push_back(playSignMat.getMaterial().get());
 	signFrames.push_back(settingsSignMat.getMaterial().get());
 	signFrames.push_back(exitSignMat.getMaterial().get());
 	signFrames.push_back(pauseSignMat.getMaterial().get());
 	signFrames.push_back(restartSignMat.getMaterial().get());
+
+
+	signFrames.push_back(optionTraySignMat.getMaterial().get());
+	signFrames.push_back(optionSensitivitySignMat.getMaterial().get());
+	signFrames.push_back(optionMusicSignMat.getMaterial().get());
+	signFrames.push_back(optionSoundSignMat.getMaterial().get());
+	signFrames.push_back(optionEnlargeSignMat.getMaterial().get());
+	signFrames.push_back(optionExitSignMat.getMaterial().get());
+	signFrames.push_back(optionKeybindSignMat.getMaterial().get());
+	signFrames.push_back(optionKeybindDoneSignMat.getMaterial().get());
 
 
 	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
@@ -1242,6 +1292,7 @@ int main()
 			renderingEntities.push_back(ent);
 		}
 	}
+	
 	currentOrders.back().startOrder();
 	}
 	
@@ -1288,8 +1339,16 @@ int main()
 	}
 	
 	std::vector<MaterialCreator*> alphanumericPointer;
+	std::vector<MaterialCreator*> sliderPointer;
+	std::vector<MaterialCreator*> booleanPointer;
 	for (int i = 0; i < alphanumericMat.size(); i++) {
 		alphanumericPointer.push_back(&alphanumericMat[i]);
+	}
+	for (int i = 0; i < sliderMat.size(); i++) {
+		sliderPointer.push_back(&sliderMat[i]);
+	}
+	for (int i = 0; i < booleanMat.size(); i++) {
+		booleanPointer.push_back(&booleanMat[i]);
 	}
 	for (int i = 0; i < 4; i++) {
 		accessEntities[i] = Entity::Allocate().release();//make into other entity for accessibility and re use them for tray abd sign board
@@ -1301,8 +1360,11 @@ int main()
 		accessEntities[i]->Add<PictureSelector>(accessEntities[i]);
 		accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
 	}
-	
-
+	//accessEntities[0]->transform.m_pos = accessTray[0].m_pos;
+	accessEntities[0]->Get<PictureSelector>().setPictures(sliderPointer);
+	accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
+	accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
+	accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
 
 
 	
@@ -1313,6 +1375,10 @@ int main()
 	accessTray[1].m_pos = glm::vec3(-0.82, -1.230, -10.725);
 	accessTray[2].m_pos = glm::vec3(-0.78, -1.230, -10.68);
 	accessTray[3].m_pos = glm::vec3(-0.78, -1.230, -10.725);
+	accessTray[4].m_pos = glm::vec3(-1, -1.190, -10.620);
+	accessTray[5].m_pos = glm::vec3(-1, -1.230, -10.620);
+	accessTray[6].m_pos = glm::vec3(-1, -1.270, -10.620);
+	accessTray[7].m_pos = glm::vec3(-1, -1.310, -10.620);
 	
 	loadSettings();
 	applySettings();
@@ -1331,9 +1397,9 @@ int main()
 			App::StartImgui();
 			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 
-			ImGui::DragFloat("X", &(sensitivity), 0.01);
-			//ImGui::DragFloat("Y", &(tempB), 0.01);
-			//ImGui::DragFloat("Z", &(tempC), 0.01);
+			ImGui::DragFloat("X", &(accessEntities[0]->transform.m_pos.x), 0.01);
+			ImGui::DragFloat("Y", &(accessEntities[0]->transform.m_pos.y), 0.01);
+			ImGui::DragFloat("Z", &(accessEntities[0]->transform.m_pos.z), 0.01);
 			//ImGui::DragFloat("D", &(tempD), 0.01);
 
 			//ImGui::DragFloat("Scale", &(sc), 0.1f);
@@ -1341,8 +1407,8 @@ int main()
 
 			App::EndImgui();
 
-			*/
-		
+			
+		*/
 	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 		
@@ -1434,70 +1500,150 @@ int main()
 		}
 		if (isInOptionsMenu) {
 			
-			//trayPastry[0] = &access1;
-			
-			
-			if (accessButtonPressed >= 0) {
-				for (int i = 0; i < std::size(accessEntities); i++) {
-					accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
-				}
-				
-				//show tray and stuff
-				if (accessButtonPressed < 4) {
-					for (int i = 0; i < accessButtonPressed + 1; i++) {
-						if (!isInRendering(accessEntities[i])) {
-							renderingEntities.push_back(accessEntities[i]);
+			if (isClickingSpace) {
+				isInOption = !isInOption;
+
+				if (isInOption) {
+					if (selectedOption == 0) {
+						sign.Get<CMeshRenderer>().SetMaterial(*signFrames[11]);
+						if (!isInRendering(&tray)) {
+							renderingEntities.push_back(&tray);
 						}
-					}
-				}
-				
-				if (getWhichKeyPressed() != -1) {
-					if (accessButtonPressed >= 4) {
-						accessButtonPressed = -1;
-						//accessButtonPressed = 0;
-						for (int i = 0; i < 4 + 1; i++) {
+						for (int i = 0; i < 4; i++) {
+							accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+							accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
+							accessEntities[i]->Get<PictureSelector>().updatePicture();
 							if (isInRendering(accessEntities[i])) {
-								renderingEntities.push_back(accessEntities[i]);
 								removeFromRendering(accessEntities[i]);
 							}
 						}
+					}
+					else if (selectedOption == 5) {
 						isInMainMenu = true;
 						isInOptionsMenu = false;
-						if (isInRendering(&tray)) {
-							removeFromRendering(&tray);
-						}
-						saveSettings();
-						applySettings();
-					}
-					else
-					{
-						
-						int keyPressed = getWhichKeyPressed();
-						bool alreadyUsed = false;
-						for (int i = 0; i < accessButtonPressed; i++) {
-							if (accessEntities[i]->Get<PictureSelector>().getIndex() == keyPressed) {
-								alreadyUsed = true;
+						isInOption = false;
+						sign.Get<CMeshRenderer>().SetMaterial(*signFrames[1]);
+						selectedOption = 1;
+						for (int i = 0; i < 4; i++) {
+							if (isInRendering(accessEntities[i])) {
+								removeFromRendering(accessEntities[i]);
 							}
-						}
-						if (!alreadyUsed) {
-							trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
-							accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
-							accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
-							accessSettings[accessButtonPressed] = keyPressed;
-							accessButtonPressed++;
 						}
 						
 					}
 					
 				}
+				else
+				{
+					for (int i = 0; i < 4; i++) {
+						accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
+					}
+					saveSettings();
+					applySettings();
+				}
 				
+			}
+
+			if (!isInOption) {
+				int mainMenuChosen = getSignSelection(6, false);
+
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 5]);
 			}
 			else
 			{
+				if (selectedOption == 0) {
+					
+					if (accessButtonPressed >= 0) {
+						for (int i = 0; i < std::size(accessEntities); i++) {
+							accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
+						}
+
+						//show tray and stuff
+						if (accessButtonPressed < 4) {
+							for (int i = 0; i < accessButtonPressed + 1; i++) {
+								if (!isInRendering(accessEntities[i])) {
+									renderingEntities.push_back(accessEntities[i]);
+								}
+							}
+						}
+
+						if (getWhichKeyPressed() != -1) {
+							if (accessButtonPressed >= 4) {
+								accessButtonPressed = -1;
+								//accessButtonPressed = 0;
+								
+								//isInMainMenu = true;
+								//isInOptionsMenu = false;
+								isInOption = false;
+								if (isInRendering(&tray)) {
+									removeFromRendering(&tray);
+								}
+								accessEntities[0]->Get<PictureSelector>().setPictures(sliderPointer);
+								accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
+								accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
+								accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
+								for (int i = 0; i < 4; i++) {
+									accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
+									accessEntities[i]->Get<PictureSelector>().updatePicture();
+									accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+								}
+								saveSettings();
+								applySettings();
+							}
+							else
+							{
+
+								renderingEntities.push_back(accessEntities[accessButtonPressed]);
+								int keyPressed = getWhichKeyPressed();
+								bool alreadyUsed = false;
+								for (int i = 0; i < accessButtonPressed; i++) {
+									if (accessEntities[i]->Get<PictureSelector>().getIndex() == keyPressed) {
+										alreadyUsed = true;
+									}
+								}
+								if (!alreadyUsed) {
+									
+									trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
+									accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
+									accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
+									accessSettings[accessButtonPressed] = keyPressed;
+									accessButtonPressed++;
+									if (accessButtonPressed == 4) {
+										sign.Get<CMeshRenderer>().SetMaterial(*signFrames[12]);
+									}
+								}
+								
+
+							}
+
+						}
+
+					}
+					else
+					{
+
+						//accessButtonPressed = 0;
+					}
+				}
+				else if (selectedOption != 5) {
+					if (isClickingUp) {
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(1);
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
+					}
+					else if (isClickingDown) {
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(-1);
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
+
+					}
+				}
 				
-				//accessButtonPressed = 0;
 			}
-			//trayPastry[0]->transform.SetParent(&globalCameraEntity->transform);
+			
+
+			
+			
+
+			
 			
 			
 
@@ -1533,6 +1679,7 @@ int main()
 				
 				if (mainMenuChosen >= 0) {	
 					if (mainMenuChosen == 0) {//PLAY	
+						orderBubbles[0]->updateScale(UIScale);
 						tray.transform.m_scale = trayScale;
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
@@ -1544,8 +1691,19 @@ int main()
 						isInOptionsMenu = true;
 						isInMainMenu = false;
 						
-						renderingEntities.push_back(&tray);
+						//renderingEntities.push_back(accessEntities[0]);
+						for (int i = 0; i < 4; i++) {
+							if (!isInRendering(accessEntities[i])) {
+								renderingEntities.push_back(accessEntities[i]);
+								accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
+								accessEntities[i]->Get<PictureSelector>().updatePicture();
+							}
+						}
 						accessButtonPressed = 0;
+						selectedOption = 0;
+						isInOption = false;
+						
 					}
 					if (mainMenuChosen == 2) {
 						break;
@@ -3609,6 +3767,7 @@ void createNewOrder(int i, bool addDifficulty, bool remove) {
 void resetBubble(int i, bool create) {
 	orderBubbles[i]->clearRenderingEntities();
 	orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
+	orderBubbles[i]->updateScale(UIScale);
 	orderBubbleTimers[i]->setFill(0);
 	orderBubbleTimers[i]->updateArrow();
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);

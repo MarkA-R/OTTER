@@ -26,7 +26,7 @@ void PictureSelector::addToIndex(int i )
 	int prevSelected = currentOption;
 	int adder = 0;
 	if (i < 0) {
-		adder = allMaterials.size() - 2;
+		adder = allMaterials.size() - 1;
 	}
 
 	if (i > 0) {
