@@ -32,12 +32,12 @@ void Oven::update(float dt)
 						(currentPastry->getNextCookTime() - currentPastry->getCurrentCookedTime()));
 				if (currentPastry->getPastryType() != bakeryUtils::pastryType::BURNT) {
 					ovenTimers[i]->setFill(timeLeft);
-					ovenTimers[i]->updateArrow();
+					ovenTimers[i]->updateArrow(glm::vec3(1,0,0));
 				}
 				else
 				{
 					ovenTimers[i]->setFill(0);
-					ovenTimers[i]->updateArrow();
+					ovenTimers[i]->updateArrow(glm::vec3(1, 0, 0));
 				}
 				
 				currentPastry->addCookedSeconds(updateTime);

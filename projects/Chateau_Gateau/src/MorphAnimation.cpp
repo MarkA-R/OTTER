@@ -109,7 +109,9 @@ int MorphAnimation::getFrameSize()
 	return frames.size();
 }
 
-void MorphAnimation::reverseFrames()
+void MorphAnimation::reverseFrames(Entity* e)
 {
 	std::reverse(frames.begin(), frames.end());
+	e->Get<CMorphAnimator>().SetFrames(frames);
+	
 }

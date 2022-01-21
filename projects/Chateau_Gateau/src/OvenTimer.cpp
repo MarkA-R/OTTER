@@ -1,6 +1,7 @@
 #include "OvenTimer.h"
 #include <iostream>
-OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c, Transform& pos, float multiplier)
+OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c, Transform& pos, float multiplier, glm::quat arrowRotation
+	)
 {
 	fill = 0;
 	float transformScale = multiplier;
@@ -20,8 +21,9 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 	
 	circle = Entity::Allocate();
 	arrow = Entity::Allocate();
-	circle.get()->Add<CMeshRenderer>(*circle, *c.getMesh(), *c.getMaterial());
 	circle.get()->transform.SetParent(&position);
+	circle.get()->Add<CMeshRenderer>(*circle, *c.getMesh(), *c.getMaterial());
+	
 	circle.get()->transform.m_pos = position.m_pos;
 	circle.get()->transform.m_scale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
 	circleScale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
@@ -29,12 +31,16 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 		glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));
 
+	
+
 
 	arrow.get()->Add<CMeshRenderer>(*arrow, *a.getMesh(), *a.getMaterial());	
 	arrow.get()->transform.SetParent(&position);
 	arrow.get()->transform.m_scale = glm::vec3(0.1,0.1,0.1) * transformScale;
 	arrowScale = glm::vec3(0.1, 0.5, 0.1) * transformScale;
 	arrow.get()->transform.m_pos = position.m_pos;
+	arrow.get()->transform.m_rotation = arrowRotation;
+	arrowRot = arrowRotation;
 	
 
 }
@@ -75,7 +81,7 @@ Entity* OvenTimer::getCircle()
 	return circle.get();
 }
 
-void OvenTimer::updateArrow()
+void OvenTimer::updateArrow(glm::vec3 axis)
 {
 	float n = fill;
 	float whole;
@@ -83,7 +89,7 @@ void OvenTimer::updateArrow()
 	fill = std::modf(n, &whole);
 	//std::cout << fill << std::endl;
 	float angle = 360 * fill;
-	arrow.get()->transform.m_rotation = glm::angleAxis(glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+	arrow.get()->transform.m_rotation = arrowRot * glm::angleAxis(glm::radians(angle), axis);
 }
 
 Transform& OvenTimer::getTransform()

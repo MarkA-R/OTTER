@@ -255,6 +255,7 @@ int getWhichKeyPressed();
 void saveSettings();
 void loadSettings();
 void applySettings();
+int selectedOvenPosition(float x);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -377,7 +378,7 @@ void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
 void restartGame();
 Entity* ovenEntites[4];
-
+float ovenHeights[4];
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -794,6 +795,10 @@ int main()
 			ovenEntites[i]->Add<CMorphMeshRenderer>(*ovenEntites[i], *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
 			ovenEntites[i]->Add<MorphAnimation>(openingFrames,0.3f,0);
 			renderingEntities.push_back(ovenEntites[i]);
+
+			auto& animatordrink = ovenEntites[i]->Add<CMorphAnimator>(*ovenEntites[i]);
+			animatordrink.SetFrameTime(1.0f);
+			animatordrink.SetFrames(openingFrames);
 		}
 
 
@@ -1186,46 +1191,82 @@ int main()
 	
 
 
-
+	int currentOvenPos = -1;//selectedOvenPosition(currentPoint.y);
+	int lastOvenPos = -1;//selectedOvenPosition(lastPoint.y);
 	Transform slot1Transform = oven.transform;
 	//1.f, -1.5f, 0.5f
 	slot1Transform.m_pos.x = 0.145;
-	slot1Transform.m_pos.y = -1.000;
+	slot1Transform.m_pos.y = -0.980;
 	slot1Transform.m_pos.z = -0.175;
 	slot1Transform.m_scale = glm::vec3(0.25);
-	OvenTimer slot1 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3);
+	OvenTimer slot1 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot1.getArrow());
 	//renderingEntities.push_back(slot1.getCircle());
 	renderingEntities.push_back(slot1.getTile());
+	slot1.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot1.getArrow()->transform.m_pos.x += 0.01;
+	slot1.getArrow()->transform.m_pos.z += 0.03;
+	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.570;
 
-	Transform slot2Transform = slot1Transform;
+	//slot1.getArrow()->transform.m_rotation = 
+	Transform slot2Transform = oven.transform;
 	//slot2Transform.m_pos.x += -0.27;
-	slot2Transform.m_pos.y = -0.70;
+	
 	//slot2Transform.m_pos.z -= 0.140;
-	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3);
+	slot2Transform.m_pos.x = 0.145;
+	slot2Transform.m_pos.y = -0.745;
+	slot2Transform.m_pos.z = -0.175;
+	slot2Transform.m_scale = glm::vec3(0.25);
+	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot2.getArrow());
 	//renderingEntities.push_back(slot2.getCircle());
 	renderingEntities.push_back(slot2.getTile());
+	//slot2.getTile()->transform.m_pos = slot2Transform.m_pos;
+	slot2.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot2.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot2.getArrow()->transform.m_pos.x += 0.01;
+	slot2.getArrow()->transform.m_pos.z += 0.03;
+	slot2.getTile()->transform.m_pos.y = slot2.getTransform().m_pos.y + 0.570;
 
 
-	Transform slot3Transform = slot1Transform;
-	//slot3Transform.m_pos.x += -0.39;
-	slot3Transform.m_pos.y = -0.4;
-	//slot3Transform.m_pos.z -= 0.440;
-	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3);
+	Transform slot3Transform = oven.transform;
+	slot3Transform.m_pos.x = 0.145;
+	slot3Transform.m_pos.y = -0.507;
+	slot3Transform.m_pos.z = -0.175;
+	slot3Transform.m_scale = glm::vec3(0.25);
+	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot3.getArrow());
 	//renderingEntities.push_back(slot3.getCircle());
 	renderingEntities.push_back(slot3.getTile());
+	//slot3.getTile()->transform.m_pos = slot3Transform.m_pos ;
+	slot3.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot3.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot3.getArrow()->transform.m_pos.x += 0.01;
+	slot3.getArrow()->transform.m_pos.z += 0.03;
+	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.570;
 
-	Transform slot4Transform = slot1Transform;
-	//slot4Transform.m_pos.x += -0.27;
-	slot4Transform.m_pos.y = -0.1;
-	//slot4Transform.m_pos.z -= 0.140;
-	OvenTimer slot4 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3);
+
+	Transform slot4Transform = oven.transform;
+	slot4Transform.m_pos.x = 0.145;
+	slot4Transform.m_pos.y = -0.270;
+	slot4Transform.m_pos.z = -0.175;
+	slot4Transform.m_scale = glm::vec3(0.25);
+	OvenTimer slot4 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot4.getArrow());
 	//renderingEntities.push_back(slot4.getCircle());
 	renderingEntities.push_back(slot4.getTile());
+	//slot4.getTile()->transform.m_pos = slot4Transform.m_pos;
+	slot4.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot4.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot4.getArrow()->transform.m_pos.x += 0.01;
+	slot4.getArrow()->transform.m_pos.z += 0.03;
+	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.570;
 
+	ovenHeights[0] = oven.transform.m_pos.y;
+	ovenHeights[1] = oven.transform.m_pos.y + 0.5;
+	ovenHeights[2] = oven.transform.m_pos.y + 0.8;
+	ovenHeights[3] = oven.transform.m_pos.y + 1.1;
 
 	std::vector<MaterialCreator*> tiles = std::vector<MaterialCreator*>();
 	tiles.push_back(&nothingTile);
@@ -1251,9 +1292,9 @@ int main()
 	currentOrders.back().createOrder(bakeryUtils::getDifficulty());//bakeryUtils::getDifficulty()
 	//currentOrders.back().startOrder();
 	
-	OvenTimer upurrTimer1 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
-	OvenTimer upurrTimer2 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
-	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2);
+	OvenTimer upurrTimer1 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2, glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	OvenTimer upurrTimer2 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2, glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2, glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
 	OrderBubble uprrBubble1(&upurrTimer1);
 	OrderBubble uprrBubble2(&upurrTimer2);
@@ -1427,22 +1468,24 @@ int main()
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
 		
-		/**/
+		/*
 			App::StartImgui();
 			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 
-			ImGui::DragFloat("X", &(slot1.getTransform().m_pos.x), 0.01);
-			ImGui::DragFloat("Y", &(slot1.getTransform().m_pos.y), 0.01);
-			ImGui::DragFloat("Z", &(slot1.getTransform().m_pos.z), 0.01);
+			ImGui::DragFloat("X", &(tempA), 0.01);
+			//ImGui::DragFloat("Y", &(slot4.getTransform().m_pos.y), 0.01);
+			//ImGui::DragFloat("Z", &(slot4.getTransform().m_pos.z), 0.01);
 			//ImGui::DragFloat("D", &(tempD), 0.01);
 
 			//ImGui::DragFloat("Scale", &(sc), 0.1f);
 			//ImGui::SetWindowPos(0,0);
 
 			App::EndImgui();
+			*/
+			//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0, 1, 0));
+			//slot1.getArrow()->transform.m_pos.x = slot1.getTransform().m_pos.x + tempA;
+			//slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + tempA;
 
-			
-		
 	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 		
@@ -2318,6 +2361,14 @@ int main()
 
 			}
 
+			if (currentOvenPos != -1) {
+				ovenEntites[currentOvenPos]->Get<MorphAnimation>().update(ovenEntites[currentOvenPos], deltaTime, true);
+
+			}
+			if (lastOvenPos != -1) {
+				ovenEntites[lastOvenPos]->Get<MorphAnimation>().update(ovenEntites[lastOvenPos], deltaTime, true);
+
+			}
 			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 			// Update our LERP timers
 		
@@ -2602,6 +2653,16 @@ int main()
 					
 				}
 				else if (e->Has<Oven>()) {
+					currentOvenPos = selectedOvenPosition(currentPoint.y);
+					lastOvenPos = selectedOvenPosition(lastPoint.y);
+					if (currentOvenPos >= 0 && lastOvenPos != -1 && currentOvenPos != lastOvenPos) {
+						ovenEntites[lastOvenPos]->Get<MorphAnimation>().reverseFrames(ovenEntites[lastOvenPos]);
+						ovenEntites[lastOvenPos]->Get<MorphAnimation>().setT(0);
+						ovenEntites[lastOvenPos]->Get<MorphAnimation>().setCurrentFrame(0);
+						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setT(0);
+						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setCurrentFrame(0);
+						std::cout << currentOvenPos << std::endl;
+					}
 					//log("A");
 					//std::cout << "OVEN" << std::endl;
 					int wantedSlot = getWantedSlot();
@@ -4152,7 +4213,14 @@ void restartGame() {
 	
 }
 
-
+int selectedOvenPosition(float x) {
+	for (int i = 3; i >= 0; i--) {
+		if (x > ovenHeights[i]) {//if less than, keeps going
+			return i;
+		}
+	}
+	return -1;
+}
 
 void loadNumberHashMap() {
 	

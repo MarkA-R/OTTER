@@ -24,7 +24,7 @@ void OrderBubble::addFill(float x)
         realFill = 1.f;
     }
     timer->setFill(realFill);
-    timer->updateArrow();
+    timer->updateArrow(glm::vec3(0,0,-1));
 }
 
 bool OrderBubble::isOrderExpired()
