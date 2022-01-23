@@ -15,13 +15,13 @@
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Cube.003"
+            "name" : "Cube.012"
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Material.003",
+            "name" : "Material.002",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
@@ -33,7 +33,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Cube.004",
+            "name" : "Cube.013",
             "primitives" : [
                 {
                     "attributes" : {

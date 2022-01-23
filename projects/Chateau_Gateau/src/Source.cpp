@@ -357,7 +357,7 @@ std::vector<glm::vec3> endNumberPos;
 bool isCarMoving = false;
 float carT = 0.f;
 float dayT = 0.0f;
-float dayBright = 0.9;
+float dayBright = 0.98;
 float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
@@ -498,7 +498,7 @@ int main()
 	std::string orderToCheck = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	for (char& c : orderToCheck) {
 		alphanumericMat.push_back(MaterialCreator());
-		std::string newString = "UI/textures/alphanumeric/type" + std::string(1, c) + ".png";
+		std::string newString = "UI/textures/alphanumeric/Key" + std::string(1, c) + ".png";
 		alphanumericMat.back().createMaterial("bakery/models/tile.gltf", newString, *prog_texLit);
 		
 	}
@@ -531,7 +531,7 @@ int main()
 	ovenOpenMat.createMaterial("bakery/models/ovenopen.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
 
 	MaterialCreator ovenClosedMat = MaterialCreator();
-	ovenClosedMat.createMaterial("bakery/models/ovenClosed.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+	ovenClosedMat.createMaterial("bakery/models/ovenclosed.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
 	
 	MaterialCreator bakeryMat = MaterialCreator();
 	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
@@ -784,6 +784,10 @@ int main()
 		std::vector<Mesh*> openingFrames;
 		openingFrames.push_back(ovenClosedMat.getMesh().get());
 		openingFrames.push_back(ovenOpenMat.getMesh().get());
+
+		std::vector<Mesh*> closingFrames;
+		closingFrames.push_back(ovenOpenMat.getMesh().get());
+		closingFrames.push_back(ovenClosedMat.getMesh().get());
 	
 		for (int i = 0; i < 4; i++) {
 			ovenEntites[i] = Entity::Allocate().release();
@@ -793,12 +797,12 @@ int main()
 			ovenEntites[i]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 			ovenEntites[i]->Add<CMorphMeshRenderer>(*ovenEntites[i], *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
-			ovenEntites[i]->Add<MorphAnimation>(openingFrames,0.3f,0);
+			ovenEntites[i]->Add<MorphAnimation>(closingFrames,0.3f,0);
 			renderingEntities.push_back(ovenEntites[i]);
 
 			auto& animatordrink = ovenEntites[i]->Add<CMorphAnimator>(*ovenEntites[i]);
 			animatordrink.SetFrameTime(1.0f);
-			animatordrink.SetFrames(openingFrames);
+			animatordrink.SetFrames(closingFrames);
 		}
 
 
@@ -1263,10 +1267,10 @@ int main()
 	slot4.getArrow()->transform.m_pos.z += 0.03;
 	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.570;
 
-	ovenHeights[0] = oven.transform.m_pos.y;
-	ovenHeights[1] = oven.transform.m_pos.y + 0.5;
-	ovenHeights[2] = oven.transform.m_pos.y + 0.8;
-	ovenHeights[3] = oven.transform.m_pos.y + 1.1;
+	ovenHeights[0] = slot1Transform.m_pos.y- 0.15;
+	ovenHeights[1] = slot2Transform.m_pos.y - 0.15;
+	ovenHeights[2] = slot3Transform.m_pos.y - 0.15;
+	ovenHeights[3] = slot4Transform.m_pos.y - 0.15;
 
 	std::vector<MaterialCreator*> tiles = std::vector<MaterialCreator*>();
 	tiles.push_back(&nothingTile);
@@ -1444,14 +1448,14 @@ int main()
 
 		tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552
 		tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		accessTray[0].m_pos = glm::vec3(-0.82, -1.228, -10.68);
-		accessTray[1].m_pos = glm::vec3(-0.82, -1.228, -10.725);
-		accessTray[2].m_pos = glm::vec3(-0.78, -1.228, -10.68);
-		accessTray[3].m_pos = glm::vec3(-0.78, -1.228, -10.725);
-		accessTray[4].m_pos = glm::vec3(-1, -1.190, -10.620);
-		accessTray[5].m_pos = glm::vec3(-1, -1.230, -10.620);
-		accessTray[6].m_pos = glm::vec3(-1, -1.270, -10.620);
-		accessTray[7].m_pos = glm::vec3(-1, -1.310, -10.620);
+		accessTray[0].m_pos = glm::vec3(-0.81, -1.223, -10.68);
+		accessTray[1].m_pos = glm::vec3(-0.81, -1.223, -10.725);
+		accessTray[2].m_pos = glm::vec3(-0.78, -1.223, -10.68);
+		accessTray[3].m_pos = glm::vec3(-0.78, -1.223, -10.725);
+		accessTray[4].m_pos = glm::vec3(-1, -1.198, -10.620);
+		accessTray[5].m_pos = glm::vec3(-1, -1.236, -10.620);
+		accessTray[6].m_pos = glm::vec3(-1, -1.273, -10.620);
+		accessTray[7].m_pos = glm::vec3(-1, -1.315, -10.620);
 
 	}
 	
@@ -1603,69 +1607,85 @@ int main()
 			if (isClickingSpace) {
 				isInOption = !isInOption;
 
-				if (isInOption) {
-					if (selectedOption == 0) {
-						sign.Get<CMeshRenderer>().SetMaterial(*signFrames[11]);
-						if (!isInRendering(&tray)) {
-							renderingEntities.push_back(&tray);
-						}
-						for (int i = 0; i < 4; i++) {
-							accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
-							accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
-							accessEntities[i]->Get<PictureSelector>().updatePicture();
-							accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
-						}
-						for (int i = 0; i < 4; i++) {
-							if (isInRendering(accessEntities[i])) {
-								removeFromRendering(accessEntities[i]);
+				if (!isInOption && selectedOption == 0) {
+					isInOption = true;
+				}
+				else
+				{
+					if (isInOption) {
+						if (selectedOption == 0) {
+							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[11]);
+							if (!isInRendering(&tray)) {
+								renderingEntities.push_back(&tray);
 							}
-						}
-						accessButtonPressed = 0;
-					}
-					else if (selectedOption == 5) {
-						isInMainMenu = true;
-						isInOptionsMenu = false;
-						isInOption = false;
-						sign.Get<CMeshRenderer>().SetMaterial(*signFrames[1]);
-						selectedOption = 1;
-						for (int i = 0; i < 4; i++) {
-							if (isInRendering(accessEntities[i])) {
-								removeFromRendering(accessEntities[i]);
+							for (int i = 0; i < 4; i++) {
+								accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
+								accessEntities[i]->Get<PictureSelector>().updatePicture();
+								accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
+								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+
 							}
-						}
-						
-					}
-					else
-					{
-						for (int i = 0; i < 4; i++) {
-							if (selectedOption - 1 != i) {
+							for (int i = 0; i < 4; i++) {
 								if (isInRendering(accessEntities[i])) {
 									removeFromRendering(accessEntities[i]);
 								}
 							}
+							accessButtonPressed = 0;
 						}
+						else if (selectedOption == 5) {
+							isInMainMenu = true;
+							isInOptionsMenu = false;
+							isInOption = false;
+							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[1]);
+							selectedOption = 1;
+							for (int i = 0; i < 4; i++) {
+								if (isInRendering(accessEntities[i])) {
+									removeFromRendering(accessEntities[i]);
+								}
+							}
+
+						}
+						else
+						{
+							for (int i = 0; i < 4; i++) {
+								if (selectedOption - 1 != i) {
+									if (isInRendering(accessEntities[i])) {
+										removeFromRendering(accessEntities[i]);
+									}
+								}
+							}
+						}
+
 					}
-					
-				}
-				else
-				{
-					for (int i = 0; i < 4; i++) {
-						accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
-					}
-					saveSettings();
-					applySettings();
-					for (int i = 0; i < 4; i++) {
-						
+					else
+					{
+						for (int i = 0; i < 4; i++) {
+							accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
+						}
+						saveSettings();
+						applySettings();
+						for (int i = 0; i < 4; i++) {
+
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
-								
+
 
 							}
-							accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
-							accessEntities[i]->transform.m_pos = accessTray[i+4].m_pos;
+							if (i < 3) {
+								accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+							}
+							else
+							{
+								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+							}
+							accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+						}
+
 					}
-					
 				}
+				
+				
 				
 			}
 
@@ -1711,32 +1731,41 @@ int main()
 									accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
 									accessEntities[i]->Get<PictureSelector>().updatePicture();
 									accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+									if (i < 3) {
+										accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+									}
+									else
+									{
+										accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+									}
 								}
 								saveSettings();
 								applySettings();
 							}
 							else
 							{
+								if (getWhichKeyPressed() >= 0) {
+									renderingEntities.push_back(accessEntities[accessButtonPressed]);
+									int keyPressed = getWhichKeyPressed();
+									bool alreadyUsed = false;
+									for (int i = 0; i < accessButtonPressed; i++) {
+										if (accessEntities[i]->Get<PictureSelector>().getIndex() == keyPressed) {
+											alreadyUsed = true;
+										}
+									}
+									if (!alreadyUsed) {
 
-								renderingEntities.push_back(accessEntities[accessButtonPressed]);
-								int keyPressed = getWhichKeyPressed();
-								bool alreadyUsed = false;
-								for (int i = 0; i < accessButtonPressed; i++) {
-									if (accessEntities[i]->Get<PictureSelector>().getIndex() == keyPressed) {
-										alreadyUsed = true;
+										trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
+										accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
+										accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
+										accessSettings[accessButtonPressed] = keyPressed;
+										accessButtonPressed++;
+										if (accessButtonPressed == 4) {
+											sign.Get<CMeshRenderer>().SetMaterial(*signFrames[12]);
+										}
 									}
 								}
-								if (!alreadyUsed) {
-									
-									trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
-									accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
-									accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
-									accessSettings[accessButtonPressed] = keyPressed;
-									accessButtonPressed++;
-									if (accessButtonPressed == 4) {
-										sign.Get<CMeshRenderer>().SetMaterial(*signFrames[12]);
-									}
-								}
+								
 								
 
 							}
@@ -1751,11 +1780,11 @@ int main()
 					}
 				}
 				else if (selectedOption != 5) {
-					if (isClickingUp) {
+					if (isClickingUp || isClickingRight) {
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(1);
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
 					}
-					else if (isClickingDown) {
+					else if (isClickingDown || isClickingLeft) {
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(-1);
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
 
@@ -1821,7 +1850,14 @@ int main()
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
 								accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
-								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+								if (i < 3) {
+									accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+								}
+								else
+								{
+									accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+								}
+								
 								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
 								accessEntities[i]->Get<PictureSelector>().updatePicture();
 							}
@@ -2361,12 +2397,8 @@ int main()
 
 			}
 
-			if (currentOvenPos != -1) {
-				ovenEntites[currentOvenPos]->Get<MorphAnimation>().update(ovenEntites[currentOvenPos], deltaTime, true);
-
-			}
-			if (lastOvenPos != -1) {
-				ovenEntites[lastOvenPos]->Get<MorphAnimation>().update(ovenEntites[lastOvenPos], deltaTime, true);
+			for (int i = 0; i < 4; i++) {
+				ovenEntites[i]->Get<MorphAnimation>().update(ovenEntites[i], deltaTime, true);
 
 			}
 			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
@@ -2653,15 +2685,25 @@ int main()
 					
 				}
 				else if (e->Has<Oven>()) {
+					
 					currentOvenPos = selectedOvenPosition(currentPoint.y);
 					lastOvenPos = selectedOvenPosition(lastPoint.y);
-					if (currentOvenPos >= 0 && lastOvenPos != -1 && currentOvenPos != lastOvenPos) {
-						ovenEntites[lastOvenPos]->Get<MorphAnimation>().reverseFrames(ovenEntites[lastOvenPos]);
-						ovenEntites[lastOvenPos]->Get<MorphAnimation>().setT(0);
-						ovenEntites[lastOvenPos]->Get<MorphAnimation>().setCurrentFrame(0);
+					if (currentOvenPos >= 0 && currentOvenPos != lastOvenPos && lastOvenPos >= 0) {
+						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setAbsolouteFrames(0, 1);//.setFrames(ovenEntites[i],openingFrames);
+						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setTimesLooped(0);
 						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setT(0);
-						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setCurrentFrame(0);
+
+
+						//ovenEntites[lastOvenPos]->Get<MorphAnimation>().setAbsolouteFrames(1, 0);//.setFrames(ovenEntites[i],openingFrames);
+						//ovenEntites[lastOvenPos]->Get<MorphAnimation>().setTimesLooped(0);
+						//ovenEntites[lastOvenPos]->Get<MorphAnimation>().setT(0);
 						std::cout << currentOvenPos << std::endl;
+						
+						
+
+						//ovenEntites[currentOvenPos]->Get<MorphAnimation>().reverseFrames(ovenEntites[currentOvenPos]);
+						
+						
 					}
 					//log("A");
 					//std::cout << "OVEN" << std::endl;
@@ -4214,12 +4256,23 @@ void restartGame() {
 }
 
 int selectedOvenPosition(float x) {
-	for (int i = 3; i >= 0; i--) {
-		if (x > ovenHeights[i]) {//if less than, keeps going
-			return i;
-		}
+	
+
+	if (x >= ovenHeights[3]) {
+		return 3;
 	}
-	return -1;
+	if (x >= ovenHeights[2] && x < ovenHeights[3]) {
+		return 2;
+	}
+	if (x >= ovenHeights[1] && x < ovenHeights[2]) {
+		return 1;
+	}
+	if (x >= ovenHeights[0] && x < ovenHeights[1]) {
+		return 0;
+	}
+	if (x < ovenHeights[0]) {
+		return -1;
+	}
 }
 
 void loadNumberHashMap() {
@@ -4269,6 +4322,9 @@ int getWhichKeyPressed() {
 	start++;
 	}
 	*/
+	if (isClickingSpace) {
+		return -2;
+	}
 	if (Input::GetKeyDown(GLFW_KEY_0)) {
 		return 0;
 	}

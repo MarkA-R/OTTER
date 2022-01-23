@@ -17,6 +17,8 @@ public:
 	int getCurrentFrame();
 	int getNextFrame();
 	void setCurrentFrame(int);
+	void setNextFrame(int);
+	void setAbsolouteFrames(int, int);
 	float getT();
 	void setT(float);
 	float getAddedT(float);
@@ -25,7 +27,9 @@ public:
 	std::vector<Mesh*> getFrames();
 	int getFrameSize();
 	void reverseFrames(Entity*);
-
+	void setTimesLooped(int);
+	void setFrames(Entity* e, std::vector<Mesh*>);
+	int getTimesLooped();
 
 };
 
