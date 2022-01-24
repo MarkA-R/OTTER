@@ -379,6 +379,7 @@ int saveHighscore(int);
 void restartGame();
 Entity* ovenEntites[4];
 float ovenHeights[4];
+std::vector<Mesh*> allOvenFrames;
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -527,12 +528,32 @@ int main()
 	MaterialCreator ovenDial = MaterialCreator();
 	ovenDial.createMaterial("bakery/models/dial.gltf", "bakery/textures/ovenTexture.png", *prog_texLit);
 
-	MaterialCreator ovenOpenMat = MaterialCreator();
-	ovenOpenMat.createMaterial("bakery/models/ovenopen.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+	
+
+
+	MaterialCreator ovenOpenMat1 = MaterialCreator();
+	ovenOpenMat1.createMaterial("bakery/models/ovenopen1.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenOpenMat2 = MaterialCreator();
+	ovenOpenMat2.createMaterial("bakery/models/ovenopen2.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenOpenMat3 = MaterialCreator();
+	ovenOpenMat3.createMaterial("bakery/models/ovenopen3.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenOpenMat4 = MaterialCreator();
+	ovenOpenMat4.createMaterial("bakery/models/ovenopen4.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
 
 	MaterialCreator ovenClosedMat = MaterialCreator();
 	ovenClosedMat.createMaterial("bakery/models/ovenclosed.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
 	
+	allOvenFrames.push_back(ovenClosedMat.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat1.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat2.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat3.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat4.getMesh().get());
+
+	
+
 	MaterialCreator bakeryMat = MaterialCreator();
 	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
 
@@ -771,23 +792,21 @@ int main()
 		renderingEntities.push_back(&fridge);
 
 		Entity oven = Entity::Create();
-		oven.Add<CMeshRenderer>(oven, *ovenMat.getMesh(), *ovenMat.getMaterial());
+		oven.Add<CMorphMeshRenderer>(oven, *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
 		
 		oven.Add<Machine>();
 		oven.Add<Oven>();
-		oven.transform.m_scale = glm::vec3(0.075f, 0.05f, 0.075f);
-		oven.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		oven.transform.m_pos = glm::vec3(0.5f, -1.5f, 0.1f);
+		oven.transform.m_scale = glm::vec3(0.075f, 0.075f, 0.075f);
+		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		oven.transform.m_pos = glm::vec3(0.5f, -1.91f, 0.100f);
 		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.35), oven);
+		auto& animatorOven = oven.Add<CMorphAnimator>(oven);
+		animatorOven.SetFrameTime(1.0f);
+		animatorOven.SetFrames(allOvenFrames);
 		renderingEntities.push_back(&oven);
 	
-		std::vector<Mesh*> openingFrames;
-		openingFrames.push_back(ovenClosedMat.getMesh().get());
-		openingFrames.push_back(ovenOpenMat.getMesh().get());
-
-		std::vector<Mesh*> closingFrames;
-		closingFrames.push_back(ovenOpenMat.getMesh().get());
-		closingFrames.push_back(ovenClosedMat.getMesh().get());
+		/*
+		
 	
 		for (int i = 0; i < 4; i++) {
 			ovenEntites[i] = Entity::Allocate().release();
@@ -805,7 +824,7 @@ int main()
 			animatordrink.SetFrames(closingFrames);
 		}
 
-
+		*/
 		Entity filling = Entity::Create();
 		filling.Add<CMorphMeshRenderer>(filling, *fillingMat1.getMesh(), *fillingMat1.getMaterial());
 		
@@ -1200,8 +1219,10 @@ int main()
 	Transform slot1Transform = oven.transform;
 	//1.f, -1.5f, 0.5f
 	slot1Transform.m_pos.x = 0.145;
-	slot1Transform.m_pos.y = -0.980;
+	slot1Transform.m_pos.y = -1.227;
 	slot1Transform.m_pos.z = -0.175;
+	slot1Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	slot1Transform.m_scale = glm::vec3(0.25);
 	OvenTimer slot1 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot1.getArrow());
@@ -1211,16 +1232,21 @@ int main()
 	//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
 	slot1.getArrow()->transform.m_pos.x += 0.01;
 	slot1.getArrow()->transform.m_pos.z += 0.03;
-	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.570;
+	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.569;
 
 	//slot1.getArrow()->transform.m_rotation = 
 	Transform slot2Transform = oven.transform;
 	//slot2Transform.m_pos.x += -0.27;
 	
 	//slot2Transform.m_pos.z -= 0.140;
+
 	slot2Transform.m_pos.x = 0.145;
-	slot2Transform.m_pos.y = -0.745;
+	slot2Transform.m_pos.y = -0.981;
 	slot2Transform.m_pos.z = -0.175;
+
+	
+	slot2Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	slot2Transform.m_scale = glm::vec3(0.25);
 	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot2.getArrow());
@@ -1231,14 +1257,20 @@ int main()
 	//slot2.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
 	slot2.getArrow()->transform.m_pos.x += 0.01;
 	slot2.getArrow()->transform.m_pos.z += 0.03;
-	slot2.getTile()->transform.m_pos.y = slot2.getTransform().m_pos.y + 0.570;
+	slot2.getTile()->transform.m_pos.y = slot2.getTransform().m_pos.y + 0.569;
 
 
 	Transform slot3Transform = oven.transform;
+
 	slot3Transform.m_pos.x = 0.145;
-	slot3Transform.m_pos.y = -0.507;
+	slot3Transform.m_pos.y = -0.739;
 	slot3Transform.m_pos.z = -0.175;
+
+
+	
 	slot3Transform.m_scale = glm::vec3(0.25);
+	slot3Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot3.getArrow());
 	//renderingEntities.push_back(slot3.getCircle());
@@ -1248,14 +1280,19 @@ int main()
 	//slot3.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
 	slot3.getArrow()->transform.m_pos.x += 0.01;
 	slot3.getArrow()->transform.m_pos.z += 0.03;
-	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.570;
+	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.577;
 
 
 	Transform slot4Transform = oven.transform;
+
 	slot4Transform.m_pos.x = 0.145;
-	slot4Transform.m_pos.y = -0.270;
+	slot4Transform.m_pos.y = -0.497;
 	slot4Transform.m_pos.z = -0.175;
+
+	
 	slot4Transform.m_scale = glm::vec3(0.25);
+	slot4Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	OvenTimer slot4 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
 	renderingEntities.push_back(slot4.getArrow());
 	//renderingEntities.push_back(slot4.getCircle());
@@ -1265,7 +1302,7 @@ int main()
 	//slot4.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
 	slot4.getArrow()->transform.m_pos.x += 0.01;
 	slot4.getArrow()->transform.m_pos.z += 0.03;
-	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.570;
+	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.586;
 
 	ovenHeights[0] = slot1Transform.m_pos.y- 0.15;
 	ovenHeights[1] = slot2Transform.m_pos.y - 0.15;
@@ -1476,16 +1513,17 @@ int main()
 			App::StartImgui();
 			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 
-			ImGui::DragFloat("X", &(tempA), 0.01);
-			//ImGui::DragFloat("Y", &(slot4.getTransform().m_pos.y), 0.01);
-			//ImGui::DragFloat("Z", &(slot4.getTransform().m_pos.z), 0.01);
-			//ImGui::DragFloat("D", &(tempD), 0.01);
+			ImGui::DragFloat("X", &(oven.transform.m_pos.x), 0.01);
+			ImGui::DragFloat("Y", &(oven.transform.m_pos.y), 0.01);
+			ImGui::DragFloat("Z", &(oven.transform.m_pos.z), 0.01);
+			ImGui::DragFloat("D", &(tempD), 0.001);
 
 			//ImGui::DragFloat("Scale", &(sc), 0.1f);
 			//ImGui::SetWindowPos(0,0);
 
 			App::EndImgui();
 			*/
+			//oven.transform.m_scale = glm::vec3(tempD);
 			//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0, 1, 0));
 			//slot1.getArrow()->transform.m_pos.x = slot1.getTransform().m_pos.x + tempA;
 			//slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + tempA;
@@ -2396,11 +2434,17 @@ int main()
 
 
 			}
-
-			for (int i = 0; i < 4; i++) {
-				ovenEntites[i]->Get<MorphAnimation>().update(ovenEntites[i], deltaTime, true);
+			oven.Get<CMorphAnimator>().addToT(deltaTime);
+			if (oven.Get<CMorphAnimator>().getT() < 1) {
+				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], oven.Get<CMorphAnimator>().getT());
 
 			}
+			else
+			{
+				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 1);
+
+			}
+
 			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 			// Update our LERP timers
 		
@@ -2688,15 +2732,9 @@ int main()
 					
 					currentOvenPos = selectedOvenPosition(currentPoint.y);
 					lastOvenPos = selectedOvenPosition(lastPoint.y);
-					if (currentOvenPos >= 0 && currentOvenPos != lastOvenPos && lastOvenPos >= 0) {
-						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setAbsolouteFrames(0, 1);//.setFrames(ovenEntites[i],openingFrames);
-						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setTimesLooped(0);
-						ovenEntites[currentOvenPos]->Get<MorphAnimation>().setT(0);
-
-
-						//ovenEntites[lastOvenPos]->Get<MorphAnimation>().setAbsolouteFrames(1, 0);//.setFrames(ovenEntites[i],openingFrames);
-						//ovenEntites[lastOvenPos]->Get<MorphAnimation>().setTimesLooped(0);
-						//ovenEntites[lastOvenPos]->Get<MorphAnimation>().setT(0);
+					if (currentOvenPos >= 0 && currentOvenPos != lastOvenPos) {
+					oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 0);
+					oven.Get<CMorphAnimator>().setT(0);
 						std::cout << currentOvenPos << std::endl;
 						
 						
