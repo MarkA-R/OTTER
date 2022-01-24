@@ -1225,15 +1225,15 @@ int main()
 	slot1Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	slot1Transform.m_scale = glm::vec3(0.25);
-	OvenTimer slot1 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot1.getArrow());
+	OvenTimer slot4 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot4.getArrow());
 	//renderingEntities.push_back(slot1.getCircle());
-	renderingEntities.push_back(slot1.getTile());
-	slot1.getArrow()->transform.m_scale = glm::vec3(1.4);
+	renderingEntities.push_back(slot4.getTile());
+	slot4.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
-	slot1.getArrow()->transform.m_pos.x += 0.01;
-	slot1.getArrow()->transform.m_pos.z += 0.03;
-	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.569;
+	slot4.getArrow()->transform.m_pos.x += 0.01;
+	slot4.getArrow()->transform.m_pos.z += 0.03;
+	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.569;
 
 	//slot1.getArrow()->transform.m_rotation = 
 	Transform slot2Transform = oven.transform;
@@ -1249,22 +1249,22 @@ int main()
 	slot2Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	slot2Transform.m_scale = glm::vec3(0.25);
-	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot2.getArrow());
+	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot3.getArrow());
 	//renderingEntities.push_back(slot2.getCircle());
-	renderingEntities.push_back(slot2.getTile());
+	renderingEntities.push_back(slot3.getTile());
 	//slot2.getTile()->transform.m_pos = slot2Transform.m_pos;
-	slot2.getArrow()->transform.m_scale = glm::vec3(1.4);
+	slot3.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot2.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
-	slot2.getArrow()->transform.m_pos.x += 0.01;
-	slot2.getArrow()->transform.m_pos.z += 0.03;
-	slot2.getTile()->transform.m_pos.y = slot2.getTransform().m_pos.y + 0.569;
+	slot3.getArrow()->transform.m_pos.x += 0.01;
+	slot3.getArrow()->transform.m_pos.z += 0.03;
+	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.569;
 
 
 	Transform slot3Transform = oven.transform;
 
 	slot3Transform.m_pos.x = 0.145;
-	slot3Transform.m_pos.y = -0.734;
+	slot3Transform.m_pos.y = -0.739;
 	slot3Transform.m_pos.z = -0.175;
 
 
@@ -1272,16 +1272,16 @@ int main()
 	slot3Transform.m_scale = glm::vec3(0.25);
 	slot3Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot3.getArrow());
+	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot2.getArrow());
 	//renderingEntities.push_back(slot3.getCircle());
-	renderingEntities.push_back(slot3.getTile());
+	renderingEntities.push_back(slot2.getTile());
 	//slot3.getTile()->transform.m_pos = slot3Transform.m_pos ;
-	slot3.getArrow()->transform.m_scale = glm::vec3(1.4);
+	slot2.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot3.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
-	slot3.getArrow()->transform.m_pos.x += 0.01;
-	slot3.getArrow()->transform.m_pos.z += 0.03;
-	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.582;
+	slot2.getArrow()->transform.m_pos.x += 0.01;
+	slot2.getArrow()->transform.m_pos.z += 0.03;
+	slot2.getTile()->transform.m_pos.y = slot2.getTransform().m_pos.y + 0.587;
 
 
 	Transform slot4Transform = oven.transform;
@@ -1294,16 +1294,16 @@ int main()
 	slot4Transform.m_scale = glm::vec3(0.25);
 	slot4Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	OvenTimer slot4 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot4.getArrow());
+	OvenTimer slot1 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot1.getArrow());
 	//renderingEntities.push_back(slot4.getCircle());
-	renderingEntities.push_back(slot4.getTile());
+	renderingEntities.push_back(slot1.getTile());
 	//slot4.getTile()->transform.m_pos = slot4Transform.m_pos;
-	slot4.getArrow()->transform.m_scale = glm::vec3(1.4);
+	slot1.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot4.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
-	slot4.getArrow()->transform.m_pos.x += 0.01;
-	slot4.getArrow()->transform.m_pos.z += 0.03;
-	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.586;
+	slot1.getArrow()->transform.m_pos.x += 0.01;
+	slot1.getArrow()->transform.m_pos.z += 0.03;
+	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.586;
 
 	ovenHeights[0] = slot1Transform.m_pos.y- 0.15;
 	ovenHeights[1] = slot2Transform.m_pos.y - 0.15;
