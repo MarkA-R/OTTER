@@ -800,10 +800,11 @@ int main()
 		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		oven.transform.m_pos = glm::vec3(0.5f, -1.91f, 0.100f);
 		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.35), oven);
+		renderingEntities.push_back(&oven);
 		auto& animatorOven = oven.Add<CMorphAnimator>(oven);
 		animatorOven.SetFrameTime(1.0f);
 		animatorOven.SetFrames(allOvenFrames);
-		renderingEntities.push_back(&oven);
+		
 	
 		/*
 		
@@ -1219,7 +1220,7 @@ int main()
 	Transform slot1Transform = oven.transform;
 	//1.f, -1.5f, 0.5f
 	slot1Transform.m_pos.x = 0.145;
-	slot1Transform.m_pos.y = -1.227;
+	slot1Transform.m_pos.y = -1.218;
 	slot1Transform.m_pos.z = -0.175;
 	slot1Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -1263,7 +1264,7 @@ int main()
 	Transform slot3Transform = oven.transform;
 
 	slot3Transform.m_pos.x = 0.145;
-	slot3Transform.m_pos.y = -0.739;
+	slot3Transform.m_pos.y = -0.734;
 	slot3Transform.m_pos.z = -0.175;
 
 
@@ -1280,13 +1281,13 @@ int main()
 	//slot3.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
 	slot3.getArrow()->transform.m_pos.x += 0.01;
 	slot3.getArrow()->transform.m_pos.z += 0.03;
-	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.577;
+	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.582;
 
 
 	Transform slot4Transform = oven.transform;
 
 	slot4Transform.m_pos.x = 0.145;
-	slot4Transform.m_pos.y = -0.497;
+	slot4Transform.m_pos.y = -0.502;
 	slot4Transform.m_pos.z = -0.175;
 
 	
@@ -2434,15 +2435,20 @@ int main()
 
 
 			}
+
 			oven.Get<CMorphAnimator>().addToT(deltaTime);
 			if (oven.Get<CMorphAnimator>().getT() < 1) {
 				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], oven.Get<CMorphAnimator>().getT());
+				//std::cout << "T" << oven.Get<CMorphAnimator>().getT() << std::endl;
+				//oven.Get<CMorphMeshRenderer>().UpdateData(*allOvenFrames[1 + currentOvenPos], *allOvenFrames[1 + lastOvenPos], oven.Get<CMorphAnimator>().getT());
 
+				//oven.Get<CMorphMeshRenderer>().Draw();
+				
 			}
 			else
 			{
 				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 1);
-
+				//std::cout << "T1" << std::endl;
 			}
 
 			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
@@ -4206,6 +4212,7 @@ void restartGame() {
 	bakeryUtils::setRoundsLasted(0);
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
+		
 		ob->getTimer().setFill(0);
 		ob->getTimer().updateArrow();
 		ob->getOrder()->setOver(false);
@@ -4220,6 +4227,7 @@ void restartGame() {
 			//renderingEntities.push_back(ent);
 		}
 		resetBubble(i,false);
+		ob->updateScale(UIScale);
 		//ob->clearRenderingEntities();
 	
 	}
@@ -4242,6 +4250,9 @@ void restartGame() {
 	orderBubbles[0]->setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping), getDrinkTile(currentOrders.back().drink));
 	orderBubbles[0]->setup(&bubbleTile, &plusTile);
 	orderBubbles[0]->create(currentOrders.back());
+	orderBubbles[0]->updateScale(UIScale);
+	//orderBubbles[1]->updateScale(UIScale);
+	//orderBubbles[2]->updateScale(UIScale);
 
 	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
 		if (isInRendering(ent)) {
