@@ -30,6 +30,7 @@
 #include "CPathAnimator.h"
 #include "Light.h"
 #include "Transparency.h"
+#include "PictureSelector.h"
 
 #include <algorithm>
 #include <math.h>
@@ -45,6 +46,8 @@
 #include <memory>
 #include "OrderBubble.h"
 #include "Register.h"
+
+#include <unordered_map>
 
 using namespace nou;
 
@@ -157,10 +160,11 @@ glm::quat lastCameraQuat;
 double xPos, yPos;
 double cameraX = 0, cameraY = 0;
 double lastCameraX = 0, lastCameraY = 0;
-double sensitivity = -0.1;
+float sensitivity = -0.15;
 bool isInMainMenu = true;
 bool isInPauseMenu = false;
 bool isInContinueMenu = false;
+bool isInOptionsMenu = false;
 int selectedOption = 0;
 glm::quat getCameraRotation();
 glm::quat menuCameraQuat;
@@ -187,7 +191,7 @@ bool isClickingSpace = false;
 
 //Mouse State
 bool firstMouse = true;
-int width = 1600;//1600Å~900
+int width = 1600;//1600ÔøΩ~900
 int height = 900;
 float lastX = width / 2;
 float lastY = height / 2;
@@ -213,6 +217,17 @@ std::vector<Mesh*> drinkFrames = std::vector<Mesh*>();
 std::vector<glm::vec2> mouseMovements;
 
 
+GLuint trayKeys[4] = { GLFW_KEY_1 ,GLFW_KEY_2 ,GLFW_KEY_3 ,GLFW_KEY_4 };
+int soundVolume = 3;
+int musicVolume = 3;
+float UIScale = 0.95;//1.35
+//float sensitivity = 1;
+bool largeFont = false;
+std::unordered_map<GLuint, int> alphanumeric;
+std::vector<MaterialCreator> alphanumericMat;
+std::vector<MaterialCreator> sliderMat;
+std::vector<MaterialCreator> booleanMat;
+
 // Keep our main cleaner
 void LoadDefaultResources();
 void getCursorData(GLFWwindow* window, double x, double y);
@@ -236,6 +251,15 @@ int placeInLineToIndex(int linePlace);
 int indexToPlaceInLine(int index);
 void TutorialChangePosition();
 void UpdateTutorial(float deltaTime);
+void loadSettings();
+void loadNumberHashMap();
+GLuint pictureIndexToGLuint(int i);
+int GLuintToPictureIndex(GLuint);
+int getWhichKeyPressed();
+void saveSettings();
+void loadSettings();
+void applySettings();
+int selectedOvenPosition(float x);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -254,6 +278,15 @@ MaterialCreator settingsSignMat = MaterialCreator();
 MaterialCreator exitSignMat = MaterialCreator();
 MaterialCreator pauseSignMat = MaterialCreator();
 MaterialCreator restartSignMat = MaterialCreator();
+
+MaterialCreator optionTraySignMat = MaterialCreator();
+MaterialCreator optionSensitivitySignMat = MaterialCreator();
+MaterialCreator optionMusicSignMat = MaterialCreator();
+MaterialCreator optionSoundSignMat = MaterialCreator();
+MaterialCreator optionEnlargeSignMat = MaterialCreator();
+MaterialCreator optionExitSignMat = MaterialCreator();
+MaterialCreator optionKeybindSignMat = MaterialCreator();
+MaterialCreator optionKeybindDoneSignMat = MaterialCreator();
 
 MaterialCreator croissantTile = MaterialCreator();
 MaterialCreator doughTile = MaterialCreator();
@@ -339,18 +372,29 @@ std::vector<glm::vec3> endNumberPos;
 bool isCarMoving = false;
 float carT = 0.f;
 float dayT = 0.0f;
-float dayBright = 0.9;
+float dayBright = 0.98;
 float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
 
+Transform accessStart[4];
+Transform accessTray[8];
+Entity* accessEntities[4];
+int accessButtonPressed = -1;
+int accessSettings[8] = {1,2,3,4,3,3,3,0};
+bool isInOption = false;
+glm::vec3 accessScale = glm::vec3(0.01f, 0.01f, 0.01f);
+
+
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
+glm::vec3 numberScale;
 void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
 void restartGame();
-
-
+Entity* ovenEntites[4];
+float ovenHeights[4];
+std::vector<Mesh*> allOvenFrames;
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -385,15 +429,17 @@ int main()
 	PathSampler::Catmull = Catmull<glm::vec3>;
 	PathSampler::Bezier = Bezier<glm::vec3>;
 	srand(static_cast<unsigned int>(time(0)));
+	loadSettings();
+	loadNumberHashMap();
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
 	App::SetClearColor(glm::vec4(1, 0.964, 0.929,1.f));
 	App::setCursorVisible(false);
 	gameWindow = glfwGetCurrentContext();
-	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	
 	// Initialize ImGui
 	App::InitImgui();
-	//glfwSetInputMode(gameWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	
 	// Load in our model/texture resources
 	LoadDefaultResources();
 	
@@ -403,10 +449,7 @@ int main()
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	glfwSetScrollCallback(gameWindow, scroll_callback);
 	glfwSwapInterval(1);
-	//gameScenes.push_back(&GameScene());
-	//gameScenes[activeScene]->Setup();
 
-	//glfwSetKeyCallback(gameWindow, key_callback);
 
 	MaterialCreator cursorMat = MaterialCreator();
 	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_unlit);
@@ -433,7 +476,7 @@ int main()
 	binMat.createMaterial("bakery/models/trash.gltf", "bakery/textures/trash.png", *prog_texLit);
 
 	MaterialCreator ovenMat = MaterialCreator();
-	ovenMat.createMaterial("bakery/models/oven.gltf", "bakery/textures/oven.png", *prog_texLit); 
+	ovenMat.createMaterial("bakery/models/legs.gltf", "bakery/textures/ovenTexture.png", *prog_texLit); 
 
 	MaterialCreator toppingMat = MaterialCreator();
 	toppingMat.createMaterial("bakery/models/topping.gltf", "bakery/textures/topping.png", *prog_texLit);
@@ -470,13 +513,64 @@ int main()
 		std::string newNum = "UI/textures/Number_" + std::to_string(i) + ".png";
 		numberTiles.back().createMaterial("bakery/models/tile.gltf", newNum , *prog_texLit);
 	}
+	std::string orderToCheck = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	for (char& c : orderToCheck) {
+		alphanumericMat.push_back(MaterialCreator());
+		std::string newString = "UI/textures/alphanumeric/Key" + std::string(1, c) + ".png";
+		alphanumericMat.back().createMaterial("bakery/models/tile.gltf", newString, *prog_texLit);
+		
+	}
+	booleanMat.push_back(MaterialCreator());
+	booleanMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeCross.png", *prog_texLit);
+	booleanMat.push_back(MaterialCreator());
+	booleanMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeCheck.png", *prog_texLit);
+
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeLow.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMidLow.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMiddle.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMidHigh.png", *prog_texLit);
+	sliderMat.push_back(MaterialCreator());
+	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeHigh.png", *prog_texLit);
 
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
 	
 	MaterialCreator arrowMat = MaterialCreator();
 	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_texLit);
+
+	MaterialCreator ovenDial = MaterialCreator();
+	ovenDial.createMaterial("bakery/models/dial.gltf", "bakery/textures/ovenTexture.png", *prog_texLit);
+
 	
+
+
+	MaterialCreator ovenOpenMat1 = MaterialCreator();
+	ovenOpenMat1.createMaterial("bakery/models/ovenopen1.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenOpenMat2 = MaterialCreator();
+	ovenOpenMat2.createMaterial("bakery/models/ovenopen2.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenOpenMat3 = MaterialCreator();
+	ovenOpenMat3.createMaterial("bakery/models/ovenopen3.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenOpenMat4 = MaterialCreator();
+	ovenOpenMat4.createMaterial("bakery/models/ovenopen4.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+
+	MaterialCreator ovenClosedMat = MaterialCreator();
+	ovenClosedMat.createMaterial("bakery/models/ovenclosed.gltf", "bakery/textures/ovenTexture.png", *prog_morph);
+	
+	allOvenFrames.push_back(ovenClosedMat.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat1.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat2.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat3.getMesh().get());
+	allOvenFrames.push_back(ovenOpenMat4.getMesh().get());
+
+	
+
 	MaterialCreator bakeryMat = MaterialCreator();
 	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
 
@@ -528,11 +622,32 @@ int main()
 	exitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/exitSign.png", *prog_texLit);
 	pauseSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/pauseSign.png", *prog_texLit);
 	restartSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/restartSign.png", *prog_texLit);
+
+	optionTraySignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionTraySign.png", *prog_texLit);
+	optionSensitivitySignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionSensitivitySign.png", *prog_texLit);
+	optionMusicSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionMusicSign.png", *prog_texLit);
+	optionSoundSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionSoundSign.png", *prog_texLit);
+	optionEnlargeSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionEnlargeSign.png", *prog_texLit);
+	optionExitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionExitSign.png", *prog_texLit);
+
+	optionKeybindSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionKeybindSign.png", *prog_texLit);
+	optionKeybindDoneSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionKeybindDoneSign.png", *prog_texLit);
+
 	signFrames.push_back(playSignMat.getMaterial().get());
 	signFrames.push_back(settingsSignMat.getMaterial().get());
 	signFrames.push_back(exitSignMat.getMaterial().get());
 	signFrames.push_back(pauseSignMat.getMaterial().get());
 	signFrames.push_back(restartSignMat.getMaterial().get());
+
+
+	signFrames.push_back(optionTraySignMat.getMaterial().get());
+	signFrames.push_back(optionSensitivitySignMat.getMaterial().get());
+	signFrames.push_back(optionMusicSignMat.getMaterial().get());
+	signFrames.push_back(optionSoundSignMat.getMaterial().get());
+	signFrames.push_back(optionEnlargeSignMat.getMaterial().get());
+	signFrames.push_back(optionExitSignMat.getMaterial().get());
+	signFrames.push_back(optionKeybindSignMat.getMaterial().get());
+	signFrames.push_back(optionKeybindDoneSignMat.getMaterial().get());
 
 
 	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
@@ -570,7 +685,7 @@ int main()
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
 
 	
-	
+
 
 	Entity bakery = Entity::Create();
 	bakery.Add<CMeshRenderer>(bakery, *bakeryMat.getMesh(), *bakeryMat.getMaterial());
@@ -610,7 +725,7 @@ int main()
 	// Create and set up camera
 	Entity cameraEntity = Entity::Create();
 	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
-	cam.Perspective(60.0f, (float) width/height, 0.1f, 100.0f);
+	cam.Perspective(60.0f, (float) width/height, 0.001f, 100.0f);
 	//cam.Perspective(100.f, (float) width/height, 0.1f, 100.0f);
 	cameraEntity.transform.m_pos = cameraPos;
 	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -709,16 +824,40 @@ int main()
 		renderingEntities.push_back(&fridge);
 
 		Entity oven = Entity::Create();
-		oven.Add<CMeshRenderer>(oven, *ovenMat.getMesh(), *ovenMat.getMaterial());
+		oven.Add<CMorphMeshRenderer>(oven, *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
 		
 		oven.Add<Machine>();
 		oven.Add<Oven>();
-		oven.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
-		oven.transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		oven.transform.m_pos = glm::vec3(1.f, -1.5f, 0.5f);
+		oven.transform.m_scale = glm::vec3(0.075f, 0.075f, 0.075f);
+		oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		oven.transform.m_pos = glm::vec3(0.5f, -1.91f, 0.100f);
 		oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.35), oven);
 		renderingEntities.push_back(&oven);
+		auto& animatorOven = oven.Add<CMorphAnimator>(oven);
+		animatorOven.SetFrameTime(1.0f);
+		animatorOven.SetFrames(allOvenFrames);
+		
 	
+		/*
+		
+	
+		for (int i = 0; i < 4; i++) {
+			ovenEntites[i] = Entity::Allocate().release();
+			ovenEntites[i]->transform = oven.transform;
+			ovenEntites[i]->transform.m_pos.y += 0.19 + (i * 0.3);
+			ovenEntites[i]->transform.m_scale= glm::vec3(0.3);
+			ovenEntites[i]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+			ovenEntites[i]->Add<CMorphMeshRenderer>(*ovenEntites[i], *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
+			ovenEntites[i]->Add<MorphAnimation>(closingFrames,0.3f,0);
+			renderingEntities.push_back(ovenEntites[i]);
+
+			auto& animatordrink = ovenEntites[i]->Add<CMorphAnimator>(*ovenEntites[i]);
+			animatordrink.SetFrameTime(1.0f);
+			animatordrink.SetFrames(closingFrames);
+		}
+
+		*/
 		Entity filling = Entity::Create();
 		filling.Add<CMorphMeshRenderer>(filling, *fillingMat1.getMesh(), *fillingMat1.getMaterial());
 		
@@ -1133,44 +1272,101 @@ int main()
 
 	
 
+
+	int currentOvenPos = -1;//selectedOvenPosition(currentPoint.y);
+	int lastOvenPos = -1;//selectedOvenPosition(lastPoint.y);
 	Transform slot1Transform = oven.transform;
 	//1.f, -1.5f, 0.5f
-	slot1Transform.m_pos.x += -0.39;
-	slot1Transform.m_pos.y += 0.53;
-	slot1Transform.m_pos.z -= 0.440;
-	OvenTimer slot1 = OvenTimer(nothingTile,arrowMat, timerMat, slot1Transform);
-	renderingEntities.push_back(slot1.getArrow());
-	renderingEntities.push_back(slot1.getCircle());
-	renderingEntities.push_back(slot1.getTile());
+	slot1Transform.m_pos.x = 0.145;
+	slot1Transform.m_pos.y = -1.218;
+	slot1Transform.m_pos.z = -0.175;
+	slot1Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
+	slot1Transform.m_scale = glm::vec3(0.25);
+	OvenTimer slot4 = OvenTimer(nothingTile,ovenDial, timerMat, slot1Transform,0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot4.getArrow());
+	//renderingEntities.push_back(slot1.getCircle());
+	renderingEntities.push_back(slot4.getTile());
+	slot4.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot4.getArrow()->transform.m_pos.x += 0.01;
+	slot4.getArrow()->transform.m_pos.z += 0.03;
+	slot4.getTile()->transform.m_pos.y = slot4.getTransform().m_pos.y + 0.569;
+
+	//slot1.getArrow()->transform.m_rotation = 
 	Transform slot2Transform = oven.transform;
-	slot2Transform.m_pos.x += -0.27;
-	slot2Transform.m_pos.y += 0.53;
-	slot2Transform.m_pos.z -= 0.140;
-	OvenTimer slot2 = OvenTimer(nothingTile, arrowMat, timerMat, slot2Transform);
-	renderingEntities.push_back(slot2.getArrow());
-	renderingEntities.push_back(slot2.getCircle());
-	renderingEntities.push_back(slot2.getTile());
+	//slot2Transform.m_pos.x += -0.27;
+	
+	//slot2Transform.m_pos.z -= 0.140;
+
+	slot2Transform.m_pos.x = 0.145;
+	slot2Transform.m_pos.y = -0.981;
+	slot2Transform.m_pos.z = -0.175;
+
+	
+	slot2Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	slot2Transform.m_scale = glm::vec3(0.25);
+	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot3.getArrow());
+	//renderingEntities.push_back(slot2.getCircle());
+	renderingEntities.push_back(slot3.getTile());
+	//slot2.getTile()->transform.m_pos = slot2Transform.m_pos;
+	slot3.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot2.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot3.getArrow()->transform.m_pos.x += 0.01;
+	slot3.getArrow()->transform.m_pos.z += 0.03;
+	slot3.getTile()->transform.m_pos.y = slot3.getTransform().m_pos.y + 0.569;
 
 
 	Transform slot3Transform = oven.transform;
-	slot3Transform.m_pos.x += -0.39;
-	slot3Transform.m_pos.y += 0.27;
-	slot3Transform.m_pos.z -= 0.440;
-	OvenTimer slot3 = OvenTimer(nothingTile, arrowMat, timerMat, slot3Transform);
-	renderingEntities.push_back(slot3.getArrow());
-	renderingEntities.push_back(slot3.getCircle());
-	renderingEntities.push_back(slot3.getTile());
+
+	slot3Transform.m_pos.x = 0.145;
+	slot3Transform.m_pos.y = -0.739;
+	slot3Transform.m_pos.z = -0.175;
+
+
+	
+	slot3Transform.m_scale = glm::vec3(0.25);
+	slot3Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot2.getArrow());
+	//renderingEntities.push_back(slot3.getCircle());
+	renderingEntities.push_back(slot2.getTile());
+	//slot3.getTile()->transform.m_pos = slot3Transform.m_pos ;
+	slot2.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot3.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot2.getArrow()->transform.m_pos.x += 0.01;
+	slot2.getArrow()->transform.m_pos.z += 0.03;
+	slot2.getTile()->transform.m_pos.y = slot2.getTransform().m_pos.y + 0.587;
+
 
 	Transform slot4Transform = oven.transform;
-	slot4Transform.m_pos.x += -0.27;
-	slot4Transform.m_pos.y += 0.27;
-	slot4Transform.m_pos.z -= 0.140;
-	OvenTimer slot4 = OvenTimer(nothingTile, arrowMat, timerMat, slot4Transform);
-	renderingEntities.push_back(slot4.getArrow());
-	renderingEntities.push_back(slot4.getCircle());
-	renderingEntities.push_back(slot4.getTile());
 
+	slot4Transform.m_pos.x = 0.145;
+	slot4Transform.m_pos.y = -0.502;
+	slot4Transform.m_pos.z = -0.175;
+
+	
+	slot4Transform.m_scale = glm::vec3(0.25);
+	slot4Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	OvenTimer slot1 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
+	renderingEntities.push_back(slot1.getArrow());
+	//renderingEntities.push_back(slot4.getCircle());
+	renderingEntities.push_back(slot1.getTile());
+	//slot4.getTile()->transform.m_pos = slot4Transform.m_pos;
+	slot1.getArrow()->transform.m_scale = glm::vec3(1.4);
+	//slot4.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0));
+	slot1.getArrow()->transform.m_pos.x += 0.01;
+	slot1.getArrow()->transform.m_pos.z += 0.03;
+	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.586;
+
+	ovenHeights[0] = slot1Transform.m_pos.y- 0.15;
+	ovenHeights[1] = slot2Transform.m_pos.y - 0.15;
+	ovenHeights[2] = slot3Transform.m_pos.y - 0.15;
+	ovenHeights[3] = slot4Transform.m_pos.y - 0.15;
 
 	std::vector<MaterialCreator*> tiles = std::vector<MaterialCreator*>();
 	tiles.push_back(&nothingTile);
@@ -1196,9 +1392,9 @@ int main()
 	currentOrders.back().createOrder(bakeryUtils::getDifficulty());//bakeryUtils::getDifficulty()
 	//currentOrders.back().startOrder();
 	
-	OvenTimer upurrTimer1 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
-	OvenTimer upurrTimer2 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2);
-	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2);
+	OvenTimer upurrTimer1 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2, glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	OvenTimer upurrTimer2 = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation, 0.2, glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	OvenTimer customerTimer = OvenTimer(nothingTile, arrowMat, timerMat, customerBubbleLocation,0.2, glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
 	OrderBubble uprrBubble1(&upurrTimer1);
 	OrderBubble uprrBubble2(&upurrTimer2);
@@ -1266,6 +1462,7 @@ int main()
 			renderingEntities.push_back(ent);
 		}
 	}
+	
 	currentOrders.back().startOrder();
 	}
 	
@@ -1282,7 +1479,7 @@ int main()
 	for (int i = 0; i < 6; i++) {
 		numberEntities.push_back(Entity::Allocate().release());
 		//numberEntities.back()->transform.SetParent(&receipt.transform);
-
+		numberScale = glm::vec3(0.007, 0.007, 0.007);
 		if (i < 3) {
 
 			numberEntities.back()->Add<CMeshRenderer>(*numberEntities.back(), *numberTiles[i].getMesh(), *numberTiles[i].getMaterial());
@@ -1311,6 +1508,53 @@ int main()
 		//renderingEntities.push_back(numberEntities.back());
 	}
 	
+	std::vector<MaterialCreator*> alphanumericPointer;
+	std::vector<MaterialCreator*> sliderPointer;
+	std::vector<MaterialCreator*> booleanPointer;
+	for (int i = 0; i < alphanumericMat.size(); i++) {
+		alphanumericPointer.push_back(&alphanumericMat[i]);
+	}
+	for (int i = 0; i < sliderMat.size(); i++) {
+		sliderPointer.push_back(&sliderMat[i]);
+	}
+	for (int i = 0; i < booleanMat.size(); i++) {
+		booleanPointer.push_back(&booleanMat[i]);
+	}
+	loadSettings();
+	applySettings();
+	for (int i = 0; i < 4; i++) {
+		accessEntities[i] = Entity::Allocate().release();//make into other entity for accessibility and re use them for tray abd sign board
+		accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *alphanumericMat[i].getMesh(), *alphanumericMat[i].getMaterial());
+		accessEntities[i]->transform.m_scale = accessScale;
+		accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
+		accessEntities[i]->Add<PictureSelector>(accessEntities[i]);
+		accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+	}
+	{//accessEntities stuff
+		//accessEntities[0]->transform.m_pos = accessTray[0].m_pos;
+		accessEntities[0]->Get<PictureSelector>().setPictures(sliderPointer);
+		accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
+		accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
+		accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
+
+
+
+
+		tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552
+		tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		accessTray[0].m_pos = glm::vec3(-0.81, -1.223, -10.68);
+		accessTray[1].m_pos = glm::vec3(-0.81, -1.223, -10.725);
+		accessTray[2].m_pos = glm::vec3(-0.78, -1.223, -10.68);
+		accessTray[3].m_pos = glm::vec3(-0.78, -1.223, -10.725);
+		accessTray[4].m_pos = glm::vec3(-1, -1.198, -10.620);
+		accessTray[5].m_pos = glm::vec3(-1, -1.236, -10.620);
+		accessTray[6].m_pos = glm::vec3(-1, -1.273, -10.620);
+		accessTray[7].m_pos = glm::vec3(-1, -1.315, -10.620);
+
+	}
+	
 	
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
@@ -1324,10 +1568,25 @@ int main()
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
 		
-		
-		
-		
-		
+		/*
+			App::StartImgui();
+			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+
+			ImGui::DragFloat("X", &(oven.transform.m_pos.x), 0.01);
+			ImGui::DragFloat("Y", &(oven.transform.m_pos.y), 0.01);
+			ImGui::DragFloat("Z", &(oven.transform.m_pos.z), 0.01);
+			ImGui::DragFloat("D", &(tempD), 0.001);
+
+			//ImGui::DragFloat("Scale", &(sc), 0.1f);
+			//ImGui::SetWindowPos(0,0);
+
+			App::EndImgui();
+			*/
+			//oven.transform.m_scale = glm::vec3(tempD);
+			//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0, 1, 0));
+			//slot1.getArrow()->transform.m_pos.x = slot1.getTransform().m_pos.x + tempA;
+			//slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + tempA;
+
 	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 		
@@ -1349,7 +1608,30 @@ int main()
 		if (canCheat) {
 			//std::cout << "GGGG" << std::endl;
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
+				bakeryUtils::addToFailed(3);
+				//createNewOrder(i, false, false);
 				bakeryUtils::addToFailed(1);
+				if (bakeryUtils::getOrdersFailed() == 3) {
+					receipt.transform.m_pos = cursor.transform.m_pos;
+					receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+						glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+						* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+					removeFromRendering(&cursor);
+					removeFromRendering(&tray);
+					for each (Entity * trayEntity in trayPastry) {
+						removeFromRendering(trayEntity);
+					}
+					renderingEntities.push_back(&receipt);
+					for (int i = 0; i < 6; i++)
+					{
+						renderingEntities.push_back(numberEntities[i]);
+
+					}
+					int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
+					setScores(bakeryUtils::getRoundsLasted(), highScore);
+					receiptT = 0;
+					isInContinueMenu = true;
+				}
 			}
 			if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot
 				std::cout << "------------------" << std::endl;
@@ -1419,7 +1701,223 @@ int main()
 			car.transform.m_pos.z = -15;
 			car.transform.m_pos.y = -1.7;
 		}
+		if (isInOptionsMenu) {
+			
+			if (isClickingSpace) {
+				isInOption = !isInOption;
 
+				if (!isInOption && selectedOption == 0) {
+					isInOption = true;
+				}
+				else
+				{
+					if (isInOption) {
+						if (selectedOption == 0) {
+							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[11]);
+							if (!isInRendering(&tray)) {
+								renderingEntities.push_back(&tray);
+							}
+							for (int i = 0; i < 4; i++) {
+								accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
+								accessEntities[i]->Get<PictureSelector>().updatePicture();
+								accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
+								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+
+							}
+							for (int i = 0; i < 4; i++) {
+								if (isInRendering(accessEntities[i])) {
+									removeFromRendering(accessEntities[i]);
+								}
+							}
+							accessButtonPressed = 0;
+						}
+						else if (selectedOption == 5) {
+							isInMainMenu = true;
+							isInOptionsMenu = false;
+							isInOption = false;
+							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[1]);
+							selectedOption = 1;
+							for (int i = 0; i < 4; i++) {
+								if (isInRendering(accessEntities[i])) {
+									removeFromRendering(accessEntities[i]);
+								}
+							}
+
+						}
+						else
+						{
+							for (int i = 0; i < 4; i++) {
+								if (selectedOption - 1 != i) {
+									if (isInRendering(accessEntities[i])) {
+										removeFromRendering(accessEntities[i]);
+									}
+								}
+							}
+						}
+
+					}
+					else
+					{
+						for (int i = 0; i < 4; i++) {
+							accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
+						}
+						saveSettings();
+						applySettings();
+						for (int i = 0; i < 4; i++) {
+
+							if (!isInRendering(accessEntities[i])) {
+								renderingEntities.push_back(accessEntities[i]);
+
+
+							}
+							if (i < 3) {
+								accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+							}
+							else
+							{
+								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+							}
+							accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+						}
+
+					}
+				}
+				
+				
+				
+			}
+
+			if (!isInOption) {
+				int mainMenuChosen = getSignSelection(6, false);
+
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 5]);
+			}
+			else
+			{
+				if (selectedOption == 0) {
+					
+					if (accessButtonPressed >= 0) {
+						for (int i = 0; i < std::size(accessEntities); i++) {
+							accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
+						}
+
+						//show tray and stuff
+						if (accessButtonPressed < 4) {
+							for (int i = 0; i < accessButtonPressed + 1; i++) {
+								if (!isInRendering(accessEntities[i])) {
+									renderingEntities.push_back(accessEntities[i]);
+								}
+							}
+						}
+
+						if (getWhichKeyPressed() != -1) {
+							if (accessButtonPressed >= 4) {
+								accessButtonPressed = -1;
+								//accessButtonPressed = 0;
+								
+								//isInMainMenu = true;
+								//isInOptionsMenu = false;
+								isInOption = false;
+								if (isInRendering(&tray)) {
+									removeFromRendering(&tray);
+								}
+								accessEntities[0]->Get<PictureSelector>().setPictures(sliderPointer);
+								accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
+								accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
+								accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
+								for (int i = 0; i < 4; i++) {
+									accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
+									accessEntities[i]->Get<PictureSelector>().updatePicture();
+									accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+									if (i < 3) {
+										accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+									}
+									else
+									{
+										accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+									}
+								}
+								saveSettings();
+								applySettings();
+							}
+							else
+							{
+								if (getWhichKeyPressed() >= 0) {
+									renderingEntities.push_back(accessEntities[accessButtonPressed]);
+									int keyPressed = getWhichKeyPressed();
+									bool alreadyUsed = false;
+									for (int i = 0; i < accessButtonPressed; i++) {
+										if (accessEntities[i]->Get<PictureSelector>().getIndex() == keyPressed) {
+											alreadyUsed = true;
+										}
+									}
+									if (!alreadyUsed) {
+
+										trayKeys[accessButtonPressed] = pictureIndexToGLuint(keyPressed);
+										accessEntities[accessButtonPressed]->Get<PictureSelector>().setIndex(keyPressed);
+										accessEntities[accessButtonPressed]->Get<PictureSelector>().updatePicture();
+										accessSettings[accessButtonPressed] = keyPressed;
+										accessButtonPressed++;
+										if (accessButtonPressed == 4) {
+											sign.Get<CMeshRenderer>().SetMaterial(*signFrames[12]);
+										}
+									}
+								}
+								
+								
+
+							}
+
+						}
+
+					}
+					else
+					{
+
+						//accessButtonPressed = 0;
+					}
+				}
+				else if (selectedOption != 5) {
+					if (isClickingUp || isClickingRight) {
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(1);
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
+					}
+					else if (isClickingDown || isClickingLeft) {
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(-1);
+						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
+
+					}
+				}
+				
+			}
+			
+
+			
+			
+
+			
+			
+			
+
+			for each (Entity * e in renderingEntities) {
+
+				e->transform.RecomputeGlobal();
+
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
+
+			}
+
+			App::SwapBuffers();
+			continue;
+		}
 		if (isInMainMenu) {
 			if (!isCameraMoving) {
 				
@@ -1434,10 +1932,40 @@ int main()
 				
 				if (mainMenuChosen >= 0) {	
 					if (mainMenuChosen == 0) {//PLAY	
-						
+						orderBubbles[0]->updateScale(UIScale);
+						tray.transform.m_scale = trayScale;
+						tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
+
 						isCameraMoving = true;
 					}
+					if (mainMenuChosen == 1) {
 
+						isInOptionsMenu = true;
+						isInMainMenu = false;
+						
+						//renderingEntities.push_back(accessEntities[0]);
+						for (int i = 0; i < 4; i++) {
+							if (!isInRendering(accessEntities[i])) {
+								renderingEntities.push_back(accessEntities[i]);
+								accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+								if (i < 3) {
+									accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+								}
+								else
+								{
+									accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+								}
+								
+								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
+								accessEntities[i]->Get<PictureSelector>().updatePicture();
+							}
+						}
+						accessButtonPressed = 0;
+						selectedOption = 0;
+						isInOption = false;
+						
+					}
 					if (mainMenuChosen == 2) {
 						break;
 					}
@@ -1968,6 +2496,21 @@ int main()
 
 			}
 
+			oven.Get<CMorphAnimator>().addToT(deltaTime);
+			if (oven.Get<CMorphAnimator>().getT() < 1) {
+				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], oven.Get<CMorphAnimator>().getT());
+				//std::cout << "T" << oven.Get<CMorphAnimator>().getT() << std::endl;
+				//oven.Get<CMorphMeshRenderer>().UpdateData(*allOvenFrames[1 + currentOvenPos], *allOvenFrames[1 + lastOvenPos], oven.Get<CMorphAnimator>().getT());
+
+				//oven.Get<CMorphMeshRenderer>().Draw();
+				
+			}
+			else
+			{
+				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 1);
+				//std::cout << "T1" << std::endl;
+			}
+
 			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl;
 			// Update our LERP timers
 		
@@ -1985,6 +2528,10 @@ int main()
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
 					if (bakeryUtils::getOrdersFailed() == 3) {
+						if (cameraX == 0 && cameraY == 0) {
+							cameraX = 1;
+							cameraY = 1;
+						}
 						 receipt.transform.m_pos = cursor.transform.m_pos;
 						receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 							glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
@@ -2119,6 +2666,7 @@ int main()
 		for (int i = 0; i < numberEntities.size(); i++) {
 			numberEntities[i]->transform.m_rotation = receipt.transform.m_rotation;
 			numberEntities[i]->transform.m_pos = beginingNumberPos[i];
+			numberEntities[i]->transform.m_scale = numberScale;
 		}
 		//receipt.transform.m_rotation = cameraQuat;
 		
@@ -2260,6 +2808,20 @@ int main()
 					
 				}
 				else if (e->Has<Oven>()) {
+					
+					currentOvenPos = selectedOvenPosition(currentPoint.y);
+					lastOvenPos = selectedOvenPosition(lastPoint.y);
+					if (currentOvenPos >= 0 && currentOvenPos != lastOvenPos) {
+					oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 0);
+					oven.Get<CMorphAnimator>().setT(0);
+						std::cout << currentOvenPos << std::endl;
+						
+						
+
+						//ovenEntites[currentOvenPos]->Get<MorphAnimation>().reverseFrames(ovenEntites[currentOvenPos]);
+						
+						
+					}
 					//log("A");
 					//std::cout << "OVEN" << std::endl;
 					int wantedSlot = getWantedSlot();
@@ -3195,16 +3757,16 @@ void getKeyInput() {
 }
 int getWantedSlot() {
 	int wantedSlot = -1;
-	if (Input::GetKeyDown(GLFW_KEY_1)) {
+	if (Input::GetKeyDown(trayKeys[0])) {
 		wantedSlot = 0;
 	}
-	if (Input::GetKeyDown(GLFW_KEY_2)) {
+	if (Input::GetKeyDown(trayKeys[1])) {
 		wantedSlot = 1;
 	}
-	if (Input::GetKeyDown(GLFW_KEY_3)) {
+	if (Input::GetKeyDown(trayKeys[2])) {
 		wantedSlot = 2;
 	}
-	if (Input::GetKeyDown(GLFW_KEY_4)) {
+	if (Input::GetKeyDown(trayKeys[3])) {
 		wantedSlot = 3;
 	}
 	return wantedSlot;
@@ -3511,16 +4073,21 @@ void createNewOrder(int i, bool addDifficulty, bool remove) {
 }
 
 void resetBubble(int i, bool create) {
+	orderBubbles[i]->updateScale(UIScale);
 	orderBubbles[i]->clearRenderingEntities();
 	orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
+	
 	orderBubbleTimers[i]->setFill(0);
 	orderBubbleTimers[i]->updateArrow();
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
 	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping), getDrinkTile(currentOrders[i].drink));
 	orderBubbles[i]->setup(&bubbleTile, &plusTile);
+	orderBubbles[i]->updateScale(UIScale);
 	if (create) {
 		orderBubbles[i]->create(currentOrders[i]);
+		orderBubbles[i]->updateScale(UIScale);
 	}
+	
 	
 }
 
@@ -3721,6 +4288,7 @@ void restartGame() {
 	bakeryUtils::setRoundsLasted(0);
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
+		
 		ob->getTimer().setFill(0);
 		ob->getTimer().updateArrow();
 		ob->getOrder()->setOver(false);
@@ -3735,6 +4303,7 @@ void restartGame() {
 			//renderingEntities.push_back(ent);
 		}
 		resetBubble(i,false);
+		ob->updateScale(UIScale);
 		//ob->clearRenderingEntities();
 	
 	}
@@ -3757,6 +4326,9 @@ void restartGame() {
 	orderBubbles[0]->setTiles(getPastryTile(currentOrders.back().type), getFillingTile(currentOrders.back().filling), getToppingTile(currentOrders.back().topping), getDrinkTile(currentOrders.back().drink));
 	orderBubbles[0]->setup(&bubbleTile, &plusTile);
 	orderBubbles[0]->create(currentOrders.back());
+	orderBubbles[0]->updateScale(UIScale);
+	//orderBubbles[1]->updateScale(UIScale);
+	//orderBubbles[2]->updateScale(UIScale);
 
 	for each (Entity * ent in orderBubbles[0]->returnRenderingEntities()) {
 		if (isInRendering(ent)) {
@@ -3808,6 +4380,8 @@ void restartGame() {
 	
 }
 
+int selectedOvenPosition(float x) {
+	
 void TutorialChangePosition()
 {
 	tutorialPos++;
@@ -3835,3 +4409,269 @@ void UpdateTutorial(float deltaTime)
 		}
 	}
 }
+	if (x >= ovenHeights[3]) {
+		return 3;
+	}
+	if (x >= ovenHeights[2] && x < ovenHeights[3]) {
+		return 2;
+	}
+	if (x >= ovenHeights[1] && x < ovenHeights[2]) {
+		return 1;
+	}
+	if (x >= ovenHeights[0] && x < ovenHeights[1]) {
+		return 0;
+	}
+	if (x < ovenHeights[0]) {
+		return -1;
+	}
+}
+
+void loadNumberHashMap() {
+	
+	for (int i = 0; i < 10; i++) {
+		alphanumeric.insert(std::pair<GLuint, int>(48 + i, i));
+	}
+	for (int i = 10; i < 36; i++) {
+		alphanumeric.insert(std::pair<GLuint, int>(65 + (i - 10), i));
+	}
+
+	
+}
+
+
+
+GLuint pictureIndexToGLuint(int j) {
+	for (auto& it : alphanumeric) {
+		if (it.second == j) {
+			return it.first;
+		}
+	}
+	return 0;
+}
+
+int GLuintToPictureIndex(GLuint j) {
+	for (auto& it : alphanumeric) {
+		if (it.first == j) {
+			return it.second;
+		}
+	}
+	return 0;
+}
+
+int getWhichKeyPressed() {
+	/*for(int i = 0; i < 10; i++){
+       std::cout << "if(Input::GetKeyDown(GLFW_KEY_" << std::to_string(i) << ")){" << std::endl;
+       std::cout << "return " << std::to_string(i) << ";" << std::endl;
+       std::cout << "}" << std::endl;
+   }
+   int start = 10;
+   std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+   for (char& c : letters) {
+		 std::cout << "if(Input::GetKeyDown(GLFW_KEY_" << std::string(1, c) << ")){" << std::endl;
+       std::cout << "return " << std::to_string(start) << ";" << std::endl;
+       std::cout << "}" << std::endl;
+	start++;
+	}
+	*/
+	if (isClickingSpace) {
+		return -2;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_0)) {
+		return 0;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_1)) {
+		return 1;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_2)) {
+		return 2;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_3)) {
+		return 3;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_4)) {
+		return 4;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_5)) {
+		return 5;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_6)) {
+		return 6;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_7)) {
+		return 7;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_8)) {
+		return 8;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_9)) {
+		return 9;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_A)) {
+		return 10;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_B)) {
+		return 11;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_C)) {
+		return 12;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_D)) {
+		return 13;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_E)) {
+		return 14;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_F)) {
+		return 15;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_G)) {
+		return 16;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_H)) {
+		return 17;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_I)) {
+		return 18;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_J)) {
+		return 19;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_K)) {
+		return 20;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_L)) {
+		return 21;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_M)) {
+		return 22;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_N)) {
+		return 23;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_O)) {
+		return 24;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_P)) {
+		return 25;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_Q)) {
+		return 26;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_R)) {
+		return 27;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_S)) {
+		return 28;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_T)) {
+		return 29;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_U)) {
+		return 30;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_V)) {
+		return 31;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_W)) {
+		return 32;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_X)) {
+		return 33;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_Y)) {
+		return 34;
+	}
+	if (Input::GetKeyDown(GLFW_KEY_Z)) {
+		return 35;
+	}
+	return -1;
+}
+
+void saveSettings() {
+	std::fstream scoreKeeper("settings.txt");
+	std::string lastScore;
+	int index = 0;
+	scoreKeeper.close();
+	scoreKeeper.open("settings.txt", std::ofstream::out | std::ofstream::trunc);
+	scoreKeeper.close();
+	scoreKeeper.open("settings.txt");
+	if (scoreKeeper.is_open()) {
+		for (int i = 0; i < 8; i++) {
+			scoreKeeper << std::to_string(accessSettings[index]) << std::endl;
+			index++;
+		}
+		scoreKeeper.close();
+	}
+	else
+	{
+		for (int i = 0; i < 8; i++) {
+			scoreKeeper << std::to_string(accessSettings[index]) << std::endl;
+			index++;
+		}
+		scoreKeeper.close();
+	}
+	
+}
+
+void loadSettings() {
+	std::ifstream MyReadFile("settings.txt");
+	std::string readLine;
+	int index = 0;
+	
+	if (MyReadFile.is_open()) {
+		if (MyReadFile.good()) {
+			while (std::getline(MyReadFile, readLine)) {
+
+
+				accessSettings[index] = std::stoi(readLine);
+				index++;
+			}
+		}
+		
+		MyReadFile.close();
+	}
+	
+	for (int i = 4; i < 7; i++) {
+		if (accessSettings[i] > 4 || accessSettings[i] < 0) {
+			accessSettings[i] = 3;
+		}
+		
+	}
+	if (accessSettings[7] > 1 || accessSettings[7] < 0) {
+		accessSettings[7] = 0;
+	}
+	
+}
+
+void applySettings() {
+	for (int i = 0; i < 4; i++) {
+		trayKeys[i] = pictureIndexToGLuint(accessSettings[i]);
+	}
+	if (accessSettings[4] == 2) {
+		sensitivity = -0.1;
+	}
+	if (accessSettings[4] == 1) {
+		sensitivity = -0.075;
+	}
+	if (accessSettings[4] == 0) {
+		sensitivity = -0.05;
+	}
+	if (accessSettings[4] == 3) {
+		sensitivity = -0.125;
+	}
+	if (accessSettings[4] == 4) {
+		sensitivity = -0.15;
+	}
+	soundVolume = accessSettings[5];
+	musicVolume = accessSettings[6];
+	if (accessSettings[7] == 1) {
+		UIScale = 1.35;
+		
+	}
+	else
+	{
+		UIScale = 0.95;
+	}
+
+}
+

@@ -33,7 +33,7 @@ public:
 	void setup(MaterialCreator*, MaterialCreator*);//3
 	void setupTimer(OvenTimer*);
 	
-	void create(Order& o);
+	void create(Order& o, float scaleAll = 0.95);//1.35
 	Entity* getBubble();
 	std::vector<Entity*> returnRenderingEntities();
 	void clearRenderingEntities();
@@ -41,5 +41,6 @@ public:
 	Order* getOrder();
 	float getFill();
 	OvenTimer& getTimer();
+	void updateScale(float scale);
 };
 

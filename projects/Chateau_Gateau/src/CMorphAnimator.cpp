@@ -54,6 +54,21 @@ namespace nou
 
 	}
 
+	float CMorphAnimator::getT()
+	{
+		return m_timer;
+	}
+
+	void CMorphAnimator::addToT(float x)
+	{
+		m_timer += x;
+	}
+
+	void CMorphAnimator::setT(float x)
+	{
+		m_timer = x;
+	}
+
 	void CMorphAnimator::Update(float deltaTime)
 	{
 		// TODO: Complete this function

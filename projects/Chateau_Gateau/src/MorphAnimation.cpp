@@ -41,7 +41,7 @@ void MorphAnimation::update(Entity* e, float deltaTime, bool stopAtEnd)
 	if (stopAtEnd && timesLooped >= frames.size()) {
 
 		currentFrame = frames.size() - 1;
-		nextFrame = 0;
+		nextFrame = frames.size() - 1;
 		currentT = 1.0;
 	}
 	
@@ -72,6 +72,26 @@ void MorphAnimation::setCurrentFrame(int x)
 	if (nextFrame >= (frames.size())) {
 		nextFrame = (currentFrame + 1) % frames.size();
 	}
+}
+
+void MorphAnimation::setNextFrame(int x)
+{
+	nextFrame = x;
+	nextFrame = currentFrame + 1;
+	if (currentFrame >= (frames.size())) {
+		currentFrame = currentFrame % frames.size();
+	}
+
+
+	if (nextFrame >= (frames.size())) {
+		nextFrame = (currentFrame + 1) % frames.size();
+	}
+}
+
+void MorphAnimation::setAbsolouteFrames(int a, int b)
+{
+	currentFrame = a;
+	nextFrame = b;
 }
 
 float MorphAnimation::getT()
@@ -107,4 +127,36 @@ std::vector<Mesh*> MorphAnimation::getFrames()
 int MorphAnimation::getFrameSize()
 {
 	return frames.size();
+}
+
+void MorphAnimation::reverseFrames(Entity* e)
+{
+	std::reverse(frames.begin(), frames.end());
+	e->Get<CMorphAnimator>().SetFrames(frames);
+	
+}
+
+void MorphAnimation::setTimesLooped(int x)
+{
+	timesLooped = x;
+}
+
+void MorphAnimation::setFrames(Entity* e, std::vector<Mesh*> x)
+{
+	if (frames != x) {
+		frames = x;
+		currentFrame = 0;
+		timesLooped = 0;
+		nextFrame = currentFrame + 1;
+		currentT = 0;
+		e->Get<CMorphAnimator>().SetFrames(x);
+		
+
+	}
+	
+}
+
+int MorphAnimation::getTimesLooped()
+{
+	return timesLooped;
 }

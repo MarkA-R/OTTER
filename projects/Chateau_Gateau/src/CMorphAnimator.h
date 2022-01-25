@@ -26,6 +26,9 @@ namespace nou
 		void SetFrames(const std::vector<Mesh*> frames);
 		void setFrameAndTime(int currentFrame, int nextFrame, float t);
 		void setMeshAndTime(Mesh* currentFrame, Mesh* nextFrame, float t);
+		float getT();
+		void addToT(float);
+		void setT(float);
 		~CMorphAnimator() = default;
 
 		CMorphAnimator(CMorphAnimator&&) = default;
@@ -57,7 +60,7 @@ namespace nou
 
 		std::unique_ptr<AnimData> m_data;
 
-		float m_timer;
+		float m_timer = 0;
 		bool m_forwards;
 		
 
