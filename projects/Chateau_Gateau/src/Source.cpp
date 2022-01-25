@@ -125,7 +125,9 @@ float easeIn(float x) {
 float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
-float tempD = 0.f;
+float tempD = -0.5f; //(-0.5, -1.22, -2.29f
+float tempE = -1.22f;
+float tempF = -2.29f;
 float lineY = -1.89;//-1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
 prog_allLights;
@@ -232,6 +234,8 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
 int placeInLineToIndex(int linePlace);
 int indexToPlaceInLine(int index);
+void TutorialChangePosition();
+void UpdateTutorial(float deltaTime);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -292,6 +296,17 @@ std::unique_ptr<Material> strawberryParticle;
 Transform customerBubbleLocation;
 Transform upurrBubbleLocation1;
 Transform upurrBubbleLocation2;
+
+Transform orderTut; //MJ
+Transform fridgeTut;
+Transform ovenTut;
+Transform customerTut;
+std::vector<Transform> tutorialArray;
+std::vector<std::vector<MaterialCreator*>> tutorialMasterList;
+Entity* tutorialPlane;
+float tutorialT = 0.f;
+int tutorialPos = 0;
+int tutorialImage = 0;
 
 //burnt tile???
 
@@ -444,6 +459,8 @@ int main()
 	MaterialCreator drinkMat2 = MaterialCreator();//for morphs
 	drinkMat2.createMaterial("bakery/models/drinkMachine2.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
 
+	
+
 	drinkFrames.push_back(drinkMat1.getMesh().get());
 	drinkFrames.push_back(drinkMat2.getMesh().get());
 
@@ -469,8 +486,23 @@ int main()
 	MaterialCreator plexiMat = MaterialCreator();
 	plexiMat.createMaterial("bakery/models/plexiGlass.gltf", "bakery/textures/plexiGlass.png", *prog_transparent);
 
-	
-	
+	MaterialCreator tutorialImage00 = MaterialCreator();
+	tutorialImage00.createMaterial("bakery/models/tile.gltf", "UI/textures/fridgeClick.png", *prog_texLit);
+
+	MaterialCreator tutorialImage01 = MaterialCreator();
+	tutorialImage01.createMaterial("bakery/models/tile.gltf", "UI/textures/fridgeClickOff.png", *prog_texLit);
+
+	MaterialCreator tutorialImage10 = MaterialCreator();
+	tutorialImage10.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClick.png", *prog_texLit);
+
+	MaterialCreator tutorialImage11 = MaterialCreator();
+	tutorialImage11.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClickOff.png", *prog_texLit);
+	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
+	tutorialMasterList[0].push_back(&tutorialImage00);
+	tutorialMasterList[0].push_back(&tutorialImage01);
+	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
+	tutorialMasterList[1].push_back(&tutorialImage10);
+	tutorialMasterList[1].push_back(&tutorialImage11);
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
@@ -1051,6 +1083,32 @@ int main()
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
 	
+
+	//Entity tutorialPlane = Entity::Create();//MJ //Make tutorialPlane entity
+	tutorialPlane = Entity::Allocate().get();
+	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialImage00.getMesh(), *tutorialImage00.getMaterial());
+	tutorialPlane->transform.m_pos = glm::vec3(-2.2, -0.22, -2.39);
+	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	tutorialPlane->transform.m_scale = glm::vec3(0.1f, 0.1f, 0.1f);
+	tutorialPlane->Get<CMeshRenderer>().SetMaterial(*tutorialMasterList[0][0]->getMaterial()); //sets it to "0"
+	renderingEntities.push_back(tutorialPlane);
+
+	tutorialArray.push_back(Transform());
+	tutorialArray[0].m_pos = glm::vec3(-2.2, -0.22, -2.39);
+	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
+	tutorialArray.push_back(Transform());
+	tutorialArray[1].m_pos = glm::vec3(-2.4, -0.420, 0.410);
+	tutorialArray[1].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[1].m_scale = tutorialPlane->transform.m_scale;
+	tutorialArray.push_back(Transform());
+	tutorialArray[2].m_pos = glm::vec3(0.3, -0.62, -0.09);
+	tutorialArray[2].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[2].m_scale = tutorialPlane->transform.m_scale;
+	tutorialArray.push_back(Transform());
+	tutorialArray[3].m_pos = glm::vec3(-0.4, -0.52, -2.29);
+	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	tutorialArray[3].m_scale = tutorialPlane->transform.m_scale;
 	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
@@ -1282,9 +1340,11 @@ int main()
 		float deltaTime = App::GetDeltaTime();
 		getKeyInput();
 
-
-		
-		
+		UpdateTutorial(deltaTime);
+		if (Input::GetKeyDown(GLFW_KEY_T))
+		{
+			TutorialChangePosition();
+		}
 
 		if (canCheat) {
 			//std::cout << "GGGG" << std::endl;
@@ -2021,20 +2081,23 @@ int main()
 		
 		//receipt.transform.SetParent(&cameraEntity.transform);
 		//receipt.transform.m_pos = cursor.transform.m_pos;
-		/*
+		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		
 		ImGui::DragFloat("X", &(tempA), 0.1f);
 		ImGui::DragFloat("Y", &(tempB), 0.1f);
 		ImGui::DragFloat("Z", &(tempC), 0.1f);
-		
+		ImGui::DragFloat("PosX", &(tempD), 0.1f);
+		ImGui::DragFloat("PosY", &(tempE), 0.1f);
+		ImGui::DragFloat("PosZ", &(tempF), 0.1f);
+
+
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
 
-		*/
+		
 		
 		receptBeginPos = cursor.transform.m_pos + glm::cross(glm::cross(cameraFacingVector, glm::vec3(0, 1, 0)), cameraFacingVector) * -1.8f;
 		//receipt.transform.m_pos = receptBeginPos;
@@ -3554,6 +3617,9 @@ int indexToPlaceInLine(int index) {
 	return 3 - (index - lineStart);
 }
 
+
+
+
 void setScores(int totalOrders, int highscore) {
 	if (totalOrders > 999) {
 		totalOrders = 999;
@@ -3742,3 +3808,30 @@ void restartGame() {
 	
 }
 
+void TutorialChangePosition()
+{
+	tutorialPos++;
+	tutorialImage = 0;
+	if (tutorialPos >= std::size(tutorialArray))
+	{
+		removeFromRendering(tutorialPlane);
+		tutorialPos = 0;
+	}
+	else
+	{
+		tutorialPlane->transform = tutorialArray[tutorialPos];
+	}
+}
+
+void UpdateTutorial(float deltaTime)
+{
+	tutorialT += deltaTime;
+	if (tutorialT >= 1)
+	{
+		tutorialImage++;
+		if (tutorialImage >= std::size(tutorialMasterList[tutorialPos]))
+		{
+			tutorialImage = 0;
+		}
+	}
+}
