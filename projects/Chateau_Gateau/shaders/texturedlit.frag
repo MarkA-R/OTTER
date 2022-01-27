@@ -22,10 +22,10 @@ uniform vec3 camPos;
 uniform vec3 matColor = vec3(1.0f, 1.0f, 1.0f);
 uniform sampler2D albedo;
 
-uniform vec3 lightColor = vec3(0.9f, 0.9f, 0.9f);
+uniform vec3 lightColor = vec3(1.f, 1.f, 1.f);
 uniform vec3 lightDir = normalize(vec3(-1.0f, -1.0f, -1.0f));
 uniform vec3 ambientColor = vec3(1.0f, 1.0f, 1.0f);
-uniform float ambientPower = 0.2f;
+uniform float ambientPower = 0.3f;
 
 void main()
 {

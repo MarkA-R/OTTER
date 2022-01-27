@@ -128,9 +128,8 @@ float easeIn(float x) {
 float tempA = 0.f;
 float tempB = 0.f;
 float tempC = 0.f;
-float tempD = -0.5f; //(-0.5, -1.22, -2.29f
-float tempE = -1.22f;
-float tempF = -2.29f;
+float tempD = 0.f; //(-0.5, -1.22, -2.29f
+
 float lineY = -1.89;//-1.1f;
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
 prog_allLights;
@@ -260,6 +259,8 @@ void saveSettings();
 void loadSettings();
 void applySettings();
 int selectedOvenPosition(float x);
+void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, std::string meshName, std::string prefix, int count);
+
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -336,11 +337,11 @@ Transform ovenTut;
 Transform customerTut;
 std::vector<Transform> tutorialArray;
 std::vector<std::vector<MaterialCreator*>> tutorialMasterList;
-Entity* tutorialPlane;
+std::unique_ptr<Entity> tutorialPlane;
 float tutorialT = 0.f;
 int tutorialPos = 0;
 int tutorialImage = 0;
-
+std::vector<float> tutorialPeriods;
 //burnt tile???
 
 MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
@@ -372,7 +373,7 @@ std::vector<glm::vec3> endNumberPos;
 bool isCarMoving = false;
 float carT = 0.f;
 float dayT = 0.0f;
-float dayBright = 0.98;
+float dayBright = 1.f;
 float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
@@ -388,6 +389,7 @@ glm::vec3 accessScale = glm::vec3(0.01f, 0.01f, 0.01f);
 
 std::vector<MaterialCreator> numberTiles;
 std::vector<Entity*> numberEntities;
+
 glm::vec3 numberScale;
 void setScores(int totalOrders, int highscore);
 int saveHighscore(int);
@@ -434,6 +436,8 @@ int main()
 	// Create window and set clear color
 	App::Init("Chateau Gateau", width, height);
 	App::SetClearColor(glm::vec4(1, 0.964, 0.929,1.f));
+	//App::SetClearColor(glm::vec4(1, 0, 1, 1.f));
+
 	App::setCursorVisible(false);
 	gameWindow = glfwGetCurrentContext();
 	
@@ -449,6 +453,46 @@ int main()
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	glfwSetScrollCallback(gameWindow, scroll_callback);
 	glfwSwapInterval(1);
+	//App::Tick();
+
+	// Create and set up camera
+	Entity cameraEntity = Entity::Create();
+	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
+	cam.Perspective(60.0f, (float)width / height, 0.001f, 100.0f);
+	//cam.Perspective(100.f, (float) width/height, 0.1f, 100.0f);
+	cameraEntity.transform.m_pos = cameraPos;
+	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	globalCameraEntity = &cameraEntity;
+	cameraEntity.transform.m_pos = menuCameraPos;
+
+
+	standardCameraQuat = getCameraRotation();
+	wantedCameraQuat = standardCameraQuat;
+	cameraX = 90.f;
+	cameraY = 0.f;
+	menuCameraQuat = getCameraRotation();
+	currentCameraQuat = menuCameraQuat;
+
+	cameraEntity.transform.m_rotation = menuCameraQuat;
+	cameraEntity.transform.RecomputeGlobal();
+	cameraEntity.Get<CCamera>().Update();
+	
+	MaterialCreator loading = MaterialCreator();
+	loading.createMaterial("bakery/models/tile.gltf", "UI/textures/LoadingScreen.png", *prog_texLit);
+	Entity loadingEntity = Entity::Create();
+	loadingEntity.Add<CMeshRenderer>(loadingEntity, *loading.getMesh(), *loading.getMaterial());
+	loadingEntity.transform.m_scale = glm::vec3(0.41, 0.41, 0.41);
+	loadingEntity.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f))
+		* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+	loadingEntity.transform.m_pos = glm::vec3(-1.1, -1.2f, -10.7);
+	loadingEntity.transform.RecomputeGlobal();
+	App::FrameStart();
+	App::SwapBuffers();
+	loadingEntity.Get<CMeshRenderer>().Draw();
+	App::SwapBuffers();
+	//renderingEntities.push_back(&loadingEntity);
+	//loadingEntity.Get<CMeshRenderer>().Draw();
 
 
 	MaterialCreator cursorMat = MaterialCreator();
@@ -591,12 +635,58 @@ int main()
 
 	MaterialCreator tutorialImage11 = MaterialCreator();
 	tutorialImage11.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClickOff.png", *prog_texLit);
+
+	MaterialCreator tutorialImage20 = MaterialCreator();
+	tutorialImage20.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven1.png", *prog_texLit);
+
+	MaterialCreator tutorialImage21 = MaterialCreator();
+	tutorialImage21.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven2.png", *prog_texLit);
+	MaterialCreator tutorialImage22 = MaterialCreator();
+	tutorialImage22.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven3.png", *prog_texLit);
+	MaterialCreator tutorialImage23 = MaterialCreator();
+	tutorialImage23.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven4.png", *prog_texLit);
+	
+	MaterialCreator tutorialImage30 = MaterialCreator();
+	tutorialImage30.createMaterial("bakery/models/tile.gltf", "UI/textures/tutCustomer1.png", *prog_texLit);
+	MaterialCreator tutorialImage31 = MaterialCreator();
+	tutorialImage31.createMaterial("bakery/models/tile.gltf", "UI/textures/tutCustomer2.png", *prog_texLit);
+
+
+
+
+	std::vector<MaterialCreator*> tutorialFilling;
+	loadMaterialCreatorData(tutorialFilling, "bakery/models/tile.gltf", "UI/textures/tutFilling", 9);
+	//tutDrink
+	std::vector<MaterialCreator*> tutorialTopping;
+	loadMaterialCreatorData(tutorialTopping, "bakery/models/tile.gltf", "UI/textures/tutTopping", 10);
+	tutorialTopping.push_back(tutorialTopping[8]);
+
+	std::vector<MaterialCreator*> tutorialDrink;
+	loadMaterialCreatorData(tutorialDrink, "bakery/models/tile.gltf", "UI/textures/tutDrink", 14);
+	tutorialDrink.insert(tutorialDrink.begin() + 4, tutorialDrink[1]);
+
 	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
 	tutorialMasterList[0].push_back(&tutorialImage00);
 	tutorialMasterList[0].push_back(&tutorialImage01);
 	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
 	tutorialMasterList[1].push_back(&tutorialImage10);
 	tutorialMasterList[1].push_back(&tutorialImage11);
+	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
+	tutorialMasterList[2].push_back(&tutorialImage20);
+	tutorialMasterList[2].push_back(&tutorialImage21);
+	tutorialMasterList[2].push_back(&tutorialImage22);
+	tutorialMasterList[2].push_back(&tutorialImage23);
+	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
+	tutorialMasterList[3].push_back(&tutorialImage30);
+	tutorialMasterList[3].push_back(&tutorialImage31);
+	tutorialMasterList.push_back(tutorialFilling);
+	
+	tutorialMasterList.push_back(tutorialTopping);
+
+	tutorialMasterList.push_back(tutorialDrink);
+	
+	
+
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
@@ -722,14 +812,7 @@ int main()
 	cursor.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
 	renderingEntities.push_back(&cursor);
 
-	// Create and set up camera
-	Entity cameraEntity = Entity::Create();
-	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
-	cam.Perspective(60.0f, (float) width/height, 0.001f, 100.0f);
-	//cam.Perspective(100.f, (float) width/height, 0.1f, 100.0f);
-	cameraEntity.transform.m_pos = cameraPos;
-	cameraEntity.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	globalCameraEntity = &cameraEntity;
+	
 	
 	Entity receipt = Entity::Create();
 	receipt.Add<CMeshRenderer>(receipt, *receiptMat.getMesh(), *receiptMat.getMaterial());
@@ -794,7 +877,7 @@ int main()
 
 		Entity counter = Entity::Create();
 		counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
-		counter.transform.m_scale = glm::vec3(1.f, 0.4f, 0.4f);
+		counter.transform.m_scale = glm::vec3(1.6f, 0.4f, 0.4f);
 		counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 		counter.transform.m_pos = glm::vec3(-1.f, -2.5, -2.29f);
 		renderingEntities.push_back(&counter);
@@ -819,7 +902,7 @@ int main()
 		fridge.Add<Fridge>();
 		fridge.transform.m_scale = glm::vec3(0.5f, 1.f, .5f);
 		fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 0.4f);
+		fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 0.3f);
 		fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
 		renderingEntities.push_back(&fridge);
 
@@ -1224,30 +1307,57 @@ int main()
 	
 
 	//Entity tutorialPlane = Entity::Create();//MJ //Make tutorialPlane entity
-	tutorialPlane = Entity::Allocate().get();
+	tutorialPlane = Entity::Allocate();
 	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialImage00.getMesh(), *tutorialImage00.getMaterial());
-	tutorialPlane->transform.m_pos = glm::vec3(-2.2, -0.22, -2.39);
+	tutorialPlane->transform.m_pos = glm::vec3(0);
 	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	tutorialPlane->transform.m_scale = glm::vec3(0.1f, 0.1f, 0.1f);
-	tutorialPlane->Get<CMeshRenderer>().SetMaterial(*tutorialMasterList[0][0]->getMaterial()); //sets it to "0"
-	renderingEntities.push_back(tutorialPlane);
+	tutorialPlane->transform.m_scale = glm::vec3(0.25f * (UIScale + 0.05));
+	renderingEntities.push_back(tutorialPlane.get());
 
-	tutorialArray.push_back(Transform());
-	tutorialArray[0].m_pos = glm::vec3(-2.2, -0.22, -2.39);
+	tutorialArray.push_back(Transform());//take from fridge
+	tutorialArray[0].m_pos = glm::vec3(-0.7, -0.35, -2.39);
 	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
-	tutorialArray.push_back(Transform());
-	tutorialArray[1].m_pos = glm::vec3(-2.4, -0.420, 0.410);
+	tutorialPeriods.push_back(0.5);
+	tutorialArray.push_back(Transform());//put in oven
+	tutorialArray[1].m_pos = glm::vec3(-2.4, -0.420, -0.490);
 	tutorialArray[1].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[1].m_scale = tutorialPlane->transform.m_scale;
-	tutorialArray.push_back(Transform());
-	tutorialArray[2].m_pos = glm::vec3(0.3, -0.62, -0.09);
+	tutorialPeriods.push_back(0.5);
+
+	tutorialArray.push_back(Transform());//take out oven
+	tutorialArray[2].m_pos = glm::vec3(0, -0.62, -0.49);
 	tutorialArray[2].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[2].m_scale = tutorialPlane->transform.m_scale;
-	tutorialArray.push_back(Transform());
-	tutorialArray[3].m_pos = glm::vec3(-0.4, -0.52, -2.29);
+	tutorialPeriods.push_back(0.75);
+
+	tutorialArray.push_back(Transform());//give to customer
+	tutorialArray[3].m_pos = glm::vec3(-0.7, -0.35, -2.39);
 	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[3].m_scale = tutorialPlane->transform.m_scale;
+	tutorialPeriods.push_back(0.75);
+
+	tutorialArray.push_back(Transform());//filling
+	tutorialArray[4].m_pos = glm::vec3(0.2, -0.62, 0.81);
+	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[4].m_scale = tutorialPlane->transform.m_scale;
+	tutorialPeriods.push_back(0.75);
+
+	tutorialArray.push_back(Transform());//topping
+	tutorialArray[5].m_pos = glm::vec3(-2.4, -0.420, 1.090);
+	tutorialArray[5].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[5].m_scale = tutorialPlane->transform.m_scale;
+	tutorialPeriods.push_back(0.75);
+
+	tutorialArray.push_back(Transform());//drink
+	tutorialArray[6].m_pos = glm::vec3(-1.4, -0.420, 0.890);
+	//tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(-180.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	tutorialArray[6].m_scale = tutorialPlane->transform.m_scale;
+	tutorialPeriods.push_back(0.75);
+
+	tutorialPlane->transform = tutorialArray[0];
 	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
@@ -1420,12 +1530,7 @@ int main()
 	
 	
 	
-	standardCameraQuat = getCameraRotation();
-	wantedCameraQuat = standardCameraQuat;
-	cameraX = 90.f;
-	cameraY = 0.f;
-	menuCameraQuat = getCameraRotation();
-	currentCameraQuat = menuCameraQuat;
+	
 
 	//glm::vec3 carLight = glm::vec3(-0.0f, -0.0f, 1.0f);
 	//glm::vec3 carLightColour = glm::vec3(1, 0, 0);
@@ -1560,33 +1665,44 @@ int main()
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 		
-		
+		/*
+		App::StartImgui();
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		//ImGui::DragFloat("X", &(tutorialPlane.get()->transform.m_pos.x), 0.1f);
+		//ImGui::DragFloat("Y", &(tutorialPlane.get()->transform.m_pos.y), 0.1f);
+		//ImGui::DragFloat("Z", &(tutorialPlane.get()->transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("X", &(loadingEntity.transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(loadingEntity.transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(loadingEntity.transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("A", &(tempA), 0.1f);
+		ImGui::DragFloat("B", &(tempB), 0.1f);
+		ImGui::DragFloat("C", &(tempC), 0.1f);
+
+
+		//ImGui::DragFloat("Scale", &(sc), 0.1f);
+		//ImGui::SetWindowPos(0,0);
+
+		App::EndImgui();
+		*/
+		//loadingEntity.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
+		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f))
+		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f));
+
 		prog_allLights->Bind();
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
 		prog_allLights.get()->SetUniform("lightColor2", carLight.colour);
 		prog_allLights.get()->SetUniform("strength", carLight.strength);
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
+		prog_texLit.get()->SetUniform("ambientPower", 0.4f);
+		prog_morph->Bind();
+		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 		
-		/*
-			App::StartImgui();
-			ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-
-			ImGui::DragFloat("X", &(oven.transform.m_pos.x), 0.01);
-			ImGui::DragFloat("Y", &(oven.transform.m_pos.y), 0.01);
-			ImGui::DragFloat("Z", &(oven.transform.m_pos.z), 0.01);
-			ImGui::DragFloat("D", &(tempD), 0.001);
-
-			//ImGui::DragFloat("Scale", &(sc), 0.1f);
-			//ImGui::SetWindowPos(0,0);
-
-			App::EndImgui();
-			*/
-			//oven.transform.m_scale = glm::vec3(tempD);
-			//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0, 1, 0));
-			//slot1.getArrow()->transform.m_pos.x = slot1.getTransform().m_pos.x + tempA;
-			//slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + tempA;
-
+		
+			
+			
 	
 		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 		
@@ -1600,13 +1716,14 @@ int main()
 		getKeyInput();
 
 		UpdateTutorial(deltaTime);
+		
 		if (Input::GetKeyDown(GLFW_KEY_T))
 		{
 			TutorialChangePosition();
 		}
-
 		if (canCheat) {
 			//std::cout << "GGGG" << std::endl;
+			
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
 				bakeryUtils::addToFailed(3);
 				//createNewOrder(i, false, false);
@@ -2629,20 +2746,7 @@ int main()
 		//receipt.transform.SetParent(&cameraEntity.transform);
 		//receipt.transform.m_pos = cursor.transform.m_pos;
 		
-		App::StartImgui();
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(tempA), 0.1f);
-		ImGui::DragFloat("Y", &(tempB), 0.1f);
-		ImGui::DragFloat("Z", &(tempC), 0.1f);
-		ImGui::DragFloat("PosX", &(tempD), 0.1f);
-		ImGui::DragFloat("PosY", &(tempE), 0.1f);
-		ImGui::DragFloat("PosZ", &(tempF), 0.1f);
-
-
-		//ImGui::DragFloat("Scale", &(sc), 0.1f);
-		//ImGui::SetWindowPos(0,0);
-
-		App::EndImgui();
+		
 
 		
 		
@@ -2814,7 +2918,7 @@ int main()
 					if (currentOvenPos >= 0 && currentOvenPos != lastOvenPos) {
 					oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 0);
 					oven.Get<CMorphAnimator>().setT(0);
-						std::cout << currentOvenPos << std::endl;
+						//std::cout << currentOvenPos << std::endl;
 						
 						
 
@@ -3466,6 +3570,11 @@ int main()
 		App::SwapBuffers();
 	}
 	std::fill(std::begin(trayPastry), std::end(trayPastry), nullptr);
+	//std::fill(std::begin(tutorialMasterList), std::end(tutorialMasterList), nullptr);
+	tutorialMasterList.clear();
+	tutorialPlane.release();
+	//tutorialPlane = nullptr;
+
 	//std::fill(std::begin(trayPastry), std::end(trayPastry), nullptr);
 	// Destroy window
 	App::Cleanup();
@@ -3516,6 +3625,7 @@ void LoadDefaultResources()
 
 	auto v_morph = std::make_unique<Shader>("shaders/morph.vert", GL_VERTEX_SHADER);
 	auto f_lit = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
+	
 	
 	//Billboarded particles shader program.
 	auto v_particles = std::make_unique<Shader>("shaders/particles.vert", GL_VERTEX_SHADER);
@@ -4163,6 +4273,18 @@ void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int cou
 	
 }
 
+void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify,std::string meshName, std::string prefix, int count) {
+	for (int i = 1; i <= count; i++) {
+		std::string filename = prefix + std::to_string(i) + ".png";
+
+		MaterialCreator* frame = new MaterialCreator();
+		frame->createMaterial(meshName, filename, *prog_texLit);
+
+		toModify.push_back(frame);
+	}
+
+}
+
 int placeInLineToIndex(int linePlace) {
 	if (linePlace >= 1 && linePlace <= 3) {
 		//std::cout << "AMT " << (3 + (3 - linePlace)) << std::endl;
@@ -4381,34 +4503,6 @@ void restartGame() {
 }
 
 int selectedOvenPosition(float x) {
-	
-void TutorialChangePosition()
-{
-	tutorialPos++;
-	tutorialImage = 0;
-	if (tutorialPos >= std::size(tutorialArray))
-	{
-		removeFromRendering(tutorialPlane);
-		tutorialPos = 0;
-	}
-	else
-	{
-		tutorialPlane->transform = tutorialArray[tutorialPos];
-	}
-}
-
-void UpdateTutorial(float deltaTime)
-{
-	tutorialT += deltaTime;
-	if (tutorialT >= 1)
-	{
-		tutorialImage++;
-		if (tutorialImage >= std::size(tutorialMasterList[tutorialPos]))
-		{
-			tutorialImage = 0;
-		}
-	}
-}
 	if (x >= ovenHeights[3]) {
 		return 3;
 	}
@@ -4425,6 +4519,45 @@ void UpdateTutorial(float deltaTime)
 		return -1;
 	}
 }
+	
+void TutorialChangePosition()
+{
+	tutorialPos++;
+	tutorialImage = 0;
+	if (tutorialPos >= std::size(tutorialArray))
+	{
+		removeFromRendering(tutorialPlane.get());
+		tutorialPos = 0;
+	}
+	else
+	{
+		tutorialPlane->transform = tutorialArray[tutorialPos];
+		tutorialT = 0;
+		//tutorialImage = -1;
+		UpdateTutorial(7);
+	}
+}
+
+void UpdateTutorial(float deltaTime)
+{
+	tutorialT += deltaTime;
+	if (tutorialT >= tutorialPeriods[tutorialPos])
+	{
+		tutorialT = 0;
+		tutorialImage++;
+		if (tutorialImage >= std::size(tutorialMasterList[tutorialPos]))
+		{
+			tutorialImage = 0;
+		}
+		
+		tutorialPlane.get()->Get<CMeshRenderer>().SetMaterial(*tutorialMasterList[tutorialPos][tutorialImage]->getMaterial());
+
+		
+	}
+
+}
+	
+
 
 void loadNumberHashMap() {
 	
