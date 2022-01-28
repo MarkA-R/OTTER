@@ -3853,6 +3853,11 @@ void getCursorData(GLFWwindow* window, double x, double y) {
 		cameraX = deltaX;
 		cameraY = deltaY;
 	}
+	else
+	{
+		xPos = x;
+		yPos = y;
+	}
 	
 
 	
