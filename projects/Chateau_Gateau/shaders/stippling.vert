@@ -24,8 +24,8 @@ layout(location = 2) in vec2 inUV;
 
 layout(location = 0) out vec4 outPos;
 layout(location = 1) out vec3 outNorm;
-layout(location = 2) out vec2 outUV;
-layout(location = 3) out float transparency;
+layout(location = 3) out vec2 outUV;
+layout(location = 2) out float transparency;
 
 
 void main()
