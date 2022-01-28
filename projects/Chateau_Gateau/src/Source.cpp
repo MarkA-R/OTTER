@@ -140,6 +140,8 @@ glm::vec3 insidePos = glm::vec3(cameraPos.x - 0.8, cameraPos.y, cameraPos.z);
 glm::vec3 outsidePos = glm::vec3(menuCameraPos.x - 0.90, (cameraPos.y + menuCameraPos.y)/2, menuCameraPos.z + 0.6);
 std::vector<glm::vec3> cameraKeys = std::vector<glm::vec3>();
 
+std::vector<MaterialCreator*> registerImages;
+Entity* ent_register;
 
 int ovenFrame = -1;
 std::vector<Mesh*> currentOvenFrames;
@@ -509,8 +511,19 @@ int main()
 	flowerMat2.createMaterialOBJ("bakery/models/flower2.obj", "bakery/textures/flower.png", *prog_morph);
 
 	MaterialCreator registerMaterial = MaterialCreator();
-	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cashregister.png", *prog_allLights);
-	
+	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister0.png", *prog_allLights);
+	registerImages.push_back(&registerMaterial);
+	MaterialCreator registerMaterial1 = MaterialCreator();
+	registerMaterial1.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister1.png", *prog_allLights);
+	registerImages.push_back(&registerMaterial1);
+	MaterialCreator registerMaterial2 = MaterialCreator();
+	registerMaterial2.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister2.png", *prog_allLights);
+	registerImages.push_back(&registerMaterial2);
+	MaterialCreator registerMaterial3 = MaterialCreator();
+	registerMaterial3.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister3.png", *prog_allLights);
+	registerImages.push_back(&registerMaterial3);
+	//loadMaterialCreatorData(registerImages, "bakery/models/cashregister.gltf", "bakery/textures/register",3, *prog_allLights);
+
 	MaterialCreator counterMat = MaterialCreator();
 	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_allLights);
 
@@ -853,29 +866,34 @@ int main()
 
 		
 		//Creating Cash Register Entity
-		Entity ent_register = Entity::Create();
-		ent_register.Add<CMeshRenderer>(ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
-		ent_register.Add<Register>();
-		ent_register.transform.m_scale = glm::vec3(0.4f, 0.4f, 0.4f);
-		ent_register.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-		ent_register.transform.m_pos = glm::vec3(-1.6, -2.5, -2.29f);
-		ent_register.Add<BoundingBox>(glm::vec3(1.9, 2.3, 0.06), ent_register);//TODO: REMOVE THIS WHEN CUSTOMERS ARE IN
-		renderingEntities.push_back(&ent_register);
+		ent_register = Entity::Allocate().release();
+		ent_register->Add<CMeshRenderer>(*ent_register, *registerMaterial.getMesh(), *registerMaterial.getMaterial());
+		ent_register->Add<Register>();
+		ent_register->transform.m_scale = glm::vec3(0.45f, 0.45f, 0.45f);
+		ent_register->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+		ent_register->transform.m_pos = glm::vec3(-1.6, -2.59, -2.29f);
+		ent_register->Add<BoundingBox>(glm::vec3(1.9, 2.3, 0.06), *ent_register);
+		renderingEntities.push_back(ent_register);
 
-		customerBubbleLocation = ent_register.transform;
-		customerBubbleLocation.m_pos.x -= 1.75;
+		customerBubbleLocation = ent_register->transform;
+		customerBubbleLocation.m_scale = glm::vec3(0.4f);
+		customerBubbleLocation.m_pos.x -= (1.75 + (((UIScale + 0.05)-0.8)));
 		customerBubbleLocation.m_pos.y += 2.0;
-		customerBubbleLocation.m_pos.z -= 1.0;
+		customerBubbleLocation.m_pos.z -= 0.9;
 		
 
-		upurrBubbleLocation2 = ent_register.transform;
+		upurrBubbleLocation2 = ent_register->transform;
+		upurrBubbleLocation2.m_scale = glm::vec3(0.4f);
+
 		upurrBubbleLocation2.m_pos.x += 1.85;
-		upurrBubbleLocation2.m_pos.y += 2.5;
+		upurrBubbleLocation2.m_pos.y += 2.6;
 		upurrBubbleLocation2.m_pos.z -= 1.0;
 
-		upurrBubbleLocation1 = ent_register.transform;
+		upurrBubbleLocation1 = ent_register->transform;
+		upurrBubbleLocation1.m_scale = glm::vec3(0.4f);
+
 		upurrBubbleLocation1.m_pos.x += 1.85;
-		upurrBubbleLocation1.m_pos.y += 1.9;
+		upurrBubbleLocation1.m_pos.y += 2.0;
 		upurrBubbleLocation1.m_pos.z -= 1.0;
 
 
@@ -1329,7 +1347,7 @@ int main()
 	
 
 	tutorialArray.push_back(Transform());//take from fridge
-	tutorialArray[0].m_pos = glm::vec3(-0.7, -0.35, -1.39);
+	tutorialArray[0].m_pos = glm::vec3(-0.4, -0.65, -1.39);
 	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
 	tutorialPeriods.push_back(0.5);
@@ -1346,7 +1364,7 @@ int main()
 	tutorialPeriods.push_back(0.75);
 
 	tutorialArray.push_back(Transform());//give to customer
-	tutorialArray[3].m_pos = glm::vec3(-0.7, -0.35, -1.39);
+	tutorialArray[3].m_pos = glm::vec3(-0.4, -0.65, -1.39);
 	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[3].m_scale = tutorialPlane->transform.m_scale;
 	tutorialPeriods.push_back(0.75);
@@ -2690,6 +2708,12 @@ int main()
 					//std::cout << "START" << std::endl;
 					createNewOrder(i, false,false);
 					bakeryUtils::addToFailed(1);
+					int failed = bakeryUtils::getOrdersFailed();
+					if (failed > 3) {
+						failed = 3;
+					}
+					ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[failed]->getMaterial());
+
 					if (bakeryUtils::getOrdersFailed() == 3) {
 						if (cameraX == 0 && cameraY == 0) {
 							cameraX = 1;
@@ -3593,7 +3617,7 @@ int main()
 			}
 
 
-			if ((bakeryUtils::getRoundsLasted() >= 4 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
+			if ((bakeryUtils::getRoundsLasted() >= 6 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
 				) {//|| currentOrders.size() == 1
 			
 				//std::cout << "JJJ" << std::endl;
@@ -3610,7 +3634,7 @@ int main()
 
 			//if (bakeryUtils::getRoundsLasted() == 6 && bakeryUtils::getDifficulty() >= 3) {
 			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl;
-			if ((bakeryUtils::getRoundsLasted() >= 7 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
+			if ((bakeryUtils::getRoundsLasted() >= 10 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
 				) {//|| currentOrders.size() == 2
 				//std::cout << "JJJ" << std::endl;
 				createNewOrder(2, false, false);
@@ -4486,6 +4510,7 @@ void restartGame() {
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
+	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
 		

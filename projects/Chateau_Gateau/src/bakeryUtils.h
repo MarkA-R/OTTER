@@ -195,7 +195,7 @@ protected:
     inline static float timeToCupcake = 30;
     inline static float timeToCake = 50;
     inline static float timeToBurn = 60;
-    inline static float drinkFillAmount = 5.f;
+    inline static float drinkFillAmount = 3.f;
     inline static float gameTime = 0;
     inline static int difficulty = 1;
     inline static int roundsLasted = 0;

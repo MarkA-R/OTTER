@@ -141,10 +141,10 @@ void OrderBubble::create(Order& o, float scaleAll)
         drinkTile.get()->transform.m_rotation =
             glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
             glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-        drinkTile.get()->transform.m_scale = (glm::vec3(0.7, 0.7, 0.7) * 0.3f) * scaleAll;
+        drinkTile.get()->transform.m_scale = (glm::vec3(0.7, 0.7, 0.7) * 0.27f) * scaleAll;
 
 
-        drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width/2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+        drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width/2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.7), bubblePos.z - 0.005);
         toRender.push_back(drinkTile.get());
         //place++;
 
@@ -157,7 +157,7 @@ void OrderBubble::create(Order& o, float scaleAll)
         plusR.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f)* scaleAll;
 
 
-        plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+        plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.7), bubblePos.z - 0.005);
         toRender.push_back(plusR.get());
         //place++;
 
@@ -349,10 +349,10 @@ void OrderBubble::updateScale(float scaleAll)
             drinkTile.get()->transform.m_rotation =
                 glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
                 glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));// *
-            drinkTile.get()->transform.m_scale = (glm::vec3(0.7, 0.7, 0.7) * 0.3f) * scaleAll;
+            drinkTile.get()->transform.m_scale = (glm::vec3(0.7, 0.7, 0.7) * 0.27f) * scaleAll;
 
 
-            drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+            drinkTile.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * (1.5)), bubblePos.y - (yAdder * 1.7), bubblePos.z - 0.005);
 
         }
         
@@ -366,7 +366,7 @@ void OrderBubble::updateScale(float scaleAll)
             plusR.get()->transform.m_scale = (glm::vec3(0.8, 0.8, 0.8) * 0.1f) * scaleAll;
 
 
-            plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.2), bubblePos.z - 0.01);
+            plusR.get()->transform.m_pos = glm::vec3((bubblePos.x - (width / 2)) + (((width / 2) / 2) * 2.5), bubblePos.y - (yAdder * 1.7), bubblePos.z - 0.005);
 
       }
      

@@ -21,6 +21,11 @@ void Order::createOrder(int difficulty)
 	
 	isPastrySatisfied = false;
 	isDrinkSatisfied = true;
+	drink = bakeryUtils::drinkType::NONE;
+	type = bakeryUtils::pastryType::DOUGH;
+	topping = bakeryUtils::toppingType::NONE;
+	filling = bakeryUtils::fillType::NONE;
+
 	if (difficulty > 4) {
 		difficulty = 4;
 	}
@@ -39,35 +44,50 @@ void Order::createOrder(int difficulty)
 	float addedDrinkSecs = 0;
 	//std::cout << fillingRand << " " << toppingRand << std::endl;
 	int usingPastryInt = random;
-	if (difficulty == 1) {
+	if (difficulty == 1) {//only croissant
 		random = 1;
+		fillingRand = 0;
+		toppingRand = 0;
+		drinkRand = 0;
 	}
-	drink = bakeryUtils::drinkType::NONE;
-	type =bakeryUtils::pastryType((random));
-	if (difficulty > 2) {
-		topping = bakeryUtils::toppingType(toppingRand);
+	else if (difficulty == 2) {//any filling
+		toppingRand = 0;
+		drinkRand = 0;
+		random = 2;
 	}
-	else
-	{
-		topping = bakeryUtils::toppingType::NONE;
+	else if (difficulty == 3) {//any topping
+		fillingRand = 0;
+		drinkRand = 0;
 	}
-	if (difficulty > 1) {
-		filling = bakeryUtils::fillType(fillingRand);
-	}
-	else
-	{
-		filling = bakeryUtils::fillType::NONE;
+	else {
+		if (bakeryUtils::getRoundsLasted() == 3) {
+			//food and drink
+			fillingRand = 0;
+			toppingRand = 0;
+
+		}
+		else
+		{//anything
+			 fillingRand = (rand() % 4);
+			 toppingRand = (rand() % 4);
+			 drinkRand = (rand() % 4);
+		}
 	}
 
-	
-	if (difficulty == 4 && bakeryUtils::getRoundsLasted()  >= 6) {
-		drink = bakeryUtils::drinkType(drinkRand);
-		addedDrinkSecs = bakeryUtils::getDrinkFillAmount();
-		
+
+
+
+	type = bakeryUtils::pastryType((random));
+	drink = bakeryUtils::drinkType(drinkRand);
+	topping = bakeryUtils::toppingType(toppingRand);
+	filling = bakeryUtils::fillType(fillingRand);
+
+	if (drink != bakeryUtils::drinkType::NONE) {
 		isDrinkSatisfied = false;
+		addedDrinkSecs = bakeryUtils::getDrinkFillAmount();
 	}
 	std::cout << "DRINKSEC " << addedDrinkSecs << std::endl;
-	float orderSeconds = (60 / (difficulty)) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
+	float orderSeconds = ((60 / (difficulty))+5) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
 	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;
