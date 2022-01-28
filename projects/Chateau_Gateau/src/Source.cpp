@@ -870,7 +870,7 @@ int main()
 
 		upurrBubbleLocation2 = ent_register.transform;
 		upurrBubbleLocation2.m_pos.x += 1.85;
-		upurrBubbleLocation2.m_pos.y += 2.3;
+		upurrBubbleLocation2.m_pos.y += 2.5;
 		upurrBubbleLocation2.m_pos.z -= 1.0;
 
 		upurrBubbleLocation1 = ent_register.transform;
@@ -1323,7 +1323,10 @@ int main()
 	tutorialPlane->transform.m_pos = glm::vec3(0);
 	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialPlane->transform.m_scale = glm::vec3(0.25f * (UIScale + 0.05));
-	renderingEntities.push_back(tutorialPlane.get());
+	if (shouldShowTutorial) {
+		renderingEntities.push_back(tutorialPlane.get());
+	}
+	
 
 	tutorialArray.push_back(Transform());//take from fridge
 	tutorialArray[0].m_pos = glm::vec3(-0.7, -0.35, -1.39);
@@ -1679,6 +1682,8 @@ int main()
 	drink.Get<Transparency>().setTransparency(0.5);
 	drinkPlane.Get<Transparency>().setTransparency(0.5);
 	drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
+
+	
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
@@ -4244,7 +4249,7 @@ void createNewOrder(int i, bool addDifficulty, bool remove) {
 }
 
 void resetBubble(int i, bool create) {
-	orderBubbles[i]->updateScale(UIScale);
+	//orderBubbles[i]->updateScale(UIScale);
 	orderBubbles[i]->clearRenderingEntities();
 	orderBubbles[i]->setTransform(*orderBubbleTransform[i]);
 	
@@ -4253,12 +4258,12 @@ void resetBubble(int i, bool create) {
 	orderBubbles[i]->setupTimer(orderBubbleTimers[i]);
 	orderBubbles[i]->setTiles(getPastryTile(currentOrders[i].type), getFillingTile(currentOrders[i].filling), getToppingTile(currentOrders[i].topping), getDrinkTile(currentOrders[i].drink));
 	orderBubbles[i]->setup(&bubbleTile, &plusTile);
-	orderBubbles[i]->updateScale(UIScale);
+	
 	if (create) {
 		orderBubbles[i]->create(currentOrders[i]);
 		orderBubbles[i]->updateScale(UIScale);
 	}
-	
+	orderBubbles[i]->updateScale(UIScale);
 	
 }
 
