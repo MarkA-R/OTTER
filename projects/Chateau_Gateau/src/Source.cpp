@@ -1701,7 +1701,8 @@ int main()
 	drinkPlane.Get<Transparency>().setTransparency(0.5);
 	drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
 
-	
+	//bakeryUtils::setDifficulty(4);
+	//bakeryUtils::setRoundsLasted(6);
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
@@ -1780,13 +1781,13 @@ int main()
 
 		UpdateTutorial(deltaTime);
 		
-		if (Input::GetKeyDown(GLFW_KEY_T))
-		{
-			TutorialChangePosition();
-		}
+		
 		if (canCheat) {
 			//std::cout << "GGGG" << std::endl;
-			
+			if (Input::GetKeyDown(GLFW_KEY_T))
+			{
+				TutorialChangePosition();
+			}
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot
 				bakeryUtils::addToFailed(3);
 				//createNewOrder(i, false, false);
@@ -3521,69 +3522,89 @@ int main()
 				//check if order is complete here
 				if (isClicking || getWantedSlot() >= 0) {
 					for (int u = 0; u < currentOrders.size(); u++) {
-						Order& o = currentOrders[u];
-						int pastryIndex = -1;
-						int drinkIndex = -1;
-						for (int i = 0; i < std::size(trayPastry); i++) {
-							Entity* tray = trayPastry[i];
-							if (tray != nullptr) {
-								if (tray->Has<Pastry>())
-								{
-									if (o.validateOrder(tray->Get<Pastry>()) && !o.isPastryValidated()) {//for drinks just have a check here for if it has a pastry or not and to check if an order is completed, have an internal counter or something
-										o.setPastryValidated(true);
-										pastryIndex = i;
+						Order& searchingOrder = currentOrders[u];
+						int validatedPastryIndex = -1;
+						int validatedDrinkIndex = -1;
+						if (searchingOrder.drink == bakeryUtils::drinkType::NONE) {
+							searchingOrder.setDrinkValidated(true);
+							validatedDrinkIndex = -2;
+						}
+						for (int i = 0; i < 4; i++){
+							Entity* currentItem = trayPastry[i];
+							if (currentItem != nullptr) {
+								if (currentItem->Has<Pastry>()) {
+									Pastry& p = currentItem->Get<Pastry>();
+									if (searchingOrder.validateOrder(p) && validatedPastryIndex == -1) {
+										validatedPastryIndex = i;
+										searchingOrder.setPastryValidated(true);
 									}
 								}
-								
-								if (tray->Has<Drink>()) {
-									if (o.validateDrink(tray->Get<Drink>()) && !o.isDrinkValidated()) {
-										o.setDrinkValidated(true);
-										drinkIndex = i;
+								else if (currentItem->Has<Drink>()) {
+									Drink& p = currentItem->Get<Drink>();
+									if (searchingOrder.validateDrink(p) && validatedDrinkIndex == -1) {
+										validatedDrinkIndex = i;
+										searchingOrder.setDrinkValidated(true);
 									}
-								}
-								
-								if (o.returnSatisfied()) {
-									nextStepTutorialIfNeeded(7);
-									if (pastryIndex != -1) {
-
-										//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
-										removeFromRendering(trayPastry[pastryIndex]);
-										trayPastry[pastryIndex] = nullptr;
-
-									}
-									if (drinkIndex != -1) {
-										//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[drinkIndex]), renderingEntities.end());
-										removeFromRendering(trayPastry[drinkIndex]);
-										trayPastry[drinkIndex] = nullptr;
-
-									}
-									
-									bakeryUtils::addToRounds(1);
-									//std::cout << "HERE" << std::endl;
-									createNewOrder(u, true);
-									for each (Entity * remover in orderBubbles[u]->returnRenderingEntities()) {
-										//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
-										removeFromRendering(remover);
-									}
-									
-									resetBubble(u);
-
-									for each (Entity * foe in orderBubbles[u]->returnRenderingEntities()) {
-										renderingEntities.push_back(foe);
-									}
-
-									for (int f = 0; f < 3; f++) {
-										if (customerLine[f] != nullptr) {
-											customerLine[f]->Get<CharacterController>().setStopSpot(line.size());
-											customerLine[f] = nullptr;
-											break;
-										}
-									}
-									
 								}
 							}
 							
 							
+						}
+
+						if (searchingOrder.returnSatisfied()) {
+							nextStepTutorialIfNeeded(7);
+							if (validatedPastryIndex >= 0) {
+
+								//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
+								removeFromRendering(trayPastry[validatedPastryIndex]);
+								trayPastry[validatedPastryIndex] = nullptr;
+								std::cout << "NOT PASTRY -1" << std::endl;
+
+							}
+							else
+							{
+								std::cout << "IS PASTRY -1" << std::endl;
+
+							}
+							if (validatedDrinkIndex >= 0) {
+								//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[drinkIndex]), renderingEntities.end());
+								removeFromRendering(trayPastry[validatedDrinkIndex]);
+								trayPastry[validatedDrinkIndex] = nullptr;
+								std::cout << "NOT DRINK -1" << std::endl;
+							}
+							else
+							{
+								int a = 1;
+								std::cout << "IS DRINK -1" << std::endl;
+							}
+
+							bakeryUtils::addToRounds(1);
+							//std::cout << "HERE" << std::endl;
+							createNewOrder(u, true);
+							for each (Entity * remover in orderBubbles[u]->returnRenderingEntities()) {
+								//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), remover), renderingEntities.end());
+								removeFromRendering(remover);
+							}
+
+							resetBubble(u);
+
+							for each (Entity * foe in orderBubbles[u]->returnRenderingEntities()) {
+								renderingEntities.push_back(foe);
+							}
+
+							for (int f = 0; f < 3; f++) {
+								if (customerLine[f] != nullptr) {
+									customerLine[f]->Get<CharacterController>().setStopSpot(line.size());
+									customerLine[f] = nullptr;
+									break;
+								}
+							}
+
+						}
+						else
+						{
+							searchingOrder.setDrinkValidated(false);
+							searchingOrder.setPastryValidated(false);
 						}
 					}
 				}

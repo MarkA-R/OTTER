@@ -191,11 +191,11 @@ void Order::setOver(bool x)
 
 bool Order::validateOrder(Pastry p)
 {
-	if ((int)p.getPastryType() == int(type))
+	if (p.getPastryType() == type)
 	{
-		if ((int)p.getPastryFilling() == (int)filling)
+		if (p.getPastryFilling() == filling)
 		{
-			if ((int)p.getPastryTopping() == (int)topping)
+			if (p.getPastryTopping() == topping)
 			{
 				
 				return true;
@@ -208,7 +208,7 @@ bool Order::validateOrder(Pastry p)
 
 bool Order::validateDrink(Drink d)
 {
-	if ((int)d.getDrinkType() == int(drink))
+	if (d.getDrinkType() == drink)
 	{
 		
 		return true;
@@ -274,7 +274,9 @@ Pastry Order::toPastry()
 
 Drink Order::toDrink()
 {
-	return Drink();
+	Drink d = Drink();
+	d.setDrinkType(drink);
+	return d;
 }
 
 void Order::update(float deltaTime)

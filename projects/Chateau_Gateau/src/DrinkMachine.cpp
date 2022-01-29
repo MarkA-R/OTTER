@@ -52,6 +52,7 @@ void DrinkMachine::addDrinkNum(int x)
 		adder = 1;
 	}
 	selectedDrink = (prevSelected + adder) % 3;
+	//std::cout << "SELECTED DRINK" << selectedDrink << std::endl;
 }
 
 void DrinkMachine::setDrinkNum(int x)
