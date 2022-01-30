@@ -346,7 +346,16 @@ int tutorialPos = 0;
 int tutorialImage = 0;
 std::vector<float> tutorialPeriods;
 bool shouldShowTutorial = true;
-//burnt tile???
+
+std::vector<std::vector<Mesh*>> pastryMeshes;
+/*0,0 = croissant plain (with topping enum 0)
+* 0,1 = croissant with topping enum 1
+* 0,2 = croissant with topping enum 2
+* 1,0 = cookie plain
+* ...
+*/
+std::vector<std::vector<Texture2D*>> pastryTextures;
+
 
 MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
 MaterialCreator* getFillingTile(bakeryUtils::fillType x);
@@ -361,8 +370,8 @@ glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
 std::vector<glm::vec3> line;
 int lineStart = 4;
-glm::vec3 firstCarPos = glm::vec3(5, -1, 10);
-glm::vec3 lastCarPos = glm::vec3(-15, -1, 10);
+glm::vec3 firstCarPos = glm::vec3(5, -1.3, 10);
+glm::vec3 lastCarPos = glm::vec3(-15, -1.3, 10);
 Entity* customerLine[3];
 std::vector<Entity*> customers;
 float lastActionTime = 0.f;
@@ -597,6 +606,12 @@ int main()
 	sliderMat.push_back(MaterialCreator());
 	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeHigh.png", *prog_texLit);
 
+	MaterialCreator cityMat = MaterialCreator();
+	cityMat.createMaterial("bakery/models/cityMesh.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
+
+	MaterialCreator bakeryTopMat = MaterialCreator();
+	bakeryTopMat.createMaterial("bakery/models/bakeryTop.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
+
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
 	
@@ -800,6 +815,20 @@ int main()
 	bakery.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	bakery.transform.m_pos = glm::vec3(-2.4, -1.9, -4.3);
 	renderingEntities.push_back(&bakery);
+
+	Entity city = Entity::Create();
+	city.Add<CMeshRenderer>(city, *cityMat.getMesh(), *cityMat.getMaterial());
+	city.transform.m_scale = glm::vec3(0.5, 0.5, 0.5);
+	city.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	city.transform.m_pos = glm::vec3(-3.7, -1.5, -12.5);
+	renderingEntities.push_back(&city);
+
+	Entity bakeryTop = Entity::Create();
+	bakeryTop.Add<CMeshRenderer>(bakeryTop, *bakeryTopMat.getMesh(), *bakeryTopMat.getMaterial());
+	bakeryTop.transform.m_scale = glm::vec3(0.8, 0.8, 0.8);
+	bakeryTop.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	bakeryTop.transform.m_pos = glm::vec3(-3.1, 1.4, -9.1);
+	renderingEntities.push_back(&bakeryTop);
 
 	Entity car = Entity::Create();
 	car.Add<CMeshRenderer>(car, *carMat.getMesh(), *carMat.getMaterial());
@@ -1706,30 +1735,28 @@ int main()
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
-		
 		/*
+		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		//ImGui::DragFloat("X", &(tutorialPlane.get()->transform.m_pos.x), 0.1f);
-		//ImGui::DragFloat("Y", &(tutorialPlane.get()->transform.m_pos.y), 0.1f);
-		//ImGui::DragFloat("Z", &(tutorialPlane.get()->transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("X", &(loadingEntity.transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(loadingEntity.transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(loadingEntity.transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
 		ImGui::DragFloat("A", &(tempA), 0.1f);
 		ImGui::DragFloat("B", &(tempB), 0.1f);
 		ImGui::DragFloat("C", &(tempC), 0.1f);
+		ImGui::DragFloat("D", &(tempD), 0.1f);
 
 
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
-
+		
 		App::EndImgui();
 		*/
-		//loadingEntity.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
+		//bakeryTop.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));
-
+		//bakeryTop.transform.m_scale = glm::vec3(tempD);
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f));
 
 		prog_allLights->Bind();
@@ -3012,66 +3039,91 @@ int main()
 					}
 					//log("A");
 					//std::cout << "OVEN" << std::endl;
-					int wantedSlot = getWantedSlot();
-					int addingSlot = wantedSlot;
-					if (wantedSlot >= 0) {
+					int pressedSlot = getWantedSlot();
+					
+					int lookingSlot = pressedSlot;
+					if (currentOvenPos >= 0) {
+						lookingSlot = 3 - currentOvenPos;
+					}
+					int affectedTraySlot = -1;//position on tray to use
+					int affectedOvenSlot = -1;//position in oven to use
+					
+					if (pressedSlot >= 0) {
 						//std::cout << "A" << std::endl;
 
 						bool putInOven = false;
-						if (trayPastry[wantedSlot] != nullptr) {
-							if (!ovenScript->isSlotFull(wantedSlot)) {
-								if (trayPastry[wantedSlot]->Has<Pastry>()) {
-									if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
+						if (lookingSlot >= 0) {
+							if (ovenScript->isSlotFull(lookingSlot)) {
+								if (trayPastry[pressedSlot] != nullptr) {
+									if (trayPastry[pressedSlot]->Has<Pastry>()) {
+										if (trayPastry[pressedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH) {
+											if (!trayPastry[pressedSlot]->Get<Pastry>().isInOven()) {
+												//its dough
+												affectedTraySlot = pressedSlot;
+												affectedOvenSlot = ovenScript->getFirstEmpty();
+												putInOven = true;
+											}
+
+										}
+										else
+										{
+											affectedTraySlot = getFirstTraySlot();
+											affectedOvenSlot = lookingSlot;
+											putInOven = false;
+										}
+									}
+									else
 									{
-										if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
+										//its a drink, dont do anything
+									}
+								}
+								else
+								{
+									//its for sure empty
+									affectedOvenSlot = lookingSlot;
+									affectedTraySlot = pressedSlot;
+									putInOven = false;
+								}
+							}
+							else
+							{//slot not full
+								if (trayPastry[pressedSlot] != nullptr) {
+									if (trayPastry[pressedSlot]->Has<Pastry>()) {
+										if (trayPastry[pressedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH) {
+											affectedTraySlot = pressedSlot;
+											affectedOvenSlot = lookingSlot;
 											putInOven = true;
 										}
 									}
-
-									}
-								
-							}
-							else
-							{
-								int firstEmpty = ovenScript->getFirstEmpty();
-								if (firstEmpty >= 0) {
-									if (trayPastry[wantedSlot]->Has<Pastry>()) {
-										if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
-										{
-											if (!trayPastry[wantedSlot]->Get<Pastry>().isInOven()) {
-												putInOven = true;
-
-												addingSlot = firstEmpty;
-											}
-										}
-									}
-									
 								}
-								
+
 							}
 						}
-						if (putInOven) {
+							
+
+
+						if (putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0) {
 							lastActionTime = 0;
 							//std::cout << "B" << std::endl;
-							ovenScript->canAdd(trayPastry[wantedSlot], addingSlot);
-							trayPastry[wantedSlot]->Get<Transparency>().setTransparency(0.f);
-							trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(ovenScript->getInsideOven()->m_pos, nullptr);
-							trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(1);
-							trayPastry[wantedSlot]->Get<Transparency>().setTime(0.15);
-							trayPastry[wantedSlot]->Get<Pastry>().setInOven(true);
-							trayPastry[wantedSlot] = nullptr;
+							ovenScript->canAdd(trayPastry[affectedTraySlot], affectedOvenSlot);
+							trayPastry[affectedTraySlot]->Get<Transparency>().setTransparency(0.f);
+							trayPastry[affectedTraySlot]->Get<Transparency>().setNextPosition(ovenScript->getInsideOven()->m_pos, nullptr);
+							trayPastry[affectedTraySlot]->Get<Transparency>().setWantedTransparency(1);
+							trayPastry[affectedTraySlot]->Get<Transparency>().setTime(0.15);
+							trayPastry[affectedTraySlot]->Get<Pastry>().setInOven(true);
+							trayPastry[affectedTraySlot] = nullptr;
 							nextStepTutorialIfNeeded(2);
 						}
-						else
+						else if(!putInOven&& affectedTraySlot >= 0 && affectedOvenSlot >= 0) 
 						{
 							lastActionTime = 0;
 							//std::cout << "C" << std::endl;
-							int newSlot = getFirstTraySlot();
+							int newSlot = affectedTraySlot;
 							//std::cout << newSlot << std::endl;
 							
-							if (ovenScript->canRemove(wantedSlot) && newSlot >= 0) {
+							if (ovenScript->canRemove(affectedOvenSlot) && newSlot >= 0) {
 								//std::cout << newSlot << std::endl;
-								trayPastry[newSlot] = &ovenScript->getEntity(wantedSlot);
+								trayPastry[newSlot] = &ovenScript->getEntity(affectedOvenSlot);
 
 								glm::vec3 finalPos = traySlot[newSlot].m_pos;
 								finalPos.y += getTrayRaise(trayPastry[newSlot]->Get<Pastry>().getPastryType());
@@ -3093,7 +3145,7 @@ int main()
 									trayPastry[newSlot]->Get<Pastry>().setCookedSeconds(wantedSlot);//should it reset seconds if not completed?
 								}
 								*/
-								ovenScript->removeFromSlot(wantedSlot);
+								ovenScript->removeFromSlot(affectedOvenSlot);
 								nextStepTutorialIfNeeded(3);
 							}
 						}
@@ -3434,7 +3486,7 @@ int main()
 							drinkScript.isOpening = true;
 							drinkScript.isClosing = false;
 							if (!drinkScript.isDrinkFull()) {
-								lastActionTime = 0;
+								//lastActionTime = 0;
 								drinkScript.createDrink();
 								setDrinkMesh(drinkScript.getFromDrink(), drinkScript.getDrink());
 								//drinkScript.getFromDrink()->transform.m_scale = glm::vec3(0.002);
@@ -3458,7 +3510,7 @@ int main()
 						
 					}
 				}
-				else if (drinkScript.isDrinkFull()) {
+				else if (drinkScript.isDrinkFull() && lastActionTime >= 0.5) {
 					if (getWantedSlot() != -1) {
 						lastActionTime = 0;
 						//put in tray
