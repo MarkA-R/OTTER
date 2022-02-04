@@ -8,25 +8,35 @@
         {
             "name" : "Scene",
             "nodes" : [
-                0
+                0,
+                1
             ]
         }
     ],
     "nodes" : [
         {
-            "mesh" : 0,
-            "name" : "Cube",
-            "scale" : [
-                1,
-                0.306654155254364,
-                1
+            "name" : "Light",
+            "rotation" : [
+                0.16907575726509094,
+                0.7558803558349609,
+                -0.27217137813568115,
+                0.570947527885437
+            ],
+            "translation" : [
+                4.076245307922363,
+                5.903861999511719,
+                -1.0054539442062378
             ]
+        },
+        {
+            "mesh" : 0,
+            "name" : "Cylinder.001"
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Material.001",
+            "name" : "Material.002",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
@@ -38,7 +48,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Cube.002",
+            "name" : "Cylinder.002",
             "primitives" : [
                 {
                     "attributes" : {
@@ -61,66 +71,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "Untitled",
-            "uri" : "Untitled.png"
+            "name" : "cupcakeUV",
+            "uri" : "cupcakeUV.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 2038,
+            "count" : 303,
             "max" : [
-                1.3493430614471436,
-                3.562488079071045,
-                1.1872730255126953
+                0.5335788726806641,
+                1.1751084327697754,
+                0.5335788726806641
             ],
             "min" : [
-                -1.2156418561935425,
-                -1.1938927173614502,
-                -1.4239649772644043
+                -0.5335788726806641,
+                0,
+                -0.5335788726806641
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 2038,
+            "count" : 303,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 2038,
+            "count" : 303,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 3084,
+            "count" : 1200,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 24456,
+            "byteLength" : 3636,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 24456,
-            "byteOffset" : 24456
+            "byteLength" : 3636,
+            "byteOffset" : 3636
         },
         {
             "buffer" : 0,
-            "byteLength" : 16304,
-            "byteOffset" : 48912
+            "byteLength" : 2424,
+            "byteOffset" : 7272
         },
         {
             "buffer" : 0,
-            "byteLength" : 6168,
-            "byteOffset" : 65216
+            "byteLength" : 2400,
+            "byteOffset" : 9696
         }
     ],
     "samplers" : [
@@ -131,8 +141,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 71384,
-            "uri" : "burnt.bin"
+            "byteLength" : 12096,
+            "uri" : "cupcakePlain.bin"
         }
     ]
 }

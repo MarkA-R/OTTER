@@ -68,6 +68,7 @@ void MaterialCreator::createMaterial(std::string meshName, std::string textureNa
 	material = std::make_unique<Material>(shader);
 	shade = std::make_unique<ShaderProgram>(shader);
 	material->AddTexture("albedo", *texture);
+	
 }
 
 void MaterialCreator::createMaterial(Mesh& m, Texture2D& t, ShaderProgram& s)

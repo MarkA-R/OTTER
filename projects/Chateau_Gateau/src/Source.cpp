@@ -264,6 +264,7 @@ int selectedOvenPosition(float x);
 void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, std::string meshName, std::string prefix, int count);
 void nextStepTutorialIfNeeded(int nextStep);
 int getHighscore();
+glm::vec3 getTrayScale(bakeryUtils::pastryType type);
 // Function to handle user inputs
 void GetInput();
 void getKeyInput();
@@ -347,14 +348,14 @@ int tutorialImage = 0;
 std::vector<float> tutorialPeriods;
 bool shouldShowTutorial = true;
 
-std::vector<std::vector<Mesh*>> pastryMeshes;
+std::vector<std::vector<MaterialCreator*>> pastryMats;
 /*0,0 = croissant plain (with topping enum 0)
-* 0,1 = croissant with topping enum 1
-* 0,2 = croissant with topping enum 2
+* 0,1 = croissant filling 1 with topping enum 1
+* 0,2 = croissant filling 2 with topping enum 2
 * 1,0 = cookie plain
 * ...
 */
-std::vector<std::vector<Texture2D*>> pastryTextures;
+
 
 
 MaterialCreator* getPastryTile(bakeryUtils::pastryType x);
@@ -724,12 +725,37 @@ int main()
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
 	particleMat->AddTexture("albedo", *particleTex);
 
+
+	std::string toppingAddon[4] = { "Plain","Pecan","Sprinkle","Strawberry" };
+	std::string fillingAddon[4] = { "Plain","Vanilla","Chocolate","Strawberry" };
+	std::string pastryNames[4] = { "croissant","cookie","cupcake","cake" };
+	for (int i = 0; i < 4; i++) {
+		pastryMats.push_back(std::vector<MaterialCreator*>());
+
+		for (int u = 0; u < 4; u++) {
+			//MaterialCreator temp = MaterialCreator();
+			std::string toppingName = "pastries/models/" + pastryNames[i] + toppingAddon[u] + ".gltf";
+			std::string fillingName = "pastries/textures/" + pastryNames[i] + fillingAddon[u] + ".png";
+			pastryMats[i].push_back(new MaterialCreator());
+			pastryMats[i].back()->createMaterial(toppingName, fillingName, *prog_transparent);
+			
+			//temp.createMaterial(toppingName, toppingName, *prog_transparent);
+			//pastryMeshes[i].push_back(temp.getMesh().get());
+			//pastryTextures[i].push_back(temp.getTexture().get());
+			//std::cout << toppingName << std::endl;
+			//std::cout << fillingName << std::endl;
+		}
+		
+
+	}
+	//crossantMat = *pastryMats[0][0];
+	crossantMat.createMaterial("pastries/models/croissantPlain.gltf", "pastries/textures/croissantPlain.png", *prog_transparent);
 	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_transparent);
-	crossantMat.createMaterial("bakery/models/croissant.gltf", "bakery/textures/croissant.png", *prog_transparent);
-	cookieMat.createMaterial("bakery/models/cookie.gltf", "bakery/textures/cookie.png", *prog_transparent);
-	cupcakeMat.createMaterial("bakery/models/cupcake.gltf", "bakery/textures/cupcake.png", *prog_transparent);
-	cakeMat.createMaterial("bakery/models/weddingcake.gltf", "bakery/textures/cake.png", *prog_transparent);
-	burntMat.createMaterial("bakery/models/burnt.gltf", "bakery/textures/burnt.png", *prog_transparent);
+	
+	cookieMat.createMaterial("pastries/models/cookiePlain.gltf", "pastries/textures/cookiePlain.png", *prog_transparent);
+	cupcakeMat.createMaterial("pastries/models/cupcakePlain.gltf", "pastries/textures/cupcakePlain.png", *prog_transparent);
+	cakeMat.createMaterial("pastries/models/cakePlain.gltf", "pastries/textures/cakePlain.png", *prog_transparent);
+	burntMat.createMaterial("bakery/models/dust.gltf", "bakery/textures/dust.png", *prog_transparent);
 
 	coffeeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/coffeeTile.png", *prog_transparent);
 	teaTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/teaTile.png", *prog_transparent);
@@ -806,7 +832,6 @@ int main()
 	sprinkleParticle = std::make_unique<Material>(*prog_particles);
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
 
-	
 
 
 	Entity bakery = Entity::Create();
@@ -2329,6 +2354,13 @@ int main()
 					else if (mainMenuChosen == 1) {
 						//std::cout << "ONE" << std::endl;
 						restartGame();
+						filling.Get<Transparency>().setTransparency(0.5);
+						fillingPlane.Get<Transparency>().setTransparency(0.5);
+						topping.Get<Transparency>().setTransparency(0.5);
+						toppingPlane.Get<Transparency>().setTransparency(0.5);
+						drink.Get<Transparency>().setTransparency(0.5);
+						drinkPlane.Get<Transparency>().setTransparency(0.5);
+						drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
 						//createNewOrder(0, false, false);
 						for (int i = 0; i < 4; i++) {
 							if (ovenScript->canRemove(i)) {
@@ -3468,7 +3500,7 @@ int main()
 				if (!drinkScript.isOpening && !drinkScript.isClosing && !drinkScript.isDrinkFull()) {
 					if (isLeftButtonHeld) {
 						lastActionTime = 0;
-						drinkScript.addFill(deltaTime / bakeryUtils::getDrinkFillAmount());
+						drinkScript.addFill((deltaTime / bakeryUtils::getDrinkFillAmount())*2);//*2 because it only goes every other frame cause of the last action time check up top
 						drinkScript.getFillBar()->setT(drinkScript.getFill());
 						drinkScript.getFillBar()->updateArrow();
 						
@@ -3510,7 +3542,7 @@ int main()
 						
 					}
 				}
-				else if (drinkScript.isDrinkFull() && lastActionTime >= 0.5) {
+				else if (drinkScript.isDrinkFull() && lastActionTime >= 0.3) {
 					if (getWantedSlot() != -1) {
 						lastActionTime = 0;
 						//put in tray
@@ -3610,24 +3642,24 @@ int main()
 								//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end());
 								removeFromRendering(trayPastry[validatedPastryIndex]);
 								trayPastry[validatedPastryIndex] = nullptr;
-								std::cout << "NOT PASTRY -1" << std::endl;
+							//	std::cout << "NOT PASTRY -1" << std::endl;
 
 							}
 							else
 							{
-								std::cout << "IS PASTRY -1" << std::endl;
+								//std::cout << "IS PASTRY -1" << std::endl;
 
 							}
 							if (validatedDrinkIndex >= 0) {
 								//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[drinkIndex]), renderingEntities.end());
 								removeFromRendering(trayPastry[validatedDrinkIndex]);
 								trayPastry[validatedDrinkIndex] = nullptr;
-								std::cout << "NOT DRINK -1" << std::endl;
+								//std::cout << "NOT DRINK -1" << std::endl;
 							}
 							else
 							{
-								int a = 1;
-								std::cout << "IS DRINK -1" << std::endl;
+								//int a = 1;
+								//std::cout << "IS DRINK -1" << std::endl;
 							}
 
 							bakeryUtils::addToRounds(1);
@@ -4181,29 +4213,48 @@ Mesh& createPastryMat(Entity* e) {
 void setTrayPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 	if (type == bakeryUtils::pastryType::CROISSANT) {
 		e->Remove<CMeshRenderer>();
-		e->Add<CMeshRenderer>(*e, *crossantMat.getMesh(), *crossantMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		e->Add<CMeshRenderer>(*e, *pastryMats[0][0]->getMesh().get(), *pastryMats[0][0]->getMaterial().get());
+		//e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		//e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
 	}
 	if (type == bakeryUtils::pastryType::COOKIE) {
 		e->Remove<CMeshRenderer>();
-		e->Add<CMeshRenderer>(*e, *cookieMat.getMesh(), *cookieMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		e->Add<CMeshRenderer>(*e, *pastryMats[1][0]->getMesh().get(), *pastryMats[1][0]->getMaterial().get());
+		//e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+		
 	}
 	if (type == bakeryUtils::pastryType::CUPCAKE) {
 		e->Remove<CMeshRenderer>();
-		e->Add<CMeshRenderer>(*e, *cupcakeMat.getMesh(), *cupcakeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.015f, 0.015f, 0.015f);
+		e->Add<CMeshRenderer>(*e, *pastryMats[2][0]->getMesh().get(), *pastryMats[2][0]->getMaterial().get());
+
+		//e->transform.m_scale = glm::vec3(0.015f, 0.015f, 0.015f);
+		//e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
+
+		
 	}
 	if (type == bakeryUtils::pastryType::BURNT) {
 		e->Remove<CMeshRenderer>();
 		e->Add<CMeshRenderer>(*e, *burntMat.getMesh(), *burntMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.015f, 0.015f, 0.015f);
+		//e->transform.m_scale = glm::vec3(0.015f, 0.015f, 0.015f);
 	}
 	if (type == bakeryUtils::pastryType::CAKE) {
 		e->Remove<CMeshRenderer>();
-		e->Add<CMeshRenderer>(*e, *cakeMat.getMesh(), *cakeMat.getMaterial());
-		e->transform.m_scale = glm::vec3(0.01f, 0.01f, 0.01f);
+		e->Add<CMeshRenderer>(*e, *pastryMats[3][0]->getMesh().get(), *pastryMats[3][0]->getMaterial().get());
+
+		
+		
 	}
+	e->transform.m_scale = getTrayScale(type);
+}
+
+glm::vec3 getTrayScale(bakeryUtils::pastryType type) {
+	if (type == bakeryUtils::pastryType::CAKE) {
+		return glm::vec3(0.01f, 0.01f, 0.01f);
+	}
+	if (type == bakeryUtils::pastryType::CUPCAKE) {
+		//return glm::vec3(0.015f, 0.015f, 0.015f);
+	}
+	return glm::vec3(0.02f, 0.02f, 0.02f);
 }
 
 void setDrinkMesh(Entity* e, bakeryUtils::drinkType type) {
@@ -4237,18 +4288,35 @@ void setMachinePastryMesh(Entity* e, bakeryUtils::pastryType type) {
 }
 float getTrayRaise(bakeryUtils::pastryType type) {
 	float raise = 0;
-	if (type == bakeryUtils::pastryType::CUPCAKE) {
-		raise = 0.013;
+	if (type == bakeryUtils::pastryType::CAKE) {
+		//raise = 0.013;
 	}
 	return raise;
 }
 
 void setPastryFilling(Entity* e, bakeryUtils::fillType type)
 {
+	
+	e->Remove<CMeshRenderer>();
+	int toppingNum = (int)e->Get<Pastry>().getPastryTopping();
+	int fillingNum = (int)type;
+	int pastryNum = (int)e->Get<Pastry>().getPastryType() - 1;
+	e->Add<CMeshRenderer>(*e, *pastryMats[pastryNum][toppingNum]->getMesh(), *pastryMats[pastryNum][fillingNum]->getMaterial());
+	e->transform.m_scale = getTrayScale(e->Get<Pastry>().getPastryType());
+
+	//e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
 }
 
 void setPastryTopping(Entity* e, bakeryUtils::toppingType type)
 {
+	
+	e->Remove<CMeshRenderer>();
+	int toppingNum = (int)type;
+	int fillingNum = (int)e->Get<Pastry>().getPastryFilling();
+	int pastryNum = (int)e->Get<Pastry>().getPastryType() - 1;
+	e->Add<CMeshRenderer>(*e, *pastryMats[pastryNum][toppingNum]->getMesh(), *pastryMats[pastryNum][fillingNum]->getMaterial());
+	e->transform.m_scale = getTrayScale(e->Get<Pastry>().getPastryType());
+	//e->transform.m_scale = glm::vec3(0.02f, 0.02f, 0.02f);
 }
 
 
@@ -4583,6 +4651,7 @@ void restartGame() {
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
+	
 	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
