@@ -71,6 +71,18 @@ void MaterialCreator::createMaterial(std::string meshName, std::string textureNa
 	
 }
 
+void MaterialCreator::createMaterial(Mesh& m, std::string texName, ShaderProgram& s)
+{
+	mesh = std::make_unique<Mesh>();
+	mesh.get()->SetVerts(m.getVerts());
+	mesh.get()->SetNormals(m.getNormals());
+	mesh.get()->SetUVs(m.getUVS());
+	texture = std::make_unique<Texture2D>(texName);
+	material = std::make_unique<Material>(s);
+	shade = std::make_unique<ShaderProgram>(s);
+	material->AddTexture("albedo", *texture);
+}
+
 void MaterialCreator::createMaterial(Mesh& m, Texture2D& t, ShaderProgram& s)
 {
 	mesh = std::make_unique<Mesh>();

@@ -48,6 +48,7 @@
 #include "Register.h"
 
 #include <unordered_map>
+#include<chrono>
 
 using namespace nou;
 
@@ -421,6 +422,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 bool isPaused = false;
 int main()
 {
+	auto startTime = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < 6; i++) {
 		endNumberPos.push_back(glm::vec3(0));
 		beginingNumberPos.push_back(glm::vec3(0));
@@ -663,11 +665,13 @@ int main()
 	MaterialCreator tutorialImage01 = MaterialCreator();
 	tutorialImage01.createMaterial("bakery/models/tile.gltf", "UI/textures/fridgeClickOff.png", *prog_texLit);
 
+	/*
 	MaterialCreator tutorialImage10 = MaterialCreator();
 	tutorialImage10.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClick.png", *prog_texLit);
 
 	MaterialCreator tutorialImage11 = MaterialCreator();
 	tutorialImage11.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClickOff.png", *prog_texLit);
+	*/
 
 	MaterialCreator tutorialImage20 = MaterialCreator();
 	tutorialImage20.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven1.png", *prog_texLit);
@@ -684,11 +688,19 @@ int main()
 	MaterialCreator tutorialImage31 = MaterialCreator();
 	tutorialImage31.createMaterial("bakery/models/tile.gltf", "UI/textures/tutCustomer2.png", *prog_texLit);
 
-
-
+	std::vector<MaterialCreator*> tutorialGoToOven;
+	loadMaterialCreatorData(tutorialGoToOven, "bakery/models/tile.gltf", "UI/textures/ovenTutorial", 6);
+	
+	std::vector<MaterialCreator*> tutorialOven;
+	loadMaterialCreatorData(tutorialOven, "bakery/models/tile.gltf", "UI/textures/ovenTutorial", 25);
+	tutorialOven.push_back(tutorialOven.back());
+	tutorialOven.push_back(tutorialOven.back());
+	tutorialOven.insert(tutorialOven.begin(), tutorialOven[0]);
+	tutorialOven.insert(tutorialOven.begin(), tutorialOven[0]);
 
 	std::vector<MaterialCreator*> tutorialFilling;
 	loadMaterialCreatorData(tutorialFilling, "bakery/models/tile.gltf", "UI/textures/tutFilling", 9);
+
 	//tutDrink
 	std::vector<MaterialCreator*> tutorialTopping;
 	loadMaterialCreatorData(tutorialTopping, "bakery/models/tile.gltf", "UI/textures/tutTopping", 10);
@@ -701,23 +713,28 @@ int main()
 	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
 	tutorialMasterList[0].push_back(&tutorialImage00);
 	tutorialMasterList[0].push_back(&tutorialImage01);
-	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
-	tutorialMasterList[1].push_back(&tutorialImage10);
-	tutorialMasterList[1].push_back(&tutorialImage11);
-	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
-	tutorialMasterList[2].push_back(&tutorialImage20);
-	tutorialMasterList[2].push_back(&tutorialImage21);
-	tutorialMasterList[2].push_back(&tutorialImage22);
-	tutorialMasterList[2].push_back(&tutorialImage23);
+	tutorialPeriods.push_back(0.75);
+	tutorialMasterList.push_back(tutorialGoToOven);
+	//tutorialMasterList[1].push_back(&tutorialImage10);
+	//tutorialMasterList[1].push_back(&tutorialImage11);
+	tutorialPeriods.push_back(0.5);
+	tutorialMasterList.push_back(tutorialOven);
+	//tutorialMasterList.push_back(std::vector<MaterialCreator*>());
+	//tutorialMasterList[2].push_back(&tutorialImage20);
+	//tutorialMasterList[2].push_back(&tutorialImage21);
+	//tutorialMasterList[2].push_back(&tutorialImage22);
+	//tutorialMasterList[2].push_back(&tutorialImage23);
+	tutorialPeriods.push_back(0.3);
 	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
 	tutorialMasterList[3].push_back(&tutorialImage30);
 	tutorialMasterList[3].push_back(&tutorialImage31);
+	tutorialPeriods.push_back(0.75);
 	tutorialMasterList.push_back(tutorialFilling);
-	
+	tutorialPeriods.push_back(0.75);
 	tutorialMasterList.push_back(tutorialTopping);
-
+	tutorialPeriods.push_back(0.75);
 	tutorialMasterList.push_back(tutorialDrink);
-	
+	tutorialPeriods.push_back(0.75);
 	
 
 
@@ -1404,36 +1421,36 @@ int main()
 	tutorialArray[0].m_pos = glm::vec3(-0.4, -0.65, -1.39);
 	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.5);
+	//tutorialPeriods.push_back(0.5);
 	tutorialArray.push_back(Transform());//put in oven
 	tutorialArray[1].m_pos = glm::vec3(-2.4, -0.420, -0.490);
 	tutorialArray[1].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[1].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.5);
+	//tutorialPeriods.push_back(0.5);
 
 	tutorialArray.push_back(Transform());//take out oven
 	tutorialArray[2].m_pos = glm::vec3(0, -0.62, -0.49);
 	tutorialArray[2].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[2].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.75);
+	//tutorialPeriods.push_back(0.75);
 
 	tutorialArray.push_back(Transform());//give to customer
 	tutorialArray[3].m_pos = glm::vec3(-0.4, -0.65, -1.39);
 	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[3].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.75);
+	//tutorialPeriods.push_back(0.75);
 
 	tutorialArray.push_back(Transform());//filling
 	tutorialArray[4].m_pos = glm::vec3(0.2, -0.62, 0.81);
 	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[4].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.75);
+	//tutorialPeriods.push_back(0.75);
 
 	tutorialArray.push_back(Transform());//topping
 	tutorialArray[5].m_pos = glm::vec3(-2.4, -0.420, 1.090);
 	tutorialArray[5].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[5].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.75);
+	
 
 	tutorialArray.push_back(Transform());//drink
 	//tutorialArray[6].m_pos = glm::vec3(-1.1, -0.770, 0.890);
@@ -1442,29 +1459,29 @@ int main()
 	tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	tutorialArray[6].m_scale = tutorialPlane->transform.m_scale;
-	tutorialPeriods.push_back(0.75);
+	//tutorialPeriods.push_back(0.75);
 
 	tutorialPlane->transform = tutorialArray[0];
 	//renderingEntities.push_back(&tray);
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
-	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.017;
-	traySlot[0].m_pos.z = tray.transform.m_pos.z - 0.017;
+	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.0173;
+	traySlot[0].m_pos.z = tray.transform.m_pos.z - 0.0173;
 	traySlot[0].SetParent(&tray.transform);
 	traySlot[1] = Transform();
 	traySlot[1].m_pos = tray.transform.m_pos;
-	traySlot[1].m_pos.x = tray.transform.m_pos.x + 0.017;
-	traySlot[1].m_pos.z = tray.transform.m_pos.z - 0.017;
+	traySlot[1].m_pos.x = tray.transform.m_pos.x + 0.0173;
+	traySlot[1].m_pos.z = tray.transform.m_pos.z - 0.0173;
 	traySlot[1].SetParent(&tray.transform);
 	traySlot[2] = Transform();
 	traySlot[2].m_pos = tray.transform.m_pos;
-	traySlot[2].m_pos.x = tray.transform.m_pos.x - 0.017;
-	traySlot[2].m_pos.z = tray.transform.m_pos.z + 0.017;
+	traySlot[2].m_pos.x = tray.transform.m_pos.x - 0.0173;
+	traySlot[2].m_pos.z = tray.transform.m_pos.z + 0.0173;
 	traySlot[2].SetParent(&tray.transform);
 	traySlot[3] = Transform();
 	traySlot[3].m_pos = tray.transform.m_pos;
-	traySlot[3].m_pos.x = tray.transform.m_pos.x + 0.017;
-	traySlot[3].m_pos.z = tray.transform.m_pos.z + 0.017;
+	traySlot[3].m_pos.x = tray.transform.m_pos.x + 0.0173;
+	traySlot[3].m_pos.z = tray.transform.m_pos.z + 0.0173;
 	traySlot[3].SetParent(&tray.transform);
 
 	
@@ -1757,20 +1774,23 @@ int main()
 
 	//bakeryUtils::setDifficulty(4);
 	//bakeryUtils::setRoundsLasted(6);
-	
+	auto endTime = std::chrono::high_resolution_clock::now();//measure end time
+	auto timeTook = endTime - startTime;//calculate elapsed time
+	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time
+
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
-		/*
 		
+		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("A", &(tempA), 0.1f);
-		ImGui::DragFloat("B", &(tempB), 0.1f);
-		ImGui::DragFloat("C", &(tempC), 0.1f);
-		ImGui::DragFloat("D", &(tempD), 0.1f);
+		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
+		//ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
+		//ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
+		//ImGui::DragFloat("A", &(tempA), 0.1f);
+		//ImGui::DragFloat("B", &(tempB), 0.1f);
+		//ImGui::DragFloat("C", &(tempC), 0.1f);
+		//ImGui::DragFloat("D", &(tempD), 0.1f);
 
 
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
@@ -1782,7 +1802,12 @@ int main()
 		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));
 		//bakeryTop.transform.m_scale = glm::vec3(tempD);
-		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f));
+		for (int i = 0; i < 4; i++) {
+			accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
+				* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f))
+				* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));
+		}
+		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f));
 
 		prog_allLights->Bind();
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
@@ -1798,24 +1823,7 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 		
 
-		int roundsLasted = bakeryUtils::getRoundsLasted();
-		{//change transparencies
-			if (roundsLasted > 0) {
-				filling.Get<Transparency>().setTransparency(0.f);
-				fillingPlane.Get<Transparency>().setTransparency(0.f);
-			}
-			if (roundsLasted > 1) {
-				topping.Get<Transparency>().setTransparency(0.f);
-				toppingPlane.Get<Transparency>().setTransparency(0.f);
-
-			}
-			if (roundsLasted > 2) {
-				drink.Get<Transparency>().setTransparency(0.f);
-				drinkPlane.Get<Transparency>().setTransparency(00.f);
-
-				drinkFill.getEntity()->Get<Transparency>().setTransparency(0.f);
-			}
-		}
+		
 		
 			
 			
@@ -2239,6 +2247,23 @@ int main()
 						if (!isInRendering(&tray)) {
 							renderingEntities.push_back(&tray);
 						}
+						if (tutorialPos == 0) {
+							for (int i = 0; i < 4; i++) {
+
+								accessEntities[i]->transform.m_pos = traySlot[i].m_pos;
+								accessEntities[i]->transform.m_pos.y += 0.005;
+								accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+									* glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f))
+									* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+								accessEntities[i]->transform.SetParent(&globalCameraEntity->transform);
+								accessEntities[i]->transform.RecomputeGlobal();
+								accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
+								accessEntities[i]->Get<PictureSelector>().updatePicture();
+								renderingEntities.push_back(accessEntities[i]);
+							}
+						}
+						
 						if (!isInRendering(&cursor)) {
 							renderingEntities.push_back(&cursor);
 						}
@@ -2354,13 +2379,8 @@ int main()
 					else if (mainMenuChosen == 1) {
 						//std::cout << "ONE" << std::endl;
 						restartGame();
-						filling.Get<Transparency>().setTransparency(0.5);
-						fillingPlane.Get<Transparency>().setTransparency(0.5);
-						topping.Get<Transparency>().setTransparency(0.5);
-						toppingPlane.Get<Transparency>().setTransparency(0.5);
-						drink.Get<Transparency>().setTransparency(0.5);
-						drinkPlane.Get<Transparency>().setTransparency(0.5);
-						drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
+
+						
 						//createNewOrder(0, false, false);
 						for (int i = 0; i < 4; i++) {
 							if (ovenScript->canRemove(i)) {
@@ -2416,7 +2436,14 @@ int main()
 						}
 						topping.Get<ToppingMachine>().removeFromTopping();
 
-						
+						filling.Get<Transparency>().setTransparency(0.5);
+						fillingPlane.Get<Transparency>().setTransparency(0.5);
+						topping.Get<Transparency>().setTransparency(0.5);
+						toppingPlane.Get<Transparency>().setTransparency(0.5);
+						drink.Get<Transparency>().setTransparency(0.5);
+						drinkPlane.Get<Transparency>().setTransparency(0.5);
+						drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
+
 						receipt.transform.m_pos = beginingNumberPos[0];
 						for (int i = 0; i < 6; i++) {
 							numberEntities[i]->transform.m_pos = beginingNumberPos[i];
@@ -2832,7 +2859,24 @@ int main()
 		}
 		
 
-		
+		int roundsLasted = bakeryUtils::getRoundsLasted();
+		{//change transparencies
+			if (roundsLasted > 0) {
+				filling.Get<Transparency>().setTransparency(0.f);
+				fillingPlane.Get<Transparency>().setTransparency(0.f);
+			}
+			if (roundsLasted > 1) {
+				topping.Get<Transparency>().setTransparency(0.f);
+				toppingPlane.Get<Transparency>().setTransparency(0.f);
+
+			}
+			if (roundsLasted > 2) {
+				drink.Get<Transparency>().setTransparency(0.f);
+				drinkPlane.Get<Transparency>().setTransparency(00.f);
+
+				drinkFill.getEntity()->Get<Transparency>().setTransparency(0.f);
+			}
+		}
 
 		
 	
@@ -3047,6 +3091,12 @@ int main()
 							//std::cout << "B" << std::endl;
 
 							nextStepTutorialIfNeeded(1);
+							if (shouldShowTutorial) {
+								for (int i = 0; i < 4; i++) {
+									accessEntities[i]->transform.SetParent(nullptr);
+									removeFromRendering(accessEntities[i]);
+								}
+							}
 						
 					}
 						
@@ -4248,8 +4298,8 @@ void setTrayPastryMesh(Entity* e, bakeryUtils::pastryType type) {
 }
 
 glm::vec3 getTrayScale(bakeryUtils::pastryType type) {
-	if (type == bakeryUtils::pastryType::CAKE) {
-		return glm::vec3(0.01f, 0.01f, 0.01f);
+	if (type == bakeryUtils::pastryType::DOUGH) {
+	return glm::vec3(0.009f, 0.009f, 0.009f);
 	}
 	if (type == bakeryUtils::pastryType::CUPCAKE) {
 		//return glm::vec3(0.015f, 0.015f, 0.015f);
@@ -4651,7 +4701,7 @@ void restartGame() {
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
-	
+	tutorialPos = 0;
 	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];

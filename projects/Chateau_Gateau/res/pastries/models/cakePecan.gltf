@@ -44,6 +44,17 @@
                 "metallicFactor" : 0,
                 "roughnessFactor" : 0.5
             }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "Material.002",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 1
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
         }
     ],
     "meshes" : [
@@ -58,6 +69,15 @@
                     },
                     "indices" : 3,
                     "material" : 0
+                },
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "NORMAL" : 5,
+                        "TEXCOORD_0" : 6
+                    },
+                    "indices" : 7,
+                    "material" : 1
                 }
             ]
         }
@@ -65,6 +85,10 @@
     "textures" : [
         {
             "sampler" : 0,
+            "source" : 0
+        },
+        {
+            "sampler" : 1,
             "source" : 0
         }
     ],
@@ -109,6 +133,40 @@
             "componentType" : 5123,
             "count" : 2736,
             "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 352,
+            "max" : [
+                0.8458118438720703,
+                0.9723075032234192,
+                0.8786569237709045
+            ],
+            "min" : [
+                -0.812792181968689,
+                0.4965616464614868,
+                -0.8734298348426819
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 352,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 352,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5123,
+            "count" : 924,
+            "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
@@ -131,17 +189,41 @@
             "buffer" : 0,
             "byteLength" : 5472,
             "byteOffset" : 25024
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4224,
+            "byteOffset" : 30496
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4224,
+            "byteOffset" : 34720
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2816,
+            "byteOffset" : 38944
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1848,
+            "byteOffset" : 41760
         }
     ],
     "samplers" : [
         {
             "magFilter" : 9729,
             "minFilter" : 9987
+        },
+        {
+            "magFilter" : 9728,
+            "minFilter" : 9984
         }
     ],
     "buffers" : [
         {
-            "byteLength" : 30496,
+            "byteLength" : 43608,
             "uri" : "cakePecan.bin"
         }
     ]
