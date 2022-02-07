@@ -263,6 +263,7 @@ void loadSettings();
 void applySettings();
 int selectedOvenPosition(float x);
 void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, std::string meshName, std::string prefix, int count);
+void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, Mesh& meshName, std::string prefix, int count);
 void nextStepTutorialIfNeeded(int nextStep);
 int getHighscore();
 glm::vec3 getTrayScale(bakeryUtils::pastryType type);
@@ -420,6 +421,10 @@ void log(std::string s) {
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 bool isPaused = false;
+
+Mesh signMesh;
+Mesh tileMesh;
+Mesh registerMesh;
 int main()
 {
 	auto startTime = std::chrono::high_resolution_clock::now();
@@ -467,6 +472,13 @@ int main()
 		shouldShowTutorial = false;
 	}
 
+	//this is to save loading time, not memory!
+	//cant really save memory without reworking OTTER itself lol
+
+	GLTF::LoadMesh("bakery/models/tile.gltf", tileMesh);
+	GLTF::LoadMesh("UI/models/Chalkboard.gltf", signMesh);
+	GLTF::LoadMesh("bakery/models/cashregister.gltf", registerMesh);
+
 	glfwSetMouseButtonCallback(gameWindow, mouse_button_callback);
 	glfwSetCursorPosCallback(gameWindow, getCursorData);
 	glfwSetScrollCallback(gameWindow, scroll_callback);
@@ -496,7 +508,7 @@ int main()
 	cameraEntity.Get<CCamera>().Update();
 
 	MaterialCreator loading = MaterialCreator();
-	loading.createMaterial("bakery/models/tile.gltf", "UI/textures/LoadingScreen.png", *prog_texLit);
+	loading.createMaterial(tileMesh, "UI/textures/LoadingScreen.png", *prog_texLit);
 	Entity loadingEntity = Entity::Create();
 	loadingEntity.Add<CMeshRenderer>(loadingEntity, *loading.getMesh(), *loading.getMaterial());
 	loadingEntity.transform.m_scale = glm::vec3(0.41, 0.41, 0.41);
@@ -523,18 +535,18 @@ int main()
 	flowerMat2.createMaterialOBJ("bakery/models/flower2.obj", "bakery/textures/flower.png", *prog_morph);
 
 	MaterialCreator registerMaterial = MaterialCreator();
-	registerMaterial.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister0.png", *prog_allLights);
+	registerMaterial.createMaterial(registerMesh, "bakery/textures/cregister0.png", *prog_allLights);
 	registerImages.push_back(&registerMaterial);
 	MaterialCreator registerMaterial1 = MaterialCreator();
-	registerMaterial1.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister1.png", *prog_allLights);
+	registerMaterial1.createMaterial(registerMesh, "bakery/textures/cregister1.png", *prog_allLights);
 	registerImages.push_back(&registerMaterial1);
 	MaterialCreator registerMaterial2 = MaterialCreator();
-	registerMaterial2.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister2.png", *prog_allLights);
+	registerMaterial2.createMaterial(registerMesh, "bakery/textures/cregister2.png", *prog_allLights);
 	registerImages.push_back(&registerMaterial2);
 	MaterialCreator registerMaterial3 = MaterialCreator();
-	registerMaterial3.createMaterial("bakery/models/cashregister.gltf", "bakery/textures/cregister3.png", *prog_allLights);
+	registerMaterial3.createMaterial(registerMesh, "bakery/textures/cregister3.png", *prog_allLights);
 	registerImages.push_back(&registerMaterial3);
-	//loadMaterialCreatorData(registerImages, "bakery/models/cashregister.gltf", "bakery/textures/register",3, *prog_allLights); 
+	//loadMaterialCreatorData(registerImages, registerMesh, "bakery/textures/register",3, *prog_allLights); 
 
 	MaterialCreator counterMat = MaterialCreator();
 	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_allLights);
@@ -584,30 +596,30 @@ int main()
 	for (int i = 0; i < 10; i++) {
 		numberTiles.push_back(MaterialCreator());
 		std::string newNum = "UI/textures/Number_" + std::to_string(i) + ".png";
-		numberTiles.back().createMaterial("bakery/models/tile.gltf", newNum, *prog_texLit);
+		numberTiles.back().createMaterial(tileMesh, newNum, *prog_texLit);
 	}
 	std::string orderToCheck = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	for (char& c : orderToCheck) {
 		alphanumericMat.push_back(MaterialCreator());
 		std::string newString = "UI/textures/alphanumeric/Key" + std::string(1, c) + ".png";
-		alphanumericMat.back().createMaterial("bakery/models/tile.gltf", newString, *prog_texLit);
+		alphanumericMat.back().createMaterial(tileMesh, newString, *prog_texLit);
 
 	}
 	booleanMat.push_back(MaterialCreator());
-	booleanMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeCross.png", *prog_texLit);
+	booleanMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeCross.png", *prog_texLit);
 	booleanMat.push_back(MaterialCreator());
-	booleanMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeCheck.png", *prog_texLit);
+	booleanMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeCheck.png", *prog_texLit);
 
 	sliderMat.push_back(MaterialCreator());
-	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeLow.png", *prog_texLit);
+	sliderMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeLow.png", *prog_texLit);
 	sliderMat.push_back(MaterialCreator());
-	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMidLow.png", *prog_texLit);
+	sliderMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeMidLow.png", *prog_texLit);
 	sliderMat.push_back(MaterialCreator());
-	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMiddle.png", *prog_texLit);
+	sliderMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeMiddle.png", *prog_texLit);
 	sliderMat.push_back(MaterialCreator());
-	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeMidHigh.png", *prog_texLit);
+	sliderMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeMidHigh.png", *prog_texLit);
 	sliderMat.push_back(MaterialCreator());
-	sliderMat.back().createMaterial("bakery/models/tile.gltf", "UI/textures/symbols/typeHigh.png", *prog_texLit);
+	sliderMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeHigh.png", *prog_texLit);
 
 	MaterialCreator cityMat = MaterialCreator();
 	cityMat.createMaterial("bakery/models/cityMesh.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
@@ -654,60 +666,60 @@ int main()
 	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
 
 	MaterialCreator receiptMat = MaterialCreator();
-	receiptMat.createMaterial("bakery/models/tile.gltf", "UI/textures/Receipt.png", *prog_texLit);
+	receiptMat.createMaterial(tileMesh, "UI/textures/Receipt.png", *prog_texLit);
 
 	MaterialCreator plexiMat = MaterialCreator();
 	plexiMat.createMaterial("bakery/models/plexiGlass.gltf", "bakery/textures/plexiGlass.png", *prog_transparent);
 
 	MaterialCreator tutorialImage00 = MaterialCreator();
-	tutorialImage00.createMaterial("bakery/models/tile.gltf", "UI/textures/fridgeClick.png", *prog_texLit);
+	tutorialImage00.createMaterial(tileMesh, "UI/textures/fridgeClick.png", *prog_texLit);
 
 	MaterialCreator tutorialImage01 = MaterialCreator();
-	tutorialImage01.createMaterial("bakery/models/tile.gltf", "UI/textures/fridgeClickOff.png", *prog_texLit);
+	tutorialImage01.createMaterial(tileMesh, "UI/textures/fridgeClickOff.png", *prog_texLit);
 
 	/*
 	MaterialCreator tutorialImage10 = MaterialCreator();
-	tutorialImage10.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClick.png", *prog_texLit);
+	tutorialImage10.createMaterial(tileMesh, "UI/textures/ovenClick.png", *prog_texLit);
 
 	MaterialCreator tutorialImage11 = MaterialCreator();
-	tutorialImage11.createMaterial("bakery/models/tile.gltf", "UI/textures/ovenClickOff.png", *prog_texLit);
+	tutorialImage11.createMaterial(tileMesh, "UI/textures/ovenClickOff.png", *prog_texLit);
 	*/
 
 	MaterialCreator tutorialImage20 = MaterialCreator();
-	tutorialImage20.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven1.png", *prog_texLit);
+	tutorialImage20.createMaterial(tileMesh, "UI/textures/tutOven1.png", *prog_texLit);
 
 	MaterialCreator tutorialImage21 = MaterialCreator();
-	tutorialImage21.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven2.png", *prog_texLit);
+	tutorialImage21.createMaterial(tileMesh, "UI/textures/tutOven2.png", *prog_texLit);
 	MaterialCreator tutorialImage22 = MaterialCreator();
-	tutorialImage22.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven3.png", *prog_texLit);
+	tutorialImage22.createMaterial(tileMesh, "UI/textures/tutOven3.png", *prog_texLit);
 	MaterialCreator tutorialImage23 = MaterialCreator();
-	tutorialImage23.createMaterial("bakery/models/tile.gltf", "UI/textures/tutOven4.png", *prog_texLit);
+	tutorialImage23.createMaterial(tileMesh, "UI/textures/tutOven4.png", *prog_texLit);
 
 	MaterialCreator tutorialImage30 = MaterialCreator();
-	tutorialImage30.createMaterial("bakery/models/tile.gltf", "UI/textures/tutCustomer1.png", *prog_texLit);
+	tutorialImage30.createMaterial(tileMesh, "UI/textures/tutCustomer1.png", *prog_texLit);
 	MaterialCreator tutorialImage31 = MaterialCreator();
-	tutorialImage31.createMaterial("bakery/models/tile.gltf", "UI/textures/tutCustomer2.png", *prog_texLit);
+	tutorialImage31.createMaterial(tileMesh, "UI/textures/tutCustomer2.png", *prog_texLit);
 
 	std::vector<MaterialCreator*> tutorialGoToOven;
-	loadMaterialCreatorData(tutorialGoToOven, "bakery/models/tile.gltf", "UI/textures/ovenTutorial", 6);
+	loadMaterialCreatorData(tutorialGoToOven, tileMesh, "UI/textures/ovenTutorial", 6);
 
 	std::vector<MaterialCreator*> tutorialOven;
-	loadMaterialCreatorData(tutorialOven, "bakery/models/tile.gltf", "UI/textures/ovenTutorial", 25);
+	loadMaterialCreatorData(tutorialOven, tileMesh, "UI/textures/ovenTutorial", 25);
 	tutorialOven.push_back(tutorialOven.back());
 	tutorialOven.push_back(tutorialOven.back());
 	tutorialOven.insert(tutorialOven.begin(), tutorialOven[0]);
 	tutorialOven.insert(tutorialOven.begin(), tutorialOven[0]);
 
 	std::vector<MaterialCreator*> tutorialFilling;
-	loadMaterialCreatorData(tutorialFilling, "bakery/models/tile.gltf", "UI/textures/tutFilling", 9);
+	loadMaterialCreatorData(tutorialFilling, tileMesh, "UI/textures/tutFilling", 9);
 
 	//tutDrink 
 	std::vector<MaterialCreator*> tutorialTopping;
-	loadMaterialCreatorData(tutorialTopping, "bakery/models/tile.gltf", "UI/textures/tutTopping", 10);
+	loadMaterialCreatorData(tutorialTopping, tileMesh, "UI/textures/tutTopping", 10);
 	tutorialTopping.push_back(tutorialTopping[8]);
 
 	std::vector<MaterialCreator*> tutorialDrink;
-	loadMaterialCreatorData(tutorialDrink, "bakery/models/tile.gltf", "UI/textures/tutDrink", 14);
+	loadMaterialCreatorData(tutorialDrink, tileMesh, "UI/textures/tutDrink", 14);
 	tutorialDrink.insert(tutorialDrink.begin() + 4, tutorialDrink[1]);
 
 	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
@@ -774,29 +786,29 @@ int main()
 	cakeMat.createMaterial("pastries/models/cakePlain.gltf", "pastries/textures/cakePlain.png", *prog_transparent);
 	burntMat.createMaterial("bakery/models/dust.gltf", "bakery/textures/dust.png", *prog_transparent);
 
-	coffeeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/coffeeTile.png", *prog_transparent);
-	teaTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/teaTile.png", *prog_transparent);
-	milkshakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/milkshakeTile.png", *prog_transparent);
+	coffeeTile.createMaterial(tileMesh, "bakery/textures/coffeeTile.png", *prog_transparent);
+	teaTile.createMaterial(tileMesh, "bakery/textures/teaTile.png", *prog_transparent);
+	milkshakeTile.createMaterial(tileMesh, "bakery/textures/milkshakeTile.png", *prog_transparent);
 
 	coffeeMat.createMaterial("bakery/models/coffee.gltf", "bakery/textures/coffee.png", *prog_transparent);
 	teaMat.createMaterial("bakery/models/bubbletea.gltf", "bakery/textures/tea.png", *prog_transparent);
 	milkshakeMat.createMaterial("bakery/models/milkshake.gltf", "bakery/textures/milkshake.png", *prog_transparent);
 
-	playSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/playSign.png", *prog_texLit);
-	settingsSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/settingsSign.png", *prog_texLit);
-	exitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/exitSign.png", *prog_texLit);
-	pauseSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/pauseSign.png", *prog_texLit);
-	restartSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/restartSign.png", *prog_texLit);
+	playSignMat.createMaterial(signMesh, "UI/textures/playSign.png", *prog_texLit);
+	settingsSignMat.createMaterial(signMesh, "UI/textures/settingsSign.png", *prog_texLit);
+	exitSignMat.createMaterial(signMesh, "UI/textures/exitSign.png", *prog_texLit);
+	pauseSignMat.createMaterial(signMesh, "UI/textures/pauseSign.png", *prog_texLit);
+	restartSignMat.createMaterial(signMesh, "UI/textures/restartSign.png", *prog_texLit);
 
-	optionTraySignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionTraySign.png", *prog_texLit);
-	optionSensitivitySignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionSensitivitySign.png", *prog_texLit);
-	optionMusicSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionMusicSign.png", *prog_texLit);
-	optionSoundSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionSoundSign.png", *prog_texLit);
-	optionEnlargeSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionEnlargeSign.png", *prog_texLit);
-	optionExitSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionExitSign.png", *prog_texLit);
+	optionTraySignMat.createMaterial(signMesh, "UI/textures/optionTraySign.png", *prog_texLit);
+	optionSensitivitySignMat.createMaterial(signMesh, "UI/textures/optionSensitivitySign.png", *prog_texLit);
+	optionMusicSignMat.createMaterial(signMesh, "UI/textures/optionMusicSign.png", *prog_texLit);
+	optionSoundSignMat.createMaterial(signMesh, "UI/textures/optionSoundSign.png", *prog_texLit);
+	optionEnlargeSignMat.createMaterial(signMesh, "UI/textures/optionEnlargeSign.png", *prog_texLit);
+	optionExitSignMat.createMaterial(signMesh, "UI/textures/optionExitSign.png", *prog_texLit);
 
-	optionKeybindSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionKeybindSign.png", *prog_texLit);
-	optionKeybindDoneSignMat.createMaterial("UI/models/Chalkboard.gltf", "UI/textures/optionKeybindDoneSign.png", *prog_texLit);
+	optionKeybindSignMat.createMaterial(signMesh, "UI/textures/optionKeybindSign.png", *prog_texLit);
+	optionKeybindDoneSignMat.createMaterial(signMesh, "UI/textures/optionKeybindDoneSign.png", *prog_texLit);
 
 	signFrames.push_back(playSignMat.getMaterial().get());
 	signFrames.push_back(settingsSignMat.getMaterial().get());
@@ -815,24 +827,24 @@ int main()
 	signFrames.push_back(optionKeybindDoneSignMat.getMaterial().get());
 
 
-	croissantTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/croissantTile.png", *prog_texLit);
-	doughTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/doughTile.png", *prog_texLit);
-	cookieTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cookieTile.png", *prog_texLit);
-	cupcakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cupcakeTile.png", *prog_texLit);
-	cakeTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/cakeTile.png", *prog_texLit);
-	nothingTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/nothingTile.png", *prog_texLit);
-	burntTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/burntTile.png", *prog_texLit);
+	croissantTile.createMaterial(tileMesh, "bakery/textures/croissantTile.png", *prog_texLit);
+	doughTile.createMaterial(tileMesh, "bakery/textures/doughTile.png", *prog_texLit);
+	cookieTile.createMaterial(tileMesh, "bakery/textures/cookieTile.png", *prog_texLit);
+	cupcakeTile.createMaterial(tileMesh, "bakery/textures/cupcakeTile.png", *prog_texLit);
+	cakeTile.createMaterial(tileMesh, "bakery/textures/cakeTile.png", *prog_texLit);
+	nothingTile.createMaterial(tileMesh, "bakery/textures/nothingTile.png", *prog_texLit);
+	burntTile.createMaterial(tileMesh, "bakery/textures/burntTile.png", *prog_texLit);
 
-	custardFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/custardFilling.png", *prog_transparent);
-	nutellaFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/nutellaFilling.png", *prog_transparent);
-	strawberryFilling.createMaterial("bakery/models/tile.gltf", "bakery/textures/strawberryFilling.png", *prog_transparent);
+	custardFilling.createMaterial(tileMesh, "bakery/textures/custardFilling.png", *prog_transparent);
+	nutellaFilling.createMaterial(tileMesh, "bakery/textures/nutellaFilling.png", *prog_transparent);
+	strawberryFilling.createMaterial(tileMesh, "bakery/textures/strawberryFilling.png", *prog_transparent);
 
-	pecanTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/pecanTopping.png", *prog_transparent);
-	stawberryTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/strawberryTopping.png", *prog_transparent);
-	sprinkleTopping.createMaterial("bakery/models/tile.gltf", "bakery/textures/sprinkleTopping.png", *prog_transparent);
+	pecanTopping.createMaterial(tileMesh, "bakery/textures/pecanTopping.png", *prog_transparent);
+	stawberryTopping.createMaterial(tileMesh, "bakery/textures/strawberryTopping.png", *prog_transparent);
+	sprinkleTopping.createMaterial(tileMesh, "bakery/textures/sprinkleTopping.png", *prog_transparent);
 
-	plusTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/plusTile.png", *prog_texLit);
-	bubbleTile.createMaterial("bakery/models/tile.gltf", "bakery/textures/bubbleTile.png", *prog_texLit);
+	plusTile.createMaterial(tileMesh, "bakery/textures/plusTile.png", *prog_texLit);
+	bubbleTile.createMaterial(tileMesh, "bakery/textures/bubbleTile.png", *prog_texLit);
 
 	carMat.createMaterial("bakery/models/car.gltf", "bakery/textures/car.png", *prog_texLit);
 
@@ -1255,13 +1267,13 @@ int main()
 
 	std::vector<MorphAnimation*> allKainatFrames;
 
-	std::vector<Mesh*> kainatWalkFrames;
-	loadAnimationData(kainatWalkFrames, "characters/kainat/walk/bearWalk", 16);
-	MorphAnimation kainatWalk = MorphAnimation(kainatWalkFrames, 0.1, 0);
+	//std::vector<Mesh*> kainatWalkFrames;
+	//loadAnimationData(kainatWalkFrames, "characters/kainat/walk/bearWalk", 16);
+	MorphAnimation kainatWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
 	allKainatFrames.push_back(&kainatWalk);
-	std::vector<Mesh*> kainatIdleFrames;
-	loadAnimationData(kainatIdleFrames, "characters/kainat/idle/bearIdle", 4);
-	MorphAnimation kainatIdle = MorphAnimation(kainatIdleFrames, 0.5, 0);
+	//std::vector<Mesh*> kainatIdleFrames;
+	//loadAnimationData(kainatIdleFrames, "characters/kainat/idle/bearIdle", 4);
+	MorphAnimation kainatIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
 	allKainatFrames.push_back(&kainatIdle);
 	Entity kainat = Entity::Create();
 	{
@@ -1288,13 +1300,13 @@ int main()
 	renderingEntities.push_back(&kainat);
 
 	std::vector<MorphAnimation*> allmarkFrames;
-	std::vector<Mesh*> markWalkFrames;
-	loadAnimationData(markWalkFrames, "characters/mark/walk/bearWalk", 16);
-	MorphAnimation markWalk = MorphAnimation(markWalkFrames, 0.1, 0);
+	//std::vector<Mesh*> markWalkFrames;
+	//loadAnimationData(markWalkFrames, "characters/mark/walk/bearWalk", 16);
+	MorphAnimation markWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
 	allmarkFrames.push_back(&markWalk);
-	std::vector<Mesh*> markIdleFrames;
-	loadAnimationData(markIdleFrames, "characters/mark/idle/bearIdle", 4);
-	MorphAnimation markIdle = MorphAnimation(markIdleFrames, 0.5, 0);
+	//std::vector<Mesh*> markIdleFrames;
+	//loadAnimationData(markIdleFrames, "characters/mark/idle/bearIdle", 4);
+	MorphAnimation markIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
 	allmarkFrames.push_back(&markIdle);
 	std::unique_ptr<Texture2D> markTex = std::make_unique<Texture2D>("characters/mithunan/mark.png");
 	std::unique_ptr<Material> markMat = std::make_unique<Material>(*prog_morph);
@@ -1322,13 +1334,13 @@ int main()
 	renderingEntities.push_back(&mark);
 
 	std::vector<MorphAnimation*> allkyraFrames;
-	std::vector<Mesh*> kyraWalkFrames;
-	loadAnimationData(kyraWalkFrames, "characters/kyra/walk/bearWalk", 16);
-	MorphAnimation kyraWalk = MorphAnimation(kyraWalkFrames, 0.1, 0);
+	//std::vector<Mesh*> kyraWalkFrames;
+	//loadAnimationData(kyraWalkFrames, "characters/kyra/walk/bearWalk", 16);
+	MorphAnimation kyraWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
 	allkyraFrames.push_back(&kyraWalk);
-	std::vector<Mesh*> kyraIdleFrames;
-	loadAnimationData(kyraIdleFrames, "characters/kyra/idle/bearIdle", 4);
-	MorphAnimation kyraIdle = MorphAnimation(kyraIdleFrames, 0.5, 0);
+	//std::vector<Mesh*> kyraIdleFrames;
+	//loadAnimationData(kyraIdleFrames, "characters/kyra/idle/bearIdle", 4);
+	MorphAnimation kyraIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
 	allkyraFrames.push_back(&kyraIdle);
 	std::unique_ptr<Texture2D> kyraTex = std::make_unique<Texture2D>("characters/mithunan/kyra.png");
 	std::unique_ptr<Material> kyraMat = std::make_unique<Material>(*prog_morph);
@@ -1356,13 +1368,13 @@ int main()
 	renderingEntities.push_back(&kyra);
 
 	std::vector<MorphAnimation*> allnathanFrames;
-	std::vector<Mesh*> nathanWalkFrames;
-	loadAnimationData(nathanWalkFrames, "characters/nathan/walk/bearWalk", 16);
-	MorphAnimation nathanWalk = MorphAnimation(nathanWalkFrames, 0.1, 0);
+	//std::vector<Mesh*> nathanWalkFrames;
+	//loadAnimationData(nathanWalkFrames, "characters/nathan/walk/bearWalk", 16);
+	MorphAnimation nathanWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
 	allnathanFrames.push_back(&nathanWalk);
-	std::vector<Mesh*> nathanIdleFrames;
-	loadAnimationData(nathanIdleFrames, "characters/nathan/idle/bearIdle", 4);
-	MorphAnimation nathanIdle = MorphAnimation(nathanIdleFrames, 0.5, 0);
+	//std::vector<Mesh*> nathanIdleFrames;
+	//loadAnimationData(nathanIdleFrames, "characters/nathan/idle/bearIdle", 4);
+	MorphAnimation nathanIdle = MorphAnimation(mithunanIdleFrames, 0.5, 0);
 	allnathanFrames.push_back(&nathanIdle);
 	std::unique_ptr<Texture2D> nathanTex = std::make_unique<Texture2D>("characters/mithunan/nathan.png");
 	std::unique_ptr<Material> nathanMat = std::make_unique<Material>(*prog_morph);
@@ -4557,6 +4569,18 @@ void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int cou
 }
 
 void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, std::string meshName, std::string prefix, int count) {
+	for (int i = 1; i <= count; i++) {
+		std::string filename = prefix + std::to_string(i) + ".png";
+
+		MaterialCreator* frame = new MaterialCreator();
+		frame->createMaterial(meshName, filename, *prog_texLit);
+
+		toModify.push_back(frame);
+	}
+
+}
+
+void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, Mesh& meshName, std::string prefix, int count) {
 	for (int i = 1; i <= count; i++) {
 		std::string filename = prefix + std::to_string(i) + ".png";
 
