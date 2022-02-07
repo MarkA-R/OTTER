@@ -671,11 +671,7 @@ int main()
 	MaterialCreator plexiMat = MaterialCreator();
 	plexiMat.createMaterial("bakery/models/plexiGlass.gltf", "bakery/textures/plexiGlass.png", *prog_transparent);
 
-	MaterialCreator tutorialImage00 = MaterialCreator();
-	tutorialImage00.createMaterial(tileMesh, "UI/textures/fridgeClick.png", *prog_texLit);
-
-	MaterialCreator tutorialImage01 = MaterialCreator();
-	tutorialImage01.createMaterial(tileMesh, "UI/textures/fridgeClickOff.png", *prog_texLit);
+	
 
 	/*
 	MaterialCreator tutorialImage10 = MaterialCreator();
@@ -684,6 +680,8 @@ int main()
 	MaterialCreator tutorialImage11 = MaterialCreator();
 	tutorialImage11.createMaterial(tileMesh, "UI/textures/ovenClickOff.png", *prog_texLit);
 	*/
+	std::vector<MaterialCreator*> tutorialButton;
+	loadMaterialCreatorData(tutorialButton, tileMesh, "UI/textures/tutButton", 5);
 
 	MaterialCreator tutorialImage20 = MaterialCreator();
 	tutorialImage20.createMaterial(tileMesh, "UI/textures/tutOven1.png", *prog_texLit);
@@ -699,6 +697,10 @@ int main()
 	tutorialImage30.createMaterial(tileMesh, "UI/textures/tutCustomer1.png", *prog_texLit);
 	MaterialCreator tutorialImage31 = MaterialCreator();
 	tutorialImage31.createMaterial(tileMesh, "UI/textures/tutCustomer2.png", *prog_texLit);
+
+	std::vector<MaterialCreator*> tutorialFridge;
+	loadMaterialCreatorData(tutorialFridge, tileMesh, "UI/textures/tutFridge", 9);
+	tutorialFridge.insert(tutorialFridge.end(), tutorialFridge[tutorialFridge.size() - 2]);
 
 	std::vector<MaterialCreator*> tutorialGoToOven;
 	loadMaterialCreatorData(tutorialGoToOven, tileMesh, "UI/textures/ovenTutorial", 6);
@@ -722,9 +724,11 @@ int main()
 	loadMaterialCreatorData(tutorialDrink, tileMesh, "UI/textures/tutDrink", 14);
 	tutorialDrink.insert(tutorialDrink.begin() + 4, tutorialDrink[1]);
 
-	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
-	tutorialMasterList[0].push_back(&tutorialImage00);
-	tutorialMasterList[0].push_back(&tutorialImage01);
+	tutorialMasterList.push_back(tutorialButton);
+
+	tutorialPeriods.push_back(0.75);
+	tutorialMasterList.push_back(tutorialFridge);
+	
 	tutorialPeriods.push_back(0.75);
 	tutorialMasterList.push_back(tutorialGoToOven);
 	//tutorialMasterList[1].push_back(&tutorialImage10); 
@@ -738,8 +742,8 @@ int main()
 	//tutorialMasterList[2].push_back(&tutorialImage23); 
 	tutorialPeriods.push_back(0.3);
 	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
-	tutorialMasterList[3].push_back(&tutorialImage30);
-	tutorialMasterList[3].push_back(&tutorialImage31);
+	tutorialMasterList[4].push_back(&tutorialImage30);
+	tutorialMasterList[4].push_back(&tutorialImage31);
 	tutorialPeriods.push_back(0.75);
 	tutorialMasterList.push_back(tutorialFilling);
 	tutorialPeriods.push_back(0.75);
@@ -1269,7 +1273,7 @@ int main()
 
 	//std::vector<Mesh*> kainatWalkFrames;
 	//loadAnimationData(kainatWalkFrames, "characters/kainat/walk/bearWalk", 16);
-	MorphAnimation kainatWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
+	MorphAnimation kainatWalk = MorphAnimation(mithunanWalkFrames, 0.1, 0);
 	allKainatFrames.push_back(&kainatWalk);
 	//std::vector<Mesh*> kainatIdleFrames;
 	//loadAnimationData(kainatIdleFrames, "characters/kainat/idle/bearIdle", 4);
@@ -1302,7 +1306,7 @@ int main()
 	std::vector<MorphAnimation*> allmarkFrames;
 	//std::vector<Mesh*> markWalkFrames;
 	//loadAnimationData(markWalkFrames, "characters/mark/walk/bearWalk", 16);
-	MorphAnimation markWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
+	MorphAnimation markWalk = MorphAnimation(mithunanWalkFrames, 0.1, 0);
 	allmarkFrames.push_back(&markWalk);
 	//std::vector<Mesh*> markIdleFrames;
 	//loadAnimationData(markIdleFrames, "characters/mark/idle/bearIdle", 4);
@@ -1336,7 +1340,7 @@ int main()
 	std::vector<MorphAnimation*> allkyraFrames;
 	//std::vector<Mesh*> kyraWalkFrames;
 	//loadAnimationData(kyraWalkFrames, "characters/kyra/walk/bearWalk", 16);
-	MorphAnimation kyraWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
+	MorphAnimation kyraWalk = MorphAnimation(mithunanWalkFrames, 0.1, 0);
 	allkyraFrames.push_back(&kyraWalk);
 	//std::vector<Mesh*> kyraIdleFrames;
 	//loadAnimationData(kyraIdleFrames, "characters/kyra/idle/bearIdle", 4);
@@ -1370,7 +1374,7 @@ int main()
 	std::vector<MorphAnimation*> allnathanFrames;
 	//std::vector<Mesh*> nathanWalkFrames;
 	//loadAnimationData(nathanWalkFrames, "characters/nathan/walk/bearWalk", 16);
-	MorphAnimation nathanWalk = MorphAnimation(mithunanIdleFrames, 0.1, 0);
+	MorphAnimation nathanWalk = MorphAnimation(mithunanWalkFrames, 0.1, 0);
 	allnathanFrames.push_back(&nathanWalk);
 	//std::vector<Mesh*> nathanIdleFrames;
 	//loadAnimationData(nathanIdleFrames, "characters/nathan/idle/bearIdle", 4);
@@ -1420,7 +1424,7 @@ int main()
 
 	//Entity tutorialPlane = Entity::Create();//MJ //Make tutorialPlane entity 
 	tutorialPlane = Entity::Allocate();
-	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialImage00.getMesh(), *tutorialImage00.getMaterial());
+	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialMasterList[0][0]->getMesh(), *tutorialMasterList[0][0]->getMaterial());
 	tutorialPlane->transform.m_pos = glm::vec3(0);
 	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialPlane->transform.m_scale = glm::vec3(0.25f * (UIScale + 0.05));
@@ -1428,40 +1432,48 @@ int main()
 		renderingEntities.push_back(tutorialPlane.get());
 	}
 
+	tutorialArray.push_back(Transform());//take from fridge 
+	//tutorialArray[0].m_pos = glm::vec3(-0.4, -0.65, -1.39);
+	//glm::vec3 signPos = menuCameraPos;
+	tutorialArray[0].m_pos = glm::vec3(signPos.x - 0.87, -1.38f, signPos.z - 0.4);
+	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
+	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
 
 	tutorialArray.push_back(Transform());//take from fridge 
-	tutorialArray[0].m_pos = glm::vec3(-0.4, -0.65, -1.39);
-	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
+	tutorialArray[1].m_pos = glm::vec3(-0.4, -0.65, -1.39);
+	tutorialArray[1].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	tutorialArray[1].m_scale = tutorialPlane->transform.m_scale;
 	//tutorialPeriods.push_back(0.5); 
 	tutorialArray.push_back(Transform());//put in oven 
-	tutorialArray[1].m_pos = glm::vec3(-2.4, -0.420, -0.490);
-	tutorialArray[1].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialArray[1].m_scale = tutorialPlane->transform.m_scale;
+	tutorialArray[2].m_pos = glm::vec3(-2.4, -0.420, -0.490);
+	tutorialArray[2].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[2].m_scale = tutorialPlane->transform.m_scale;
 	//tutorialPeriods.push_back(0.5); 
 
 	tutorialArray.push_back(Transform());//take out oven 
-	tutorialArray[2].m_pos = glm::vec3(0, -0.62, -0.49);
-	tutorialArray[2].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialArray[2].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.75); 
-
-	tutorialArray.push_back(Transform());//give to customer 
-	tutorialArray[3].m_pos = glm::vec3(-0.4, -0.65, -1.39);
-	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	tutorialArray[3].m_pos = glm::vec3(0, -0.62, -0.49);
+	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[3].m_scale = tutorialPlane->transform.m_scale;
 	//tutorialPeriods.push_back(0.75); 
 
-	tutorialArray.push_back(Transform());//filling 
-	tutorialArray[4].m_pos = glm::vec3(0.2, -0.62, 0.81);
-	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray.push_back(Transform());//give to customer 
+	tutorialArray[4].m_pos = glm::vec3(-0.4, -0.65, -1.39);
+	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
 	tutorialArray[4].m_scale = tutorialPlane->transform.m_scale;
 	//tutorialPeriods.push_back(0.75); 
 
-	tutorialArray.push_back(Transform());//topping 
-	tutorialArray[5].m_pos = glm::vec3(-2.4, -0.420, 1.090);
-	tutorialArray[5].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray.push_back(Transform());//filling 
+	tutorialArray[5].m_pos = glm::vec3(0.2, -0.62, 0.81);
+	tutorialArray[5].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialArray[5].m_scale = tutorialPlane->transform.m_scale;
+	//tutorialPeriods.push_back(0.75); 
+
+	tutorialArray.push_back(Transform());//topping 
+	tutorialArray[6].m_pos = glm::vec3(-2.4, -0.420, 1.090);
+	tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialArray[6].m_scale = tutorialPlane->transform.m_scale;
 
 
 	tutorialArray.push_back(Transform());//drink 
@@ -2180,6 +2192,7 @@ int main()
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption]);
 
 				if (mainMenuChosen >= 0) {
+					nextStepTutorialIfNeeded(1);
 					if (mainMenuChosen == 0) {//PLAY	 
 						orderBubbles[0]->updateScale(UIScale);
 						tray.transform.m_scale = trayScale;
@@ -2654,6 +2667,9 @@ int main()
 			if (isPaused) {
 				removeFromRendering(&tray);
 				removeFromRendering(&cursor);
+				for (int i = 0; i < 4; i++) {
+					removeFromRendering(accessEntities[i]);
+				}
 				std::reverse(cameraKeys.begin(), cameraKeys.end());
 				selectedOption = -1;
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[3]);
@@ -3099,7 +3115,7 @@ int main()
 						addedSlot = slot;
 						//std::cout << "B" << std::endl; 
 
-						nextStepTutorialIfNeeded(1);
+						nextStepTutorialIfNeeded(2);
 						if (shouldShowTutorial) {
 							for (int i = 0; i < 4; i++) {
 								accessEntities[i]->transform.SetParent(nullptr);
@@ -3203,7 +3219,7 @@ int main()
 							trayPastry[affectedTraySlot]->Get<Transparency>().setTime(0.15);
 							trayPastry[affectedTraySlot]->Get<Pastry>().setInOven(true);
 							trayPastry[affectedTraySlot] = nullptr;
-							nextStepTutorialIfNeeded(2);
+							nextStepTutorialIfNeeded(3);
 						}
 						else if (!putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0)
 						{
@@ -3237,7 +3253,7 @@ int main()
 								}
 								*/
 								ovenScript->removeFromSlot(affectedOvenSlot);
-								nextStepTutorialIfNeeded(3);
+								nextStepTutorialIfNeeded(4);
 							}
 						}
 
@@ -4723,6 +4739,9 @@ void restartGame() {
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
 	tutorialPos = 0;
+	if (getHighscore() > 0) {
+		shouldShowTutorial = false;
+	}
 	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
