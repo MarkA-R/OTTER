@@ -626,6 +626,13 @@ int main()
 	sliderMat.push_back(MaterialCreator());
 	sliderMat.back().createMaterial(tileMesh, "UI/textures/symbols/typeHigh.png", *prog_texLit);
 
+	MaterialCreator keyDownMat = MaterialCreator();
+	keyDownMat.createMaterial("bakery/models/keyPressed.gltf", "bakery/textures/plusTile.png", *prog_texLit);
+
+	MaterialCreator keyUpMat = MaterialCreator();
+	keyUpMat.createMaterial("bakery/models/keyUp.gltf", "bakery/textures/plusTile.png", *prog_texLit);
+
+
 	MaterialCreator cityMat = MaterialCreator();
 	cityMat.createMaterial("bakery/models/cityMesh.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
 
@@ -1806,7 +1813,8 @@ int main()
 	auto endTime = std::chrono::high_resolution_clock::now();//measure end time 
 	auto timeTook = endTime - startTime;//calculate elapsed time 
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
-
+	float tutorialOneSecondTick = 0.f;
+	bool tutorialIsKeyUp = true;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
 
@@ -2210,10 +2218,13 @@ int main()
 
 						isInOptionsMenu = true;
 						isInMainMenu = false;
-
+						tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
+						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						//renderingEntities.push_back(accessEntities[0]); 
 						for (int i = 0; i < 4; i++) {
 							if (!isInRendering(accessEntities[i])) {
+								accessEntities[i]->Remove<CMeshRenderer>();
+								accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *coffeeTile.getMesh(), *coffeeTile.getMaterial());
 								renderingEntities.push_back(accessEntities[i]);
 								accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
 								if (i < 3) {
@@ -2223,7 +2234,9 @@ int main()
 								{
 									accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
 								}
-
+								accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+									glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+									* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
 								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
 								accessEntities[i]->Get<PictureSelector>().updatePicture();
 							}
@@ -2254,11 +2267,7 @@ int main()
 					isCameraMoving = false;
 					isInMainMenu = false;
 					isPaused = false;
-					for each (Entity * cust in customers) {
-						if (!isInRendering(cust)) {
-							renderingEntities.push_back(cust);
-						}
-					}
+					
 					if (!isInRendering(&car)) {
 						renderingEntities.push_back(&car);
 					}
@@ -2266,15 +2275,39 @@ int main()
 					carLight.pos = Lerp(firstCarPos, lastCarPos, 0);
 					isCarMoving = false;
 					car.transform.m_pos = firstCarPos;
-					tray.transform.SetParent(&cameraEntity.transform);
+					
 					
 
 					if (!isInContinueMenu) {
+						tray.transform.SetParent(&cameraEntity.transform);
+						for each (Entity * cust in customers) {
+							if (!isInRendering(cust)) {
+								renderingEntities.push_back(cust);
+							}
+						}
+
 						if (!isInRendering(&tray)) {
 							renderingEntities.push_back(&tray);
 						}
 						
-							
+						for (int i = 0; i < 4; i++) {
+							accessEntities[i]->transform.m_scale = glm::vec3(0.009);
+							accessEntities[i]->transform.m_pos = traySlot[i].m_pos;
+							accessEntities[i]->transform.m_pos.y += 0.002;
+							accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+								* glm::angleAxis(glm::radians(0.f), glm::vec3(1.0f, 0.0f, 0.0f))
+								* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+							accessEntities[i]->transform.SetParent(&globalCameraEntity->transform);
+							accessEntities[i]->transform.RecomputeGlobal();
+
+							//accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+							//accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
+							//accessEntities[i]->Get<PictureSelector>().updatePicture();
+							accessEntities[i]->Remove<CMeshRenderer>();
+							accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *keyUpMat.getMesh(), *alphanumericPointer[accessSettings[i]]->getMaterial());
+
+							renderingEntities.push_back(accessEntities[i]);
+						}
 						
 
 						if (!isInRendering(&cursor)) {
@@ -2316,21 +2349,7 @@ int main()
 
 
 					}
-					for (int i = 0; i < 4; i++) {
-						accessEntities[i]->transform.m_scale = glm::vec3(0.009);
-						accessEntities[i]->transform.m_pos = traySlot[i].m_pos;
-						accessEntities[i]->transform.m_pos.y += 0.005;
-						accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-							* glm::angleAxis(glm::radians(0.f), glm::vec3(1.0f, 0.0f, 0.0f))
-							* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
-						accessEntities[i]->transform.SetParent(&globalCameraEntity->transform);
-						accessEntities[i]->transform.RecomputeGlobal();
-
-						accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
-						accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
-						accessEntities[i]->Get<PictureSelector>().updatePicture();
-						renderingEntities.push_back(accessEntities[i]);
-					}
+					
 					if (isInContinueMenu) {
 						isInContinueMenu = false;
 						isInMainMenu = true;
@@ -2710,7 +2729,27 @@ int main()
 		if (!isPaused) {
 			//std::cout << isPaused << std::endl; 
 			GetInput();
+			tutorialOneSecondTick += deltaTime;
+			
+			if (tutorialOneSecondTick >= 0.75) {
+				tutorialIsKeyUp = !tutorialIsKeyUp;
+				for (int i = 0; i < 4; i++) {
+					
+					if (tutorialIsKeyUp) {
+						accessEntities[i]->Remove<CMeshRenderer>();
+						accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *keyUpMat.getMesh(), *alphanumericPointer[accessSettings[i]]->getMaterial());
 
+					}
+					else
+					{
+						accessEntities[i]->Remove<CMeshRenderer>();
+						accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *keyDownMat.getMesh(), *alphanumericPointer[accessSettings[i]]->getMaterial());
+
+					}
+
+				}
+				tutorialOneSecondTick = 0;
+			}
 			//mithunan.Get<CharacterController>().updateAnimation(deltaTime); 
 			for (int u = 0; u < customers.size(); u++)
 			{
@@ -2843,6 +2882,7 @@ int main()
 							* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
 						removeFromRendering(&cursor);
 						removeFromRendering(&tray);
+						tray.transform.SetParent(nullptr);
 						for each (Entity * trayEntity in trayPastry) {
 							removeFromRendering(trayEntity);
 						}
@@ -2851,6 +2891,10 @@ int main()
 						{
 							renderingEntities.push_back(numberEntities[i]);
 
+						}
+						for (int i = 0; i < 4; i++) {
+							accessEntities[i]->transform.SetParent(nullptr);
+							removeFromRendering(accessEntities[i]);
 						}
 						int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
 						setScores(bakeryUtils::getRoundsLasted(), highScore);

@@ -43,6 +43,7 @@ int PictureSelector::getIndex()
 void PictureSelector::updatePicture()
 {
 	if (owner->Has<CMeshRenderer>()) {
-		owner->Get<CMeshRenderer>().SetMaterial(*allMaterials[currentOption]->getMaterial());
+		owner->Remove<CMeshRenderer>();
+		owner->Add<CMeshRenderer>(*owner, *allMaterials[currentOption]->getMesh() , *allMaterials[currentOption]->getMaterial());
 	}
 }
