@@ -22,6 +22,13 @@ void ToppingMachine::setParticleTransform(Transform& x)
 
 void ToppingMachine::setT(float x)
 {
+	
+	if (x < 0) {
+		x = 0;
+	}
+	if (x > 1) {
+		x = 1;
+	}
 	toppingT = x;
 }
 

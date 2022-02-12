@@ -50,6 +50,10 @@
 #include <unordered_map> 
 #include<chrono> 
 
+//#include "Audio.h"
+
+
+
 using namespace nou;
 
 // Templated LERP function 
@@ -389,7 +393,7 @@ std::vector<glm::vec3> endNumberPos;
 bool isCarMoving = false;
 float carT = 0.f;
 float dayT = 0.0f;
-float dayBright = 1.f;
+float dayBright = 0.9f;
 float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
@@ -427,6 +431,7 @@ Mesh tileMesh;
 Mesh registerMesh;
 int main()
 {
+	
 	auto startTime = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < 6; i++) {
 		endNumberPos.push_back(glm::vec3(0));
@@ -959,7 +964,7 @@ int main()
 	ent_register->transform.m_scale = glm::vec3(0.45f, 0.45f, 0.45f);
 	ent_register->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ent_register->transform.m_pos = glm::vec3(-1.6, -2.59, -2.29f);
-	ent_register->Add<BoundingBox>(glm::vec3(1.9, 2.3, 0.06), *ent_register);
+	ent_register->Add<BoundingBox>(glm::vec3(2.3, 3.3, 0.06), *ent_register);
 	renderingEntities.push_back(ent_register);
 
 	customerBubbleLocation = ent_register->transform;
@@ -1828,7 +1833,7 @@ int main()
 		//bakeryTop.transform.m_scale = glm::vec3(tempD); 
 		
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f)); 
-
+		
 		prog_allLights->Bind();
 		prog_allLights.get()->SetUniform("lightDir2", carLight.pos);
 		prog_allLights.get()->SetUniform("lightColor2", carLight.colour);
@@ -2262,29 +2267,15 @@ int main()
 					isCarMoving = false;
 					car.transform.m_pos = firstCarPos;
 					tray.transform.SetParent(&cameraEntity.transform);
-
+					
 
 					if (!isInContinueMenu) {
 						if (!isInRendering(&tray)) {
 							renderingEntities.push_back(&tray);
 						}
-						if (tutorialPos == 0) {
-							for (int i = 0; i < 4; i++) {
-								accessEntities[i]->transform.m_scale = glm::vec3(0.009);
-								accessEntities[i]->transform.m_pos = traySlot[i].m_pos;
-								accessEntities[i]->transform.m_pos.y += 0.005;
-								accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-									* glm::angleAxis(glm::radians(0.f), glm::vec3(1.0f, 0.0f, 0.0f))
-									* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
-								accessEntities[i]->transform.SetParent(&globalCameraEntity->transform);
-								accessEntities[i]->transform.RecomputeGlobal();
-								
-								accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
-								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
-								accessEntities[i]->Get<PictureSelector>().updatePicture();
-								renderingEntities.push_back(accessEntities[i]);
-							}
-						}
+						
+							
+						
 
 						if (!isInRendering(&cursor)) {
 							renderingEntities.push_back(&cursor);
@@ -2324,6 +2315,21 @@ int main()
 
 
 
+					}
+					for (int i = 0; i < 4; i++) {
+						accessEntities[i]->transform.m_scale = glm::vec3(0.009);
+						accessEntities[i]->transform.m_pos = traySlot[i].m_pos;
+						accessEntities[i]->transform.m_pos.y += 0.005;
+						accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+							* glm::angleAxis(glm::radians(0.f), glm::vec3(1.0f, 0.0f, 0.0f))
+							* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+						accessEntities[i]->transform.SetParent(&globalCameraEntity->transform);
+						accessEntities[i]->transform.RecomputeGlobal();
+
+						accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
+						accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
+						accessEntities[i]->Get<PictureSelector>().updatePicture();
+						renderingEntities.push_back(accessEntities[i]);
 					}
 					if (isInContinueMenu) {
 						isInContinueMenu = false;
@@ -3003,8 +3009,8 @@ int main()
 					e->Get<CMorphMeshRenderer>().Draw();
 					//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
 				}
-
-
+				
+				
 				//prog_transparent.get()->SetUniform("transparency", 0.f); 
 			}
 			else
@@ -3116,12 +3122,12 @@ int main()
 						//std::cout << "B" << std::endl; 
 
 						nextStepTutorialIfNeeded(2);
-						if (shouldShowTutorial) {
+						//if (shouldShowTutorial) {
 							for (int i = 0; i < 4; i++) {
 								accessEntities[i]->transform.SetParent(nullptr);
 								removeFromRendering(accessEntities[i]);
 							}
-						}
+						//}
 
 					}
 
@@ -3860,16 +3866,17 @@ void LoadDefaultResources()
 	// Load in the shaders we will need and activate them 
 	// Textured lit shader 
 	std::unique_ptr vs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
-	std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+	//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+	std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
 	std::vector<Shader*> texLit = { vs_texLitShader.get(), fs_texLitShader.get() };
 	prog_texLit = std::make_unique<ShaderProgram>(texLit);
-
+	
 	// Untextured lit shader 
 	std::unique_ptr vs_litShader = std::make_unique<Shader>("shaders/lit.vert", GL_VERTEX_SHADER);
 	std::unique_ptr fs_litShader = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
 	std::vector<Shader*> lit = { vs_litShader.get(), fs_litShader.get() };
 	prog_lit = std::make_unique<ShaderProgram>(lit);
-
+	
 	// Untextured unlit shader 
 	std::unique_ptr vs_unlitShader = std::make_unique<Shader>("shaders/unlit.vert", GL_VERTEX_SHADER);
 	std::unique_ptr fs_unlitShader = std::make_unique<Shader>("shaders/unlit.frag", GL_FRAGMENT_SHADER);
@@ -4739,6 +4746,7 @@ void restartGame() {
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
 	tutorialPos = 0;
+	TutorialChangePosition();
 	if (getHighscore() > 0) {
 		shouldShowTutorial = false;
 	}
