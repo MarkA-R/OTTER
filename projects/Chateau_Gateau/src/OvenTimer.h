@@ -2,6 +2,7 @@
 #include "NOU/Entity.h"
 #include "NOU/GLTFLoader.h"
 #include "MaterialCreator.h"
+#include "Transparency.h"
 using namespace nou;
 class OvenTimer
 {

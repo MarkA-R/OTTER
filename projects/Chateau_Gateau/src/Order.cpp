@@ -30,6 +30,7 @@ void Order::createOrder(int difficulty)
 		difficulty = 4;
 	}
 	
+	
 	int random = (rand() % (difficulty)) + 1;
 	if (random > 4) {
 		random = 4;
@@ -87,7 +88,14 @@ void Order::createOrder(int difficulty)
 		addedDrinkSecs = bakeryUtils::getDrinkFillAmount();
 	}
 	std::cout << "DRINKSEC " << addedDrinkSecs << std::endl;
-	float orderSeconds = ((60 / (difficulty))+5) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
+	float fakeDifficulty = bakeryUtils::getRoundsLasted() - difficulty;
+	if(fakeDifficulty <= 0){
+		fakeDifficulty = 1;
+	}
+	if (fakeDifficulty > 5) {
+		fakeDifficulty = 5;
+	}
+	float orderSeconds = ((60 / (fakeDifficulty)) + 5) + (bakeryUtils::returnBakeTime(type) + addedDrinkSecs);//60
 	std::cout << "ORDERSEC " << orderSeconds << std::endl;
 	workTime = orderSeconds;
 	hasStarted = false;

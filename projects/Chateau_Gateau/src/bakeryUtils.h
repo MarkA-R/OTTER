@@ -200,6 +200,7 @@ protected:
     inline static int difficulty = 1;
     inline static int roundsLasted = 0;
     inline static int ordersFailed = 0;
+    //declare SFX and music volume here once you know how
      
     
 

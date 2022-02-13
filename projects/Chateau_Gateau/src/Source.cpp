@@ -50,7 +50,7 @@
 #include <unordered_map> 
 #include<chrono> 
 
-//#include "Audio.h"
+#include "Audio.h"
 
 
 
@@ -473,7 +473,7 @@ int main()
 	// Load in our model/texture resources 
 	LoadDefaultResources();
 
-	if (getHighscore() > 0) {
+	if (getHighscore() > 4) {
 		shouldShowTutorial = false;
 	}
 
@@ -489,6 +489,12 @@ int main()
 	glfwSetScrollCallback(gameWindow, scroll_callback);
 	glfwSwapInterval(1);
 	//App::Tick(); 
+
+	Audio audioEngine;
+	audioEngine.Init();
+	audioEngine.loadSound("ambient1", "audio/Duel of the Fates.wav",true,true,false);
+
+
 
 	// Create and set up camera 
 	Entity cameraEntity = Entity::Create();
@@ -640,10 +646,10 @@ int main()
 	bakeryTopMat.createMaterial("bakery/models/bakeryTop.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
 
 	MaterialCreator timerMat = MaterialCreator();
-	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_texLit);
+	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_transparent);
 
 	MaterialCreator arrowMat = MaterialCreator();
-	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_texLit);
+	arrowMat.createMaterial("bakery/models/arrow.gltf", "bakery/textures/arrow.png", *prog_transparent);
 
 	MaterialCreator ovenDial = MaterialCreator();
 	ovenDial.createMaterial("bakery/models/dial.gltf", "bakery/textures/ovenTexture.png", *prog_texLit);
@@ -848,7 +854,7 @@ int main()
 	cookieTile.createMaterial(tileMesh, "bakery/textures/cookieTile.png", *prog_texLit);
 	cupcakeTile.createMaterial(tileMesh, "bakery/textures/cupcakeTile.png", *prog_texLit);
 	cakeTile.createMaterial(tileMesh, "bakery/textures/cakeTile.png", *prog_texLit);
-	nothingTile.createMaterial(tileMesh, "bakery/textures/nothingTile.png", *prog_texLit);
+	nothingTile.createMaterial(tileMesh, "bakery/textures/nothingTile.png", *prog_transparent);
 	burntTile.createMaterial(tileMesh, "bakery/textures/burntTile.png", *prog_texLit);
 
 	custardFilling.createMaterial(tileMesh, "bakery/textures/custardFilling.png", *prog_transparent);
@@ -1815,9 +1821,10 @@ int main()
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
 	float tutorialOneSecondTick = 0.f;
 	bool tutorialIsKeyUp = true;
+	//audioEngine.playSound("ambient1");
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
 	{
-
+		audioEngine.Update();
 		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
@@ -2277,7 +2284,9 @@ int main()
 					car.transform.m_pos = firstCarPos;
 					
 					
-
+					if (!isInRendering(&cursor)) {
+						renderingEntities.push_back(&cursor);
+					}
 					if (!isInContinueMenu) {
 						tray.transform.SetParent(&cameraEntity.transform);
 						for each (Entity * cust in customers) {
@@ -2289,6 +2298,8 @@ int main()
 						if (!isInRendering(&tray)) {
 							renderingEntities.push_back(&tray);
 						}
+						if (bakeryUtils::getRoundsLasted() == 0 && tutorialPos == 1) {
+
 						
 						for (int i = 0; i < 4; i++) {
 							accessEntities[i]->transform.m_scale = glm::vec3(0.009);
@@ -2309,14 +2320,9 @@ int main()
 							renderingEntities.push_back(accessEntities[i]);
 						}
 						
-
-						if (!isInRendering(&cursor)) {
-							renderingEntities.push_back(&cursor);
 						}
 
-						if (!isInRendering(&plexiGlass)) {
-							//	renderingEntities.push_back(&plexiGlass); 
-						}
+						
 						for (int i = 0; i < currentOrders.size(); i++) {
 							OrderBubble* ob = orderBubbles[i];
 							for each (Entity * ent in ob->returnRenderingEntities()) {
@@ -2351,6 +2357,7 @@ int main()
 					}
 					
 					if (isInContinueMenu) {
+
 						isInContinueMenu = false;
 						isInMainMenu = true;
 						selectedOption = 0;
@@ -2728,6 +2735,7 @@ int main()
 		}
 		if (!isPaused) {
 			//std::cout << isPaused << std::endl; 
+			
 			GetInput();
 			tutorialOneSecondTick += deltaTime;
 			
@@ -2857,9 +2865,15 @@ int main()
 			vase.Get<MorphAnimation>().update(&vase, deltaTime, false);
 			//std::cout << vase.Get<MorphAnimation>().getT() << std::endl; 
 			//std::cout << currentOrders.size() << std::endl; 
+			if (bakeryUtils::getRoundsLasted() >= 4) {
+
+			
 			for (int i = 0; i < currentOrders.size(); i++) {//pausing 
 				OrderBubble* ob = orderBubbles[i];
 				ob->addFill(deltaTime);
+				orderBubbles[i]->getTimer().getArrow()->Get<Transparency>().setTransparency(0);
+				orderBubbles[i]->getTimer().getTile()->Get<Transparency>().setTransparency(0);
+				orderBubbles[i]->getTimer().getCircle()->Get<Transparency>().setTransparency(0);
 				//std::cout << bakeryUtils::getTime() << " > " << currentOrders[i].maxEndTime << std::endl; 
 				if (!currentOrders[i].isOnTime()) {//HERE CHANGE HERE XXX 
 					//std::cout << "START" << std::endl; 
@@ -2929,7 +2943,13 @@ int main()
 
 				}
 			}
-
+			}
+			else
+			{
+				orderBubbles[0]->getTimer().getArrow()->Get<Transparency>().setTransparency(0.5);
+				orderBubbles[0]->getTimer().getTile()->Get<Transparency>().setTransparency(0.5);
+				orderBubbles[0]->getTimer().getCircle()->Get<Transparency>().setTransparency(0.5);
+			}
 			cameraEntity.Get<CCamera>().Update();
 		}
 
@@ -3303,7 +3323,10 @@ int main()
 								}
 								*/
 								ovenScript->removeFromSlot(affectedOvenSlot);
-								nextStepTutorialIfNeeded(4);
+								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH) {
+									nextStepTutorialIfNeeded(4);
+								}
+								
 							}
 						}
 
@@ -3892,7 +3915,7 @@ int main()
 	tutorialMasterList.clear();
 	tutorialPlane.release();
 	//tutorialPlane = nullptr; 
-
+	audioEngine.Quit();
 	//std::fill(std::begin(trayPastry), std::end(trayPastry), nullptr); 
 	// Destroy window 
 	App::Cleanup();
@@ -4526,7 +4549,10 @@ bool isInRendering(Entity* e) {
 
 void createNewOrder(int i, bool addDifficulty, bool remove) {
 	if (addDifficulty) {
-		bakeryUtils::addToDifficulty(1);
+		
+			bakeryUtils::addToDifficulty(1);
+		
+		
 	}
 
 	if (i >= currentOrders.size()) {
@@ -4789,11 +4815,12 @@ void restartGame() {
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
-	tutorialPos = 0;
-	TutorialChangePosition();
-	if (getHighscore() > 0) {
+	if (getHighscore() > 4) {
 		shouldShowTutorial = false;
 	}
+	tutorialPos = 0;
+	TutorialChangePosition();
+	
 	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];

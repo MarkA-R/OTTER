@@ -7,6 +7,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 	float transformScale = multiplier;
 	tile = Entity::Allocate();
 	tile.get()->Add<CMeshRenderer>(*tile, *t.getMesh(), *t.getMaterial());
+	tile.get()->Add<Transparency>(*tile.get());
 	position = pos;
 	tile.get()->transform.SetParent(&position);
 	tile.get()->transform.m_pos = position.m_pos;
@@ -23,7 +24,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 	arrow = Entity::Allocate();
 	circle.get()->transform.SetParent(&position);
 	circle.get()->Add<CMeshRenderer>(*circle, *c.getMesh(), *c.getMaterial());
-	
+	circle.get()->Add<Transparency>(*circle.get());
 	circle.get()->transform.m_pos = position.m_pos;
 	circle.get()->transform.m_scale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
 	circleScale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
@@ -35,6 +36,7 @@ OvenTimer::OvenTimer(MaterialCreator& t, MaterialCreator& a, MaterialCreator& c,
 
 
 	arrow.get()->Add<CMeshRenderer>(*arrow, *a.getMesh(), *a.getMaterial());	
+	arrow.get()->Add<Transparency>(*arrow.get());
 	arrow.get()->transform.SetParent(&position);
 	arrow.get()->transform.m_scale = glm::vec3(0.1,0.1,0.1) * transformScale;
 	arrowScale = glm::vec3(0.1, 0.5, 0.1) * transformScale;
