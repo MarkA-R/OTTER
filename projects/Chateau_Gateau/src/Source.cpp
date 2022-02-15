@@ -492,7 +492,7 @@ int main()
 
 	Audio audioEngine;
 	audioEngine.Init();
-	audioEngine.loadSound("ambient1", "audio/Duel of the Fates.wav",true,true,false);
+	//audioEngine.loadSound("ambient1", "audio/Duel of the Fates.wav",true,true,false);
 
 
 
@@ -537,7 +537,7 @@ int main()
 
 
 	MaterialCreator cursorMat = MaterialCreator();
-	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_unlit);
+	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_texLit);//there isnt supposed to be an image on purpose
 
 	MaterialCreator flowerMat1 = MaterialCreator();
 	flowerMat1.createMaterialOBJ("bakery/models/flower1.obj", "bakery/textures/flower.png", *prog_morph);
@@ -1477,8 +1477,11 @@ int main()
 	//tutorialPeriods.push_back(0.75); 
 
 	tutorialArray.push_back(Transform());//give to customer 
-	tutorialArray[4].m_pos = glm::vec3(-0.4, -0.65, -1.39);
-	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//tutorialArray[4].m_pos = glm::vec3(-0.4, -0.65, -1.39);
+	//tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	tutorialArray[4].m_pos = glm::vec3(0, -0.62, -0.49);
+	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	tutorialArray[4].m_scale = tutorialPlane->transform.m_scale;
 	//tutorialPeriods.push_back(0.75); 
 
@@ -1689,7 +1692,8 @@ int main()
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! ################################# 
 	bool canCheat = false;
 	bool skipMenu = false;
-	if (skipMenu) {
+	if (skipMenu)
+	{
 		cameraEntity.transform.m_pos = cameraPos;
 		globalCameraEntity->transform.m_pos = cameraPos;
 		cameraX = lastCameraX;
@@ -2227,6 +2231,15 @@ int main()
 						isInMainMenu = false;
 						tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+						if (shouldShowTutorial) {
+							if (!isInRendering(tutorialPlane.get())) {
+								renderingEntities.push_back(tutorialPlane.get());
+							}
+						}
+						else
+						{
+							removeFromRendering(tutorialPlane.get());
+						}
 						//renderingEntities.push_back(accessEntities[0]); 
 						for (int i = 0; i < 4; i++) {
 							if (!isInRendering(accessEntities[i])) {
@@ -2285,7 +2298,8 @@ int main()
 					
 					
 					if (!isInRendering(&cursor)) {
-						renderingEntities.push_back(&cursor);
+					//	renderingEntities.push_back(&cursor);
+						renderingEntities.insert(renderingEntities.begin() + 1, &cursor);
 					}
 					if (!isInContinueMenu) {
 						tray.transform.SetParent(&cameraEntity.transform);
@@ -2383,7 +2397,7 @@ int main()
 				}
 
 
-
+				
 			}
 
 			for each (Entity * e in renderingEntities) {
