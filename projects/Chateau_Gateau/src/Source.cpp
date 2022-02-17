@@ -51,6 +51,7 @@
 #include<chrono> 
 
 #include "Audio.h"
+#include "TutorialStep.h"
 
 
 
@@ -194,6 +195,7 @@ bool isClickingLeft = false;
 bool isClickingRight = false;
 bool isClickingEnter = false;
 bool isClickingSpace = false;
+bool isClickingEscape = false;
 
 //Mouse State 
 bool firstMouse = true;
@@ -255,8 +257,8 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
 int placeInLineToIndex(int linePlace);
 int indexToPlaceInLine(int index);
-void TutorialChangePosition();
-void UpdateTutorial(float deltaTime);
+void setTutorialChange(int i);
+void UpdateTutorial();
 void loadSettings();
 void loadNumberHashMap();
 GLuint pictureIndexToGLuint(int i);
@@ -268,7 +270,7 @@ void applySettings();
 int selectedOvenPosition(float x);
 void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, std::string meshName, std::string prefix, int count);
 void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, Mesh& meshName, std::string prefix, int count);
-void nextStepTutorialIfNeeded(int nextStep);
+void nextStepTutorialIfNeeded();
 int getHighscore();
 glm::vec3 getTrayScale(bakeryUtils::pastryType type);
 // Function to handle user inputs 
@@ -346,8 +348,9 @@ Transform fridgeTut;
 Transform ovenTut;
 Transform customerTut;
 std::vector<Transform> tutorialArray;
-std::vector<std::vector<MaterialCreator*>> tutorialMasterList;
+std::vector<MaterialCreator*> dialogueList;
 std::unique_ptr<Entity> tutorialPlane;
+std::vector<TutorialStep> tutorialSteps;
 float tutorialT = 0.f;
 int tutorialPos = 0;
 int tutorialImage = 0;
@@ -698,6 +701,7 @@ int main()
 	MaterialCreator tutorialImage11 = MaterialCreator();
 	tutorialImage11.createMaterial(tileMesh, "UI/textures/ovenClickOff.png", *prog_texLit);
 	*/
+	/*
 	std::vector<MaterialCreator*> tutorialButton;
 	loadMaterialCreatorData(tutorialButton, tileMesh, "UI/textures/tutButton", 5);
 
@@ -770,7 +774,7 @@ int main()
 	tutorialMasterList.push_back(tutorialDrink);
 	tutorialPeriods.push_back(0.75);
 
-
+	*/
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
@@ -1439,17 +1443,24 @@ int main()
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
 
+	loadMaterialCreatorData(dialogueList, tileMesh, "UI/textures/dialogue",4);
+	
+	tutorialSteps.push_back(TutorialStep(dialogueList[0],true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[1],true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[2],false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[3],true));
 
-	//Entity tutorialPlane = Entity::Create();//MJ //Make tutorialPlane entity 
 	tutorialPlane = Entity::Allocate();
-	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialMasterList[0][0]->getMesh(), *tutorialMasterList[0][0]->getMaterial());
-	tutorialPlane->transform.m_pos = glm::vec3(0);
-	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	tutorialPlane->transform.m_scale = glm::vec3(0.25f * (UIScale + 0.05));
-	if (shouldShowTutorial) {
-		renderingEntities.push_back(tutorialPlane.get());
-	}
-
+	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *dialogueList[0]->getMesh(), *dialogueList[0]->getMaterial());
+	//tutorialPlane->transform.m_pos = glm::vec3(0);
+	//tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//tutorialPlane->transform.m_scale = glm::vec3(0.25f * (UIScale + 0.05));
+	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
+	
+	
+	/*
 	tutorialArray.push_back(Transform());//take from fridge 
 	//tutorialArray[0].m_pos = glm::vec3(-0.4, -0.65, -1.39);
 	//glm::vec3 signPos = menuCameraPos;
@@ -1507,6 +1518,7 @@ int main()
 	//tutorialPeriods.push_back(0.75); 
 
 	tutorialPlane->transform = tutorialArray[0];
+	*/
 	//renderingEntities.push_back(&tray); 
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
@@ -1825,31 +1837,16 @@ int main()
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
 	float tutorialOneSecondTick = 0.f;
 	bool tutorialIsKeyUp = true;
+	float timeSinceClickedSpace = 0.f;
 	//audioEngine.playSound("ambient1");
-	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_ESCAPE))
+	if (shouldShowTutorial) {
+		renderingEntities.push_back(tutorialPlane.get());
+	}
+	
+	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		audioEngine.Update();
-		/*
-		App::StartImgui();
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
-		//ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
-		//ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("A", &(tempA), 0.1f);
-		ImGui::DragFloat("B", &(tempB), 0.1f);
-		ImGui::DragFloat("C", &(tempC), 0.1f);
-		//ImGui::DragFloat("D", &(tempD), 0.1f);
-
-
-		//ImGui::DragFloat("Scale", &(sc), 0.1f);
-		//ImGui::SetWindowPos(0,0);
-
-		App::EndImgui();
-		*/
-		//bakeryTop.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f)) 
-		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f)) 
-		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f)); 
-		//bakeryTop.transform.m_scale = glm::vec3(tempD); 
+		
 		
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f)); 
 		
@@ -1867,7 +1864,7 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
-
+		
 
 
 
@@ -1883,15 +1880,12 @@ int main()
 		float deltaTime = App::GetDeltaTime();
 		getKeyInput();
 
-		UpdateTutorial(deltaTime);
+		//UpdateTutorial(deltaTime);
 
 
 		if (canCheat) {
 			//std::cout << "GGGG" << std::endl; 
-			if (Input::GetKeyDown(GLFW_KEY_T))
-			{
-				TutorialChangePosition();
-			}
+			
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot 
 				bakeryUtils::addToFailed(3);
 				//createNewOrder(i, false, false); 
@@ -1987,6 +1981,7 @@ int main()
 			car.transform.m_pos.y = -1.7;
 		}
 		if (isInOptionsMenu) {
+
 
 			if (isClickingSpace) {
 				isInOption = !isInOption;
@@ -2216,21 +2211,12 @@ int main()
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption]);
 
 				if (mainMenuChosen >= 0) {
-					nextStepTutorialIfNeeded(1);
+					//nextStepTutorialIfNeeded(1);
 					if (mainMenuChosen == 0) {//PLAY	 
 						orderBubbles[0]->updateScale(UIScale);
 						tray.transform.m_scale = trayScale;
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
-
-						isCameraMoving = true;
-					}
-					if (mainMenuChosen == 1) {
-
-						isInOptionsMenu = true;
-						isInMainMenu = false;
-						tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
-						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						if (shouldShowTutorial) {
 							if (!isInRendering(tutorialPlane.get())) {
 								renderingEntities.push_back(tutorialPlane.get());
@@ -2240,6 +2226,15 @@ int main()
 						{
 							removeFromRendering(tutorialPlane.get());
 						}
+						isCameraMoving = true;
+					}
+					if (mainMenuChosen == 1) {
+
+						isInOptionsMenu = true;
+						isInMainMenu = false;
+						tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
+						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+						
 						//renderingEntities.push_back(accessEntities[0]); 
 						for (int i = 0; i < 4; i++) {
 							if (!isInRendering(accessEntities[i])) {
@@ -2303,6 +2298,7 @@ int main()
 					}
 					if (!isInContinueMenu) {
 						tray.transform.SetParent(&cameraEntity.transform);
+						//tutorialPlane->transform.SetParent(&cameraEntity.transform);
 						for each (Entity * cust in customers) {
 							if (!isInRendering(cust)) {
 								renderingEntities.push_back(cust);
@@ -2707,11 +2703,12 @@ int main()
 
 
 
-		if (isClickingSpace && !isCameraMoving && !isInContinueMenu) {
+		if (isClickingEscape && !isCameraMoving && !isInContinueMenu) {
 			isPaused = !isPaused;
 
 			if (isPaused) {
 				removeFromRendering(&tray);
+				removeFromRendering(tutorialPlane.get());
 				removeFromRendering(&cursor);
 				for (int i = 0; i < 4; i++) {
 					removeFromRendering(accessEntities[i]);
@@ -2749,7 +2746,13 @@ int main()
 		}
 		if (!isPaused) {
 			//std::cout << isPaused << std::endl; 
-			
+			timeSinceClickedSpace += deltaTime;
+			if (isClickingSpace && timeSinceClickedSpace >= 1) {
+				
+				nextStepTutorialIfNeeded();
+				UpdateTutorial();
+				timeSinceClickedSpace = 0;
+			}
 			GetInput();
 			tutorialOneSecondTick += deltaTime;
 			
@@ -3056,7 +3059,36 @@ int main()
 			numberEntities[i]->transform.m_scale = numberScale;
 		}
 		//receipt.transform.m_rotation = cameraQuat; 
+		//tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (tempA)) + (up * tempB);
+		tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (0.180f)) + (up * -0.1f);
 
+		tutorialPlane->transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//glm::inverse(cursor.transform.m_rotation); 
+
+		/*
+		App::StartImgui();
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
+		//ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
+		//ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("A", &(tempA), 0.01f);
+		ImGui::DragFloat("B", &(tempB), 0.01f);
+		//ImGui::DragFloat("C", &(tempC), 0.1f);
+		//ImGui::DragFloat("D", &(tempD), 0.01f);
+
+
+		//ImGui::DragFloat("Scale", &(sc), 0.1f);
+		//ImGui::SetWindowPos(0,0);
+
+		App::EndImgui();
+		*/
+		
+		//tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
+		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f)) 
+		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f)); 
+		//tutorialPlane->transform.m_scale = glm::vec3(tempD);
+		
 
 
 
@@ -3199,7 +3231,7 @@ int main()
 						addedSlot = slot;
 						//std::cout << "B" << std::endl; 
 
-						nextStepTutorialIfNeeded(2);
+						//nextStepTutorialIfNeeded(2);
 						//if (shouldShowTutorial) {
 							for (int i = 0; i < 4; i++) {
 								accessEntities[i]->transform.SetParent(nullptr);
@@ -3303,7 +3335,7 @@ int main()
 							trayPastry[affectedTraySlot]->Get<Transparency>().setTime(0.15);
 							trayPastry[affectedTraySlot]->Get<Pastry>().setInOven(true);
 							trayPastry[affectedTraySlot] = nullptr;
-							nextStepTutorialIfNeeded(3);
+							//nextStepTutorialIfNeeded(3);
 						}
 						else if (!putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0)
 						{
@@ -3338,7 +3370,10 @@ int main()
 								*/
 								ovenScript->removeFromSlot(affectedOvenSlot);
 								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH) {
-									nextStepTutorialIfNeeded(4);
+									//nextStepTutorialIfNeeded(4);
+									//nextStepTutorialIfNeeded();
+									setTutorialChange(2);
+									UpdateTutorial();
 								}
 								
 							}
@@ -3798,7 +3833,7 @@ int main()
 						}
 
 						if (searchingOrder.returnSatisfied()) {
-							nextStepTutorialIfNeeded(7);
+							//nextStepTutorialIfNeeded(7);
 							if (validatedPastryIndex >= 0) {
 
 								//renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), trayPastry[pastryIndex]), renderingEntities.end()); 
@@ -3926,7 +3961,7 @@ int main()
 	}
 	std::fill(std::begin(trayPastry), std::end(trayPastry), nullptr);
 	//std::fill(std::begin(tutorialMasterList), std::end(tutorialMasterList), nullptr); 
-	tutorialMasterList.clear();
+	dialogueList.clear();
 	tutorialPlane.release();
 	//tutorialPlane = nullptr; 
 	audioEngine.Quit();
@@ -4226,6 +4261,15 @@ void getKeyInput() {
 	else
 	{
 		isClickingSpace = false;
+	}
+
+	if (Input::GetKeyDown(GLFW_KEY_ESCAPE))
+	{
+		isClickingEscape = true;
+	}
+	else
+	{
+		isClickingEscape = false;
 	}
 }
 int getWantedSlot() {
@@ -4833,8 +4877,9 @@ void restartGame() {
 		shouldShowTutorial = false;
 	}
 	tutorialPos = 0;
-	TutorialChangePosition();
 	
+	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+
 	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
 		OrderBubble* ob = orderBubbles[i];
@@ -4926,7 +4971,9 @@ void restartGame() {
 		trayPastry[i] = nullptr;
 
 	}
-
+	if (shouldShowTutorial) {
+		renderingEntities.push_back(tutorialPlane.get());
+	}
 
 }
 
@@ -4948,49 +4995,52 @@ int selectedOvenPosition(float x) {
 	}
 }
 
-void TutorialChangePosition()
+void setTutorialChange(int i)
 {
-	tutorialPos++;
-	tutorialImage = 0;
-	if (tutorialPos >= std::size(tutorialArray))
-	{
-		removeFromRendering(tutorialPlane.get());
-		tutorialPos = 0;
-	}
-	else
-	{
-		tutorialPlane->transform = tutorialArray[tutorialPos];
-		tutorialT = 0;
-		//tutorialImage = -1; 
-		UpdateTutorial(7);
+	if (i >= 0 && i < tutorialSteps.size()) {
+		tutorialSteps[i].setContinueState(true);
 	}
 }
 
-void UpdateTutorial(float deltaTime)
+void UpdateTutorial()
 {
-	tutorialT += deltaTime;
-	if (tutorialT >= tutorialPeriods[tutorialPos])
-	{
-		tutorialT = 0;
-		tutorialImage++;
-		if (tutorialImage >= std::size(tutorialMasterList[tutorialPos]))
+	int amountSkipped = 0;
+	for (int i = 0; i < tutorialSteps.size(); i++) {
+		if (tutorialSteps[i].getContinueState()) {
+			amountSkipped++;
+		}
+		else
 		{
-			tutorialImage = 0;
+			tutorialPlane->Remove<CMeshRenderer>();
+			tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
+			std::cout << "showing: " << i << std::endl;
+			break;
+			
+			
+			
 		}
-
-		tutorialPlane.get()->Get<CMeshRenderer>().SetMaterial(*tutorialMasterList[tutorialPos][tutorialImage]->getMaterial());
-
-
 	}
+	if (amountSkipped == tutorialSteps.size()) {
+		tutorialPlane->transform.m_pos.y = 5;
+		std::cout << "STOP" << std::endl;
+	}
+
 
 }
 
-void nextStepTutorialIfNeeded(int nextStep) {
-	if (tutorialPos < nextStep) {
-		if (shouldShowTutorial) {
-			TutorialChangePosition();
+void nextStepTutorialIfNeeded() {
+	for (int i = 0; i < tutorialSteps.size(); i++) {
+		if (!tutorialSteps[i].getContinueState()) {
+			if (tutorialSteps[i].spaceContinues()) {
+				tutorialSteps[i].setContinueState(true);
+				std::cout << "stopped at: " << i << std::endl;
+				
+			}
+			break;
 		}
+		
 	}
+	
 
 }
 
