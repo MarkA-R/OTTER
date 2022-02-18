@@ -1839,9 +1839,7 @@ int main()
 	bool tutorialIsKeyUp = true;
 	float timeSinceClickedSpace = 0.f;
 	//audioEngine.playSound("ambient1");
-	if (shouldShowTutorial) {
-		renderingEntities.push_back(tutorialPlane.get());
-	}
+	
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
@@ -2217,15 +2215,7 @@ int main()
 						tray.transform.m_scale = trayScale;
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
-						if (shouldShowTutorial) {
-							if (!isInRendering(tutorialPlane.get())) {
-								renderingEntities.push_back(tutorialPlane.get());
-							}
-						}
-						else
-						{
-							removeFromRendering(tutorialPlane.get());
-						}
+						
 						isCameraMoving = true;
 					}
 					if (mainMenuChosen == 1) {
@@ -2362,7 +2352,9 @@ int main()
 
 						currentOrders.back().startOrder();
 
-
+						if (shouldShowTutorial) {
+							renderingEntities.push_back(tutorialPlane.get());
+						}
 
 					}
 					
@@ -2385,6 +2377,7 @@ int main()
 						lastCameraQuat = standardCameraQuat;
 
 					}
+					
 
 				}
 				else
