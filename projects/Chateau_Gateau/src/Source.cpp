@@ -3942,7 +3942,10 @@ int main()
 					renderingEntities.push_back(foe);
 				}
 			}
-
+			if (isInRendering(tutorialPlane.get())) {
+				removeFromRendering(tutorialPlane.get());
+			}
+			renderingEntities.push_back(tutorialPlane.get());
 		}
 		orderBubblesToRemove.clear();
 		//std::cout << (currentPoint.x - lastPoint.x) << " " << (currentPoint.y - lastPoint.y) << " " << (currentPoint.z - lastPoint.z) << std::endl; 
