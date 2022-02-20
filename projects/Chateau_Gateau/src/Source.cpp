@@ -172,6 +172,7 @@ bool isInMainMenu = true;
 bool isInPauseMenu = false;
 bool isInContinueMenu = false;
 bool isInOptionsMenu = false;
+bool isInTutorialMenu = false;
 int selectedOption = 0;
 glm::quat getCameraRotation();
 glm::quat menuCameraQuat;
@@ -291,6 +292,10 @@ MaterialCreator settingsSignMat = MaterialCreator();
 MaterialCreator exitSignMat = MaterialCreator();
 MaterialCreator pauseSignMat = MaterialCreator();
 MaterialCreator restartSignMat = MaterialCreator();
+MaterialCreator mainMenuSignMat = MaterialCreator();
+MaterialCreator tutorialNoSignMat = MaterialCreator();
+MaterialCreator tutorialYesSignMat = MaterialCreator();
+
 
 MaterialCreator optionTraySignMat = MaterialCreator();
 MaterialCreator optionSensitivitySignMat = MaterialCreator();
@@ -826,6 +831,11 @@ int main()
 	pauseSignMat.createMaterial(signMesh, "UI/textures/pauseSign.png", *prog_texLit);
 	restartSignMat.createMaterial(signMesh, "UI/textures/restartSign.png", *prog_texLit);
 
+	mainMenuSignMat.createMaterial(signMesh, "UI/textures/mainMenuSign.png", *prog_texLit);
+	tutorialYesSignMat.createMaterial(signMesh, "UI/textures/tutorialYesSign.png", *prog_texLit);
+	tutorialNoSignMat.createMaterial(signMesh, "UI/textures/tutorialNoSign.png", *prog_texLit);
+
+
 	optionTraySignMat.createMaterial(signMesh, "UI/textures/optionTraySign.png", *prog_texLit);
 	optionSensitivitySignMat.createMaterial(signMesh, "UI/textures/optionSensitivitySign.png", *prog_texLit);
 	optionMusicSignMat.createMaterial(signMesh, "UI/textures/optionMusicSign.png", *prog_texLit);
@@ -841,6 +851,10 @@ int main()
 	signFrames.push_back(exitSignMat.getMaterial().get());
 	signFrames.push_back(pauseSignMat.getMaterial().get());
 	signFrames.push_back(restartSignMat.getMaterial().get());
+	signFrames.push_back(mainMenuSignMat.getMaterial().get());
+
+	signFrames.push_back(tutorialYesSignMat.getMaterial().get());
+	signFrames.push_back(tutorialNoSignMat.getMaterial().get());
 
 
 	signFrames.push_back(optionTraySignMat.getMaterial().get());
@@ -1839,7 +1853,7 @@ int main()
 	bool tutorialIsKeyUp = true;
 	float timeSinceClickedSpace = 0.f;
 	//audioEngine.playSound("ambient1");
-	
+	//shouldShowTutorial = false;
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
@@ -1978,6 +1992,52 @@ int main()
 			car.transform.m_pos.z = -15;
 			car.transform.m_pos.y = -1.7;
 		}
+		if (isInTutorialMenu) {
+			int tutorialMenuChosen = getSignSelection(2, false);
+
+			sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 6]);
+
+			if (tutorialMenuChosen >= 0) {
+				if (tutorialMenuChosen == 0) {//YES
+					shouldShowTutorial = true;
+					isInMainMenu = true;
+					isInTutorialMenu = false;
+				}
+				else if (tutorialMenuChosen == 1) {//NO
+					shouldShowTutorial = false;
+					isInMainMenu = true;
+					isInTutorialMenu = false;
+				}
+				orderBubbles[0]->updateScale(UIScale);
+				tray.transform.m_scale = trayScale;
+				tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+				tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
+				tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+				if (isInRendering(tutorialPlane.get())) {
+					removeFromRendering(tutorialPlane.get());
+				}
+				isCameraMoving = true;
+				isInMainMenu = true;
+			}
+
+			for each (Entity * e in renderingEntities) {
+
+				e->transform.RecomputeGlobal();
+
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				if (e->Has<CMorphMeshRenderer>()) {
+					e->Get<CMorphMeshRenderer>().Draw();
+				}
+
+			}
+
+			App::SwapBuffers();
+			continue;
+		}
 		if (isInOptionsMenu) {
 
 
@@ -1991,10 +2051,14 @@ int main()
 				{
 					if (isInOption) {
 						if (selectedOption == 0) {
-							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[11]);
+							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[14]);
 							if (!isInRendering(&tray)) {
 								renderingEntities.push_back(&tray);
+								
 							}
+							tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
+							tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 							for (int i = 0; i < 4; i++) {
 								accessEntities[i]->Get<PictureSelector>().setPictures(alphanumericPointer);
 								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i]);
@@ -2069,7 +2133,7 @@ int main()
 			if (!isInOption) {
 				int mainMenuChosen = getSignSelection(6, false);
 
-				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 5]);
+				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 8]);
 			}
 			else
 			{
@@ -2138,7 +2202,7 @@ int main()
 										accessSettings[accessButtonPressed] = keyPressed;
 										accessButtonPressed++;
 										if (accessButtonPressed == 4) {
-											sign.Get<CMeshRenderer>().SetMaterial(*signFrames[12]);
+											sign.Get<CMeshRenderer>().SetMaterial(*signFrames[15]);
 										}
 									}
 								}
@@ -2211,40 +2275,43 @@ int main()
 				if (mainMenuChosen >= 0) {
 					//nextStepTutorialIfNeeded(1);
 					if (mainMenuChosen == 0) {//PLAY	 
-						orderBubbles[0]->updateScale(UIScale);
-						tray.transform.m_scale = trayScale;
-						tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-						tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
-						
-						isCameraMoving = true;
+
+						isInTutorialMenu = true;
+						isInMainMenu = false;
+						tray.transform.SetParent(&cameraEntity.transform);
+
 					}
 					if (mainMenuChosen == 1) {
 
 						isInOptionsMenu = true;
 						isInMainMenu = false;
+						tray.transform.SetParent(nullptr);
 						tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						
 						//renderingEntities.push_back(accessEntities[0]); 
 						for (int i = 0; i < 4; i++) {
 							if (!isInRendering(accessEntities[i])) {
-								accessEntities[i]->Remove<CMeshRenderer>();
-								accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *coffeeTile.getMesh(), *coffeeTile.getMaterial());
 								renderingEntities.push_back(accessEntities[i]);
-								accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
-								if (i < 3) {
-									accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
-								}
-								else
-								{
-									accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
-								}
-								accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-									glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-									* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
-								accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
-								accessEntities[i]->Get<PictureSelector>().updatePicture();
 							}
+							accessEntities[i]->transform.SetParent(nullptr);
+							//std::cout << "AE" << i << std::endl;
+							accessEntities[i]->Remove<CMeshRenderer>();
+							accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *coffeeTile.getMesh(), *coffeeTile.getMaterial());
+							
+							accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+							if (i < 3) {
+								accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
+							}
+							else
+							{
+								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
+							}
+							accessEntities[i]->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+								glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+								* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
+							accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
+							accessEntities[i]->Get<PictureSelector>().updatePicture();
 						}
 						accessButtonPressed = 0;
 						selectedOption = 0;
@@ -2298,7 +2365,7 @@ int main()
 						if (!isInRendering(&tray)) {
 							renderingEntities.push_back(&tray);
 						}
-						if (bakeryUtils::getRoundsLasted() == 0 && tutorialPos == 1) {
+						if (shouldShowTutorial) {
 
 						
 						for (int i = 0; i < 4; i++) {
@@ -2351,7 +2418,9 @@ int main()
 						}
 
 						currentOrders.back().startOrder();
-
+						if (isInRendering(tutorialPlane.get())) {
+							removeFromRendering(tutorialPlane.get());
+						}
 						if (shouldShowTutorial) {
 							renderingEntities.push_back(tutorialPlane.get());
 						}
@@ -2415,7 +2484,7 @@ int main()
 				cameraEntity.transform.m_rotation = menuCameraQuat;
 
 				cameraEntity.Get<CCamera>().Update();
-				int mainMenuChosen = getSignSelection(2, false);
+				int mainMenuChosen = getSignSelection(3, false);
 
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
 				//std::cout << selectedOption << std::endl; 
@@ -2425,6 +2494,7 @@ int main()
 							removeFromRendering(cust);
 						}
 					}
+
 					if (mainMenuChosen == 0) {//CONTINUE						 
 						isCameraMoving = true;
 						isInPauseMenu = false;
@@ -2510,6 +2580,71 @@ int main()
 						isCameraMoving = true;
 						isInPauseMenu = false;
 						isInMainMenu = true;
+					}
+					else if (mainMenuChosen == 2) {
+						//std::cout << "ONE" << std::endl; 
+						restartGame();
+
+
+						//createNewOrder(0, false, false); 
+						for (int i = 0; i < 4; i++) {
+							if (ovenScript->canRemove(i)) {
+								ovenScript->removeFromSlot(i);
+							}
+
+						}
+						if (isInRendering(drinkScript.getFromDrink())) {
+							removeFromRendering(drinkScript.getFromDrink());
+						}
+						if (isInRendering(&car)) {
+							removeFromRendering(&car);
+						}
+						if (drinkScript.isDrinkFull()) {
+							drinkScript.moveDrink(0);
+						}
+
+						drinkScript.setT(0);
+						drink.Get<CMorphAnimator>().setFrameAndTime(0, 1, 0);
+						drinkScript.isClosing = false;
+						drinkScript.isOpening = false;
+						drinkScript.releaseFromDrink();
+						drinkScript.removeFromDrink();
+						drinkScript.setDrinkNum(0);
+						drinkScript.updatePlane();
+						drinkScript.setFill(0);
+
+						filling.Get<FillingMachine>().setFillNum(0);
+						filling.Get<FillingMachine>().updatePlane();
+						if (isInRendering(filling.Get<FillingMachine>().getFromFilling())) {
+							removeFromRendering(filling.Get<FillingMachine>().getFromFilling());
+						}
+						filling.Get<FillingMachine>().removeFromFilling();
+
+						topping.Get<ToppingMachine>().setTopNum(0);
+						topping.Get<ToppingMachine>().updatePlane();
+						if (isInRendering(topping.Get<ToppingMachine>().getFromTopping())) {
+							removeFromRendering(topping.Get<ToppingMachine>().getFromTopping());
+						}
+						topping.Get<ToppingMachine>().removeFromTopping();
+
+						filling.Get<Transparency>().setTransparency(0.5);
+						fillingPlane.Get<Transparency>().setTransparency(0.5);
+						topping.Get<Transparency>().setTransparency(0.5);
+						toppingPlane.Get<Transparency>().setTransparency(0.5);
+						drink.Get<Transparency>().setTransparency(0.5);
+						drinkPlane.Get<Transparency>().setTransparency(0.5);
+						drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
+
+						receipt.transform.m_pos = beginingNumberPos[0];
+						for (int i = 0; i < 6; i++) {
+							numberEntities[i]->transform.m_pos = beginingNumberPos[i];
+						}
+
+
+						
+						isInPauseMenu = false;
+						isInMainMenu = true;
+						selectedOption = 0;
 					}
 
 				}
@@ -2731,6 +2866,9 @@ int main()
 					if (isInRendering(ch)) {
 						removeFromRendering(ch);
 					}
+				}
+				if (isInRendering(tutorialPlane.get())) {
+					removeFromRendering(tutorialPlane.get());
 				}
 				//App::setCursorVisible(true); 
 			}
@@ -3053,7 +3191,7 @@ int main()
 		}
 		//receipt.transform.m_rotation = cameraQuat; 
 		//tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (tempA)) + (up * tempB);
-		tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (0.180f)) + (up * -0.1f);
+		tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (0.180f * (1/(UIScale + 0.05f)))) + (up * (-0.1f * (1 / (UIScale + 0.05f))));
 
 		tutorialPlane->transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
@@ -3942,10 +4080,14 @@ int main()
 					renderingEntities.push_back(foe);
 				}
 			}
-			if (isInRendering(tutorialPlane.get())) {
-				removeFromRendering(tutorialPlane.get());
+			if (shouldShowTutorial) {
+				if (isInRendering(tutorialPlane.get())) {
+					removeFromRendering(tutorialPlane.get());
+					renderingEntities.push_back(tutorialPlane.get());
+				}
+				
 			}
-			renderingEntities.push_back(tutorialPlane.get());
+			
 		}
 		orderBubblesToRemove.clear();
 		//std::cout << (currentPoint.x - lastPoint.x) << " " << (currentPoint.y - lastPoint.y) << " " << (currentPoint.z - lastPoint.z) << std::endl; 
@@ -5009,7 +5151,7 @@ void UpdateTutorial()
 		{
 			tutorialPlane->Remove<CMeshRenderer>();
 			tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
-			std::cout << "showing: " << i << std::endl;
+			//std::cout << "showing: " << i << std::endl;
 			break;
 			
 			
@@ -5017,8 +5159,10 @@ void UpdateTutorial()
 		}
 	}
 	if (amountSkipped == tutorialSteps.size()) {
-		tutorialPlane->transform.m_pos.y = 5;
-		std::cout << "STOP" << std::endl;
+		//tutorialPlane->transform.m_pos.y = 5;
+		//std::cout << "STOP" << std::endl;
+		removeFromRendering(tutorialPlane.get());
+		shouldShowTutorial = false;
 	}
 
 
@@ -5029,7 +5173,7 @@ void nextStepTutorialIfNeeded() {
 		if (!tutorialSteps[i].getContinueState()) {
 			if (tutorialSteps[i].spaceContinues()) {
 				tutorialSteps[i].setContinueState(true);
-				std::cout << "stopped at: " << i << std::endl;
+				//std::cout << "stopped at: " << i << std::endl;
 				
 			}
 			break;
