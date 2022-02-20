@@ -2283,7 +2283,12 @@ int main()
 						isInTutorialMenu = true;
 						isInMainMenu = false;
 						tray.transform.SetParent(&cameraEntity.transform);
-
+						lastCameraX = 0;
+						lastCameraY = 0;
+						//standardCameraQuat = getCameraRotation(); 
+						wantedCameraQuat = standardCameraQuat;
+						cameraX = 90.f;
+						cameraY = 0.f;
 					}
 					if (mainMenuChosen == 1) {
 
