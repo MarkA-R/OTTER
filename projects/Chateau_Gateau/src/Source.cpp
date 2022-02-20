@@ -2002,11 +2002,15 @@ int main()
 					shouldShowTutorial = true;
 					isInMainMenu = true;
 					isInTutorialMenu = false;
+					bakeryUtils::setRoundsLasted(0);
 				}
 				else if (tutorialMenuChosen == 1) {//NO
 					shouldShowTutorial = false;
 					isInMainMenu = true;
 					isInTutorialMenu = false;
+					bakeryUtils::setRoundsLasted(0);
+					bakeryUtils::setDifficulty(4);
+
 				}
 				orderBubbles[0]->updateScale(UIScale);
 				tray.transform.m_scale = trayScale;
@@ -3013,7 +3017,7 @@ int main()
 			vase.Get<MorphAnimation>().update(&vase, deltaTime, false);
 			//std::cout << vase.Get<MorphAnimation>().getT() << std::endl; 
 			//std::cout << currentOrders.size() << std::endl; 
-			if (bakeryUtils::getRoundsLasted() >= 4) {
+			if (bakeryUtils::getRoundsLasted() >= 4 || !shouldShowTutorial) {
 
 			
 			for (int i = 0; i < currentOrders.size(); i++) {//pausing 
@@ -3989,7 +3993,7 @@ int main()
 								//int a = 1; 
 								//std::cout << "IS DRINK -1" << std::endl; 
 							}
-
+							
 							bakeryUtils::addToRounds(1);
 							//std::cout << "HERE" << std::endl; 
 							createNewOrder(u, true);
