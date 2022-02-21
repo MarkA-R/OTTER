@@ -15,13 +15,13 @@
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "City"
+            "name" : "Boutique"
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "CityTexture",
+            "name" : "City_Material",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
@@ -33,7 +33,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Cube.013",
+            "name" : "Cube.003",
             "primitives" : [
                 {
                     "attributes" : {
@@ -56,66 +56,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "cityTexture",
-            "uri" : "cityTexture.png"
+            "name" : "ExteriorTexture",
+            "uri" : "ExteriorTexture.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 490,
+            "count" : 2899,
             "max" : [
-                18.2584171295166,
-                45.03256607055664,
-                41.04153060913086
+                50.27458953857422,
+                46.64371871948242,
+                37.30122375488281
             ],
             "min" : [
-                -49.03814697265625,
-                -1.0514273643493652,
-                -22.537334442138672
+                -40.89250564575195,
+                -0.4131837785243988,
+                -23.155624389648438
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 490,
+            "count" : 2899,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 490,
+            "count" : 2899,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 738,
+            "count" : 4608,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 5880,
+            "byteLength" : 34788,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 5880,
-            "byteOffset" : 5880
+            "byteLength" : 34788,
+            "byteOffset" : 34788
         },
         {
             "buffer" : 0,
-            "byteLength" : 3920,
-            "byteOffset" : 11760
+            "byteLength" : 23192,
+            "byteOffset" : 69576
         },
         {
             "buffer" : 0,
-            "byteLength" : 1476,
-            "byteOffset" : 15680
+            "byteLength" : 9216,
+            "byteOffset" : 92768
         }
     ],
     "samplers" : [
@@ -126,7 +126,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 17156,
+            "byteLength" : 101984,
             "uri" : "cityMesh.bin"
         }
     ]

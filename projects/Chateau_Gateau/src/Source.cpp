@@ -385,8 +385,8 @@ glm::vec3 cursorScale;
 void createNewOrder(int i, bool addDifficulty, bool remove = true);
 std::vector<glm::vec3> line;
 int lineStart = 4;
-glm::vec3 firstCarPos = glm::vec3(5, -1.3, 10);
-glm::vec3 lastCarPos = glm::vec3(-15, -1.3, 10);
+glm::vec3 firstCarPos = glm::vec3(5, -1.9, 10);
+glm::vec3 lastCarPos = glm::vec3(-15, -1.9, 10);
 Entity* customerLine[3];
 std::vector<Entity*> customers;
 float lastActionTime = 0.f;
@@ -651,7 +651,7 @@ int main()
 	cityMat.createMaterial("bakery/models/cityMesh.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
 
 	MaterialCreator bakeryTopMat = MaterialCreator();
-	bakeryTopMat.createMaterial("bakery/models/bakeryTop.gltf", "bakery/textures/cityTexture.png", *prog_texLit);
+	bakeryTopMat.createMaterial("bakery/models/bakeryTop.gltf", "bakery/textures/roofTexture.png", *prog_texLit);
 
 	MaterialCreator timerMat = MaterialCreator();
 	timerMat.createMaterial("bakery/models/timer.gltf", "bakery/textures/timer.png", *prog_transparent);
@@ -912,9 +912,9 @@ int main()
 
 	Entity city = Entity::Create();
 	city.Add<CMeshRenderer>(city, *cityMat.getMesh(), *cityMat.getMaterial());
-	city.transform.m_scale = glm::vec3(0.5, 0.5, 0.5);
+	city.transform.m_scale = glm::vec3(0.560);
 	city.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	city.transform.m_pos = glm::vec3(-3.7, -1.5, -12.5);
+	city.transform.m_pos = glm::vec3(-2.060, -1.710, -5.240);
 	renderingEntities.push_back(&city);
 
 	Entity bakeryTop = Entity::Create();
@@ -977,7 +977,7 @@ int main()
 	animatorF.SetFrames(flowerAnim);
 	vase.Add<MorphAnimation>(flowerAnim, 0.5, 0);
 	//MorphAnimation flowerAnimation = MorphAnimation(flowerAnim, 0.5); 
-	renderingEntities.push_back(&vase);
+	//renderingEntities.push_back(&vase);
 
 	Entity plexiGlass = Entity::Create();
 	plexiGlass.Add<CMeshRenderer>(plexiGlass, *plexiMat.getMesh(), *plexiMat.getMaterial());
@@ -1092,9 +1092,9 @@ int main()
 	filling.Add<Machine>();
 	filling.Add<FillingMachine>();
 	filling.Add<Transparency>(filling);
-	filling.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
-	filling.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	filling.transform.m_pos = glm::vec3(0.3f, -1.0f, 2.0f);
+	filling.transform.m_scale = glm::vec3(0.340f);
+	filling.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	filling.transform.m_pos = glm::vec3(0.3f, -1.9f, 2.0f);
 	filling.Add<BoundingBox>(glm::vec3(0.72, 2, 0.35), filling);
 	glm::vec3 fillingPos = filling.transform.m_pos;
 	filling.Get<BoundingBox>().setOrigin(glm::vec3(fillingPos.x + 0.4, fillingPos.y, fillingPos.z));
@@ -1112,20 +1112,20 @@ int main()
 
 	fillingPlane.Add<CMeshRenderer>(fillingPlane, *custardFilling.getMesh(), *custardFilling.getMaterial());
 	fillingPlane.Add<Transparency>(fillingPlane);
-	fillingPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+	fillingPlane.transform.m_scale = glm::vec3(0.20f);
 	fillingPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
 	glm::vec3 fillPos = filling.transform.m_pos;
-	fillingPlane.transform.m_pos = glm::vec3(fillPos.x - 0.1, fillPos.y + 0.8, fillPos.z - 0.5);
+	fillingPlane.transform.m_pos = glm::vec3(fillPos.x - 0.1, fillPos.y + 1.947, fillPos.z - 0.5);
 	renderingEntities.push_back(&fillingPlane);
 	filling.Get<FillingMachine>().setFillingPlane(&fillingPlane);
 
 	Transform fillTransform = filling.transform;
-	fillTransform.m_pos.y -= 0.2;
+	fillTransform.m_pos.y = filling.transform.m_pos.y + 1.02;//0.2
 	fillTransform.m_pos.x += 0;
 	//fillTransform.m_pos.z += 0.3; 
 	filling.Get<FillingMachine>().setTransform(fillTransform);
-
+	
 
 	Entity drink = Entity::Create();
 	drink.Add<CMorphMeshRenderer>(drink, *drinkMat1.getMesh(), *drinkMat1.getMaterial());
@@ -1472,67 +1472,7 @@ int main()
 	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
 	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
-	
-	
-	/*
-	tutorialArray.push_back(Transform());//take from fridge 
-	//tutorialArray[0].m_pos = glm::vec3(-0.4, -0.65, -1.39);
-	//glm::vec3 signPos = menuCameraPos;
-	tutorialArray[0].m_pos = glm::vec3(signPos.x - 0.87, -1.38f, signPos.z - 0.4);
-	tutorialArray[0].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-		* glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 0.0f, 1.0f));
-	tutorialArray[0].m_scale = tutorialPlane->transform.m_scale;
 
-	tutorialArray.push_back(Transform());//take from fridge 
-	tutorialArray[1].m_pos = glm::vec3(-0.4, -0.65, -1.39);
-	tutorialArray[1].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	tutorialArray[1].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.5); 
-	tutorialArray.push_back(Transform());//put in oven 
-	tutorialArray[2].m_pos = glm::vec3(-2.4, -0.420, -0.490);
-	tutorialArray[2].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialArray[2].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.5); 
-
-	tutorialArray.push_back(Transform());//take out oven 
-	tutorialArray[3].m_pos = glm::vec3(0, -0.62, -0.49);
-	tutorialArray[3].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialArray[3].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.75); 
-
-	tutorialArray.push_back(Transform());//give to customer 
-	//tutorialArray[4].m_pos = glm::vec3(-0.4, -0.65, -1.39);
-	//tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	tutorialArray[4].m_pos = glm::vec3(0, -0.62, -0.49);
-	tutorialArray[4].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	tutorialArray[4].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.75); 
-
-	tutorialArray.push_back(Transform());//filling 
-	tutorialArray[5].m_pos = glm::vec3(0.2, -0.62, 0.81);
-	tutorialArray[5].m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialArray[5].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.75); 
-
-	tutorialArray.push_back(Transform());//topping 
-	tutorialArray[6].m_pos = glm::vec3(-2.4, -0.420, 1.090);
-	tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialArray[6].m_scale = tutorialPlane->transform.m_scale;
-
-
-	tutorialArray.push_back(Transform());//drink 
-	//tutorialArray[6].m_pos = glm::vec3(-1.1, -0.770, 0.890); 
-	//tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(-90.f), glm::vec3(1.0f, 0.0f, 0.0f)); 
-	tutorialArray[6].m_pos = glm::vec3(-2.4, -0.420, 1.090);
-	tutorialArray[6].m_rotation = glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	tutorialArray[6].m_scale = tutorialPlane->transform.m_scale;
-	//tutorialPeriods.push_back(0.75); 
-
-	tutorialPlane->transform = tutorialArray[0];
-	*/
 	//renderingEntities.push_back(&tray); 
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
@@ -1716,7 +1656,7 @@ int main()
 	carLight.strength = 0.f;
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! ################################# 
-	bool canCheat = false;
+	bool canCheat = true;
 	bool skipMenu = false;
 	if (skipMenu)
 	{
@@ -1876,12 +1816,36 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
+		/**/
+		App::StartImgui();
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
+		//ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
+		//ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("X", &(tempA), 0.01f);
+		ImGui::DragFloat("Y", &(tempB), 0.01f);
+		ImGui::DragFloat("Z", &(tempC), 0.01f);
+		//ImGui::DragFloat("S", &(tempD), 0.01f);
+
+
+		//ImGui::DragFloat("Scale", &(sc), 0.1f);
+		//ImGui::SetWindowPos(0,0);
+
+		App::EndImgui();
+		
+		//fillingPlane.transform.m_pos = glm::vec3(fillPos.x - (0.1 + tempA), fillPos.y + (1.8 + tempB), fillPos.z - (0.5 + tempC));
+
+		//filling.transform.m_pos = glm::vec3(tempA, tempB, tempC);
+		//filling.transform.m_pos = glm::vec3(0.3f, -1.0f + tempB, 2.0f);
+		//fillTransform.m_pos.y = filling.transform.m_pos.y + tempB;//0.2
+		//fillTransform.m_pos.x += 0;
+		//fillTransform.m_pos.z += 0.3; 
+		//filling.Get<FillingMachine>().setTransform(fillTransform);
+		//filling.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f));
+		//filling.transform.m_scale = glm::vec3(tempD);
 		
 
-
-
-
-		plexiGlass.Get<Transparency>().setTransparency(seeThrough);
+		//plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 
 		bool keepCheckingRaycast = true;
 		isClicking = false;
@@ -1990,7 +1954,7 @@ int main()
 			carLight.strength = sin(carT * 3.1415926) / 2;
 			car.transform.m_pos = carLight.pos;
 			car.transform.m_pos.z = -15;
-			car.transform.m_pos.y = -1.7;
+			//car.transform.m_pos.y = -1.7;
 		}
 		if (isInTutorialMenu) {
 			int tutorialMenuChosen = getSignSelection(2, false);
@@ -2009,7 +1973,7 @@ int main()
 					isInMainMenu = true;
 					isInTutorialMenu = false;
 					bakeryUtils::setRoundsLasted(0);
-					bakeryUtils::setDifficulty(4);
+					//bakeryUtils::setDifficulty(4);
 
 				}
 				orderBubbles[0]->updateScale(UIScale);
@@ -2455,7 +2419,7 @@ int main()
 						lastCameraQuat = standardCameraQuat;
 
 					}
-					
+					continue;
 
 				}
 				else
@@ -3206,23 +3170,7 @@ int main()
 			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 			* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//glm::inverse(cursor.transform.m_rotation); 
 
-		/*
-		App::StartImgui();
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
-		//ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
-		//ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("A", &(tempA), 0.01f);
-		ImGui::DragFloat("B", &(tempB), 0.01f);
-		//ImGui::DragFloat("C", &(tempC), 0.1f);
-		//ImGui::DragFloat("D", &(tempD), 0.01f);
-
-
-		//ImGui::DragFloat("Scale", &(sc), 0.1f);
-		//ImGui::SetWindowPos(0,0);
-
-		App::EndImgui();
-		*/
+		
 		
 		//tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f)) 
