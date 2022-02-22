@@ -28,7 +28,9 @@ namespace nou
 		void setMeshAndTime(Mesh* currentFrame, Mesh* nextFrame, float t);
 		float getT();
 		void addToT(float);
+		void addToTLessThanOne(float x);
 		void setT(float);
+		void Update(int,int);
 		~CMorphAnimator() = default;
 
 		CMorphAnimator(CMorphAnimator&&) = default;

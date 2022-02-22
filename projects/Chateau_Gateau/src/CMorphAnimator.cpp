@@ -62,11 +62,31 @@ namespace nou
 	void CMorphAnimator::addToT(float x)
 	{
 		m_timer += x;
+
+		
+	}
+
+	void CMorphAnimator::addToTLessThanOne(float x)
+	{
+		m_timer += x;
+
+		if (m_timer > 1) {
+			m_timer = 1;
+		}
+		if (m_timer < 0) {
+			m_timer = 0;
+		}
 	}
 
 	void CMorphAnimator::setT(float x)
 	{
 		m_timer = x;
+	}
+
+	void CMorphAnimator::Update(int frame1Index, int frame2Index)
+	{
+		m_owner->Get<CMorphMeshRenderer>().UpdateData(*m_data->animationFrames[frame1Index], *m_data->animationFrames[frame2Index], m_timer);
+
 	}
 
 	void CMorphAnimator::Update(float deltaTime)

@@ -425,6 +425,7 @@ void restartGame();
 Entity* ovenEntites[4];
 float ovenHeights[4];
 std::vector<Mesh*> allOvenFrames;
+std::vector<Mesh*> fridgeFrames;
 
 void log(std::string s) {
 	std::cout << s << std::endl;
@@ -573,8 +574,14 @@ int main()
 	MaterialCreator trayMat = MaterialCreator();
 	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/tray.png", *prog_allLights);
 
-	MaterialCreator fridgeMat = MaterialCreator();
-	fridgeMat.createMaterial("bakery/models/fridge.gltf", "bakery/textures/fridge.png", *prog_texLit);
+	MaterialCreator fridgeClosedMat = MaterialCreator();
+	fridgeClosedMat.createMaterial("bakery/models/closedFridge.gltf", "bakery/textures/fridgeTexture.png", *prog_morph);
+
+	MaterialCreator fridgeOpenMat = MaterialCreator();
+	fridgeOpenMat.createMaterial("bakery/models/openFridge.gltf", "bakery/textures/fridgeTexture.png", *prog_morph);
+
+	fridgeFrames.push_back(fridgeClosedMat.getMesh().get());
+	fridgeFrames.push_back(fridgeOpenMat.getMesh().get());
 
 	MaterialCreator binMat = MaterialCreator();
 	binMat.createMaterial("bakery/models/trash.gltf", "bakery/textures/trash.png", *prog_texLit);
@@ -1041,15 +1048,18 @@ int main()
 		//	" " << bin.Get<BoundingBox>().getOrigin().z << std::endl; 
 
 	Entity fridge = Entity::Create();
-	fridge.Add<CMeshRenderer>(fridge, *fridgeMat.getMesh(), *fridgeMat.getMaterial());
+	fridge.Add<CMorphMeshRenderer>(fridge, *fridgeClosedMat.getMesh(), *fridgeClosedMat.getMaterial());
 
 	fridge.Add<Machine>();
 	fridge.Add<Fridge>();
-	fridge.transform.m_scale = glm::vec3(0.5f, 1.f, .5f);
+	fridge.transform.m_scale = glm::vec3(0.850);
 	fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	fridge.transform.m_pos = glm::vec3(-3.f, -1.f, 0.3f);
+	fridge.transform.m_pos = glm::vec3(-3.020, -1.870, 0.270);
 	fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
 	renderingEntities.push_back(&fridge);
+	auto& animatorFridge = fridge.Add<CMorphAnimator>(fridge);
+	animatorFridge.SetFrameTime(1.0f);
+	animatorFridge.SetFrames(fridgeFrames);
 
 	Entity oven = Entity::Create();
 	oven.Add<CMorphMeshRenderer>(oven, *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
@@ -1656,7 +1666,7 @@ int main()
 	carLight.strength = 0.f;
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! ################################# 
-	bool canCheat = true;
+	bool canCheat = false;
 	bool skipMenu = false;
 	if (skipMenu)
 	{
@@ -1794,7 +1804,7 @@ int main()
 	float timeSinceClickedSpace = 0.f;
 	//audioEngine.playSound("ambient1");
 	//shouldShowTutorial = false;
-	
+	float fridgeMultiplier = 4;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		audioEngine.Update();
@@ -1816,7 +1826,7 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
-		/**/
+		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
@@ -1825,7 +1835,7 @@ int main()
 		ImGui::DragFloat("X", &(tempA), 0.01f);
 		ImGui::DragFloat("Y", &(tempB), 0.01f);
 		ImGui::DragFloat("Z", &(tempC), 0.01f);
-		//ImGui::DragFloat("S", &(tempD), 0.01f);
+		ImGui::DragFloat("S", &(tempD), 0.01f);
 
 
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
@@ -1833,19 +1843,10 @@ int main()
 
 		App::EndImgui();
 		
-		//fillingPlane.transform.m_pos = glm::vec3(fillPos.x - (0.1 + tempA), fillPos.y + (1.8 + tempB), fillPos.z - (0.5 + tempC));
-
-		//filling.transform.m_pos = glm::vec3(tempA, tempB, tempC);
-		//filling.transform.m_pos = glm::vec3(0.3f, -1.0f + tempB, 2.0f);
-		//fillTransform.m_pos.y = filling.transform.m_pos.y + tempB;//0.2
-		//fillTransform.m_pos.x += 0;
-		//fillTransform.m_pos.z += 0.3; 
-		//filling.Get<FillingMachine>().setTransform(fillTransform);
-		//filling.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f));
-		//filling.transform.m_scale = glm::vec3(tempD);
+		fridge.transform.m_pos = glm::vec3(tempA,tempB, tempC);
+		fridge.transform.m_scale = glm::vec3(tempD);
+		*/
 		
-
-		//plexiGlass.Get<Transparency>().setTransparency(seeThrough);
 
 		bool keepCheckingRaycast = true;
 		isClicking = false;
@@ -2977,15 +2978,14 @@ int main()
 				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 1);
 				//std::cout << "T1" << std::endl; 
 			}
+			fridge.Get<CMorphAnimator>().addToTLessThanOne(deltaTime * fridgeMultiplier);
+			fridge.Get<CMorphAnimator>().setMeshAndTime(fridgeClosedMat.getMesh().get(), fridgeOpenMat.getMesh().get(), fridge.Get<CMorphAnimator>().getT());
 
-			//std::cout << mithunan.Get<CharacterController>().getStopSpot() << std::endl; 
-			// Update our LERP timers 
+			
 
 			bakeryUtils::addToGameTime(deltaTime);
 			ovenScript->update(deltaTime);
-			vase.Get<MorphAnimation>().update(&vase, deltaTime, false);
-			//std::cout << vase.Get<MorphAnimation>().getT() << std::endl; 
-			//std::cout << currentOrders.size() << std::endl; 
+			
 			if (bakeryUtils::getRoundsLasted() >= 4 || !shouldShowTutorial) {
 
 			
@@ -3290,6 +3290,8 @@ int main()
 				if (e->Has<Fridge>()) {
 					//log("B"); 
 					//std::cout << "A" << std::endl; 
+					//fridge.Get<CMorphAnimator>().setT(0);
+					fridgeMultiplier = 4;
 					int wantedSlot = getWantedSlot();
 					if (isClicking) {
 						wantedSlot = getFirstTraySlot();
@@ -3978,8 +3980,26 @@ int main()
 					}
 				}
 			}
+			
 
+			
 
+		}
+		else
+		{
+		if (!raycastHit || hitEntity == nullptr)
+		{
+			fridgeMultiplier = -4;
+		}
+		else if(hitEntity != nullptr)
+		{
+			Entity* e = hitEntity;
+			if (!e->Has<Fridge>()) {
+				fridgeMultiplier = -4;
+			}
+		}
+		
+		
 		}
 
 

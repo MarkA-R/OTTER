@@ -1,0 +1,217 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.7.33",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "Fridge"
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "name" : "Material.002",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.4000000059604645
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "extras" : {
+                "targetNames" : [
+                    "Closed",
+                    "Open"
+                ]
+            },
+            "name" : "Cube.011",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0,
+                    "targets" : [
+                        {
+                            "POSITION" : 4,
+                            "NORMAL" : 5
+                        },
+                        {
+                            "POSITION" : 6,
+                            "NORMAL" : 7
+                        }
+                    ]
+                }
+            ],
+            "weights" : [
+                0,
+                0
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/png",
+            "name" : "fridgeTexture",
+            "uri" : "fridgeTexture.png"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 986,
+            "max" : [
+                0.6500000953674316,
+                2.934307098388672,
+                1.0225602388381958
+            ],
+            "min" : [
+                -0.660308837890625,
+                -5.960464477539063e-08,
+                -0.5999999642372131
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 986,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 986,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 1482,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 986,
+            "max" : [
+                0,
+                0,
+                0
+            ],
+            "min" : [
+                0,
+                0,
+                0
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 986,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 986,
+            "max" : [
+                0.18700066208839417,
+                0,
+                0.17593598365783691
+            ],
+            "min" : [
+                -0.1951669454574585,
+                0,
+                -0.019439101219177246
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5126,
+            "count" : 986,
+            "type" : "VEC3"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 11832,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 11832,
+            "byteOffset" : 11832
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 7888,
+            "byteOffset" : 23664
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2964,
+            "byteOffset" : 31552
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 11832,
+            "byteOffset" : 34516
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 11832,
+            "byteOffset" : 46348
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 11832,
+            "byteOffset" : 58180
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 11832,
+            "byteOffset" : 70012
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 81844,
+            "uri" : "openFridge.bin"
+        }
+    ]
+}
