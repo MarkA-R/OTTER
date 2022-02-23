@@ -137,7 +137,7 @@ float tempC = 0.f;
 float tempD = 0.f; //(-0.5, -1.22, -2.29f 
 
 float lineY = -1.89;//-1.1f; 
-std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent,
+std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent, prog_UI,
 prog_allLights;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
@@ -571,6 +571,18 @@ int main()
 	MaterialCreator counterMat = MaterialCreator();
 	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_allLights);
 
+	MaterialCreator fridgePosterMat = MaterialCreator();
+	fridgePosterMat.createMaterial("bakery/models/poster.gltf", "bakery/textures/fridge poster.png", *prog_UI);
+
+	MaterialCreator chairsMat = MaterialCreator();
+	chairsMat.createMaterial("bakery/models/chairTable.gltf", "bakery/textures/texTable.png", *prog_allLights);
+
+	MaterialCreator boothMat = MaterialCreator();
+	boothMat.createMaterial("bakery/models/booth.gltf", "bakery/textures/boothTableTex.png", *prog_allLights);
+
+	MaterialCreator tabletMat = MaterialCreator();
+	tabletMat.createMaterial("bakery/models/tablet.gltf", "bakery/textures/TexTablet.png", *prog_allLights);
+
 	MaterialCreator trayMat = MaterialCreator();
 	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/tray.png", *prog_allLights);
 
@@ -706,87 +718,6 @@ int main()
 
 	
 
-	/*
-	MaterialCreator tutorialImage10 = MaterialCreator();
-	tutorialImage10.createMaterial(tileMesh, "UI/textures/ovenClick.png", *prog_texLit);
-
-	MaterialCreator tutorialImage11 = MaterialCreator();
-	tutorialImage11.createMaterial(tileMesh, "UI/textures/ovenClickOff.png", *prog_texLit);
-	*/
-	/*
-	std::vector<MaterialCreator*> tutorialButton;
-	loadMaterialCreatorData(tutorialButton, tileMesh, "UI/textures/tutButton", 5);
-
-	MaterialCreator tutorialImage20 = MaterialCreator();
-	tutorialImage20.createMaterial(tileMesh, "UI/textures/tutOven1.png", *prog_texLit);
-
-	MaterialCreator tutorialImage21 = MaterialCreator();
-	tutorialImage21.createMaterial(tileMesh, "UI/textures/tutOven2.png", *prog_texLit);
-	MaterialCreator tutorialImage22 = MaterialCreator();
-	tutorialImage22.createMaterial(tileMesh, "UI/textures/tutOven3.png", *prog_texLit);
-	MaterialCreator tutorialImage23 = MaterialCreator();
-	tutorialImage23.createMaterial(tileMesh, "UI/textures/tutOven4.png", *prog_texLit);
-
-	MaterialCreator tutorialImage30 = MaterialCreator();
-	tutorialImage30.createMaterial(tileMesh, "UI/textures/tutCustomer1.png", *prog_texLit);
-	MaterialCreator tutorialImage31 = MaterialCreator();
-	tutorialImage31.createMaterial(tileMesh, "UI/textures/tutCustomer2.png", *prog_texLit);
-
-	std::vector<MaterialCreator*> tutorialFridge;
-	loadMaterialCreatorData(tutorialFridge, tileMesh, "UI/textures/tutFridge", 9);
-	tutorialFridge.insert(tutorialFridge.end(), tutorialFridge[tutorialFridge.size() - 2]);
-
-	std::vector<MaterialCreator*> tutorialGoToOven;
-	loadMaterialCreatorData(tutorialGoToOven, tileMesh, "UI/textures/ovenTutorial", 6);
-
-	std::vector<MaterialCreator*> tutorialOven;
-	loadMaterialCreatorData(tutorialOven, tileMesh, "UI/textures/ovenTutorial", 25);
-	tutorialOven.push_back(tutorialOven.back());
-	tutorialOven.push_back(tutorialOven.back());
-	tutorialOven.insert(tutorialOven.begin(), tutorialOven[0]);
-	tutorialOven.insert(tutorialOven.begin(), tutorialOven[0]);
-
-	std::vector<MaterialCreator*> tutorialFilling;
-	loadMaterialCreatorData(tutorialFilling, tileMesh, "UI/textures/tutFilling", 9);
-
-	//tutDrink 
-	std::vector<MaterialCreator*> tutorialTopping;
-	loadMaterialCreatorData(tutorialTopping, tileMesh, "UI/textures/tutTopping", 10);
-	tutorialTopping.push_back(tutorialTopping[8]);
-
-	std::vector<MaterialCreator*> tutorialDrink;
-	loadMaterialCreatorData(tutorialDrink, tileMesh, "UI/textures/tutDrink", 14);
-	tutorialDrink.insert(tutorialDrink.begin() + 4, tutorialDrink[1]);
-
-	tutorialMasterList.push_back(tutorialButton);
-
-	tutorialPeriods.push_back(0.75);
-	tutorialMasterList.push_back(tutorialFridge);
-	
-	tutorialPeriods.push_back(0.75);
-	tutorialMasterList.push_back(tutorialGoToOven);
-	//tutorialMasterList[1].push_back(&tutorialImage10); 
-	//tutorialMasterList[1].push_back(&tutorialImage11); 
-	tutorialPeriods.push_back(0.5);
-	tutorialMasterList.push_back(tutorialOven);
-	//tutorialMasterList.push_back(std::vector<MaterialCreator*>()); 
-	//tutorialMasterList[2].push_back(&tutorialImage20); 
-	//tutorialMasterList[2].push_back(&tutorialImage21); 
-	//tutorialMasterList[2].push_back(&tutorialImage22); 
-	//tutorialMasterList[2].push_back(&tutorialImage23); 
-	tutorialPeriods.push_back(0.3);
-	tutorialMasterList.push_back(std::vector<MaterialCreator*>());
-	tutorialMasterList[4].push_back(&tutorialImage30);
-	tutorialMasterList[4].push_back(&tutorialImage31);
-	tutorialPeriods.push_back(0.75);
-	tutorialMasterList.push_back(tutorialFilling);
-	tutorialPeriods.push_back(0.75);
-	tutorialMasterList.push_back(tutorialTopping);
-	tutorialPeriods.push_back(0.75);
-	tutorialMasterList.push_back(tutorialDrink);
-	tutorialPeriods.push_back(0.75);
-
-	*/
 
 	std::unique_ptr<Texture2D> particleTex = std::make_unique<Texture2D>("bakery/textures/particle.png");
 	std::unique_ptr<Material> particleMat = std::make_unique<Material>(*prog_particles);
@@ -971,27 +902,11 @@ int main()
 
 
 
-	std::vector<Mesh*> flowerAnim;
-	flowerAnim.push_back(flowerMat1.getMesh().get());
-	flowerAnim.push_back(flowerMat2.getMesh().get());
-	Entity vase = Entity::Create();
-	vase.Add<CMorphMeshRenderer>(vase, *flowerMat1.getMesh(), *flowerMat1.getMaterial());
-	vase.transform.m_scale = glm::vec3(0.3f, 0.3f, 0.3f);
-	vase.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	vase.transform.m_pos = glm::vec3(-0.5, -1.22, -2.29f);
-	auto& animatorF = vase.Add<CMorphAnimator>(vase);
-	animatorF.SetFrameTime(1.0f);
-	animatorF.SetFrames(flowerAnim);
-	vase.Add<MorphAnimation>(flowerAnim, 0.5, 0);
+	
 	//MorphAnimation flowerAnimation = MorphAnimation(flowerAnim, 0.5); 
 	//renderingEntities.push_back(&vase);
 
-	Entity plexiGlass = Entity::Create();
-	plexiGlass.Add<CMeshRenderer>(plexiGlass, *plexiMat.getMesh(), *plexiMat.getMaterial());
-	plexiGlass.Add<Transparency>(plexiGlass);
-	plexiGlass.transform.m_scale = glm::vec3(1.4f, 0.3f, 0.03f);
-	plexiGlass.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	plexiGlass.transform.m_pos = glm::vec3(-1.1f, -0.6, -2.59f);
+	
 	//renderingEntities.push_back(&plexiGlass); 
 
 
@@ -1027,12 +942,36 @@ int main()
 	upurrBubbleLocation1.m_pos.z -= 1.0;
 
 
+	Entity chairs = Entity::Create();
+	chairs.Add<CMeshRenderer>(chairs, *chairsMat.getMesh(), *chairsMat.getMaterial());
+	chairs.transform.m_scale = glm::vec3(1.000);
+	chairs.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	chairs.transform.m_pos = glm::vec3(-4.510, -1.900, -5.830);
+	renderingEntities.push_back(&chairs);
+
+	Entity booth = Entity::Create();
+	booth.Add<CMeshRenderer>(booth, *boothMat.getMesh(), *boothMat.getMaterial());
+	booth.transform.m_scale = glm::vec3(0.750);
+	booth.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	booth.transform.m_pos = glm::vec3(-0.020, -1.900, -7.370);
+
+	renderingEntities.push_back(&booth);
+
+	Entity tablet = Entity::Create();
+	tablet.Add<CMeshRenderer>(tablet, *tabletMat.getMesh(), *tabletMat.getMaterial());
+	tablet.transform.m_scale = glm::vec3(0.45f, 0.45f, 0.45f);
+	tablet.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tablet.transform.m_pos = glm::vec3(-0.6, -2.59, -2.29f);
+
+	renderingEntities.push_back(&tablet);
+
 	Entity counter = Entity::Create();
 	counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
 	counter.transform.m_scale = glm::vec3(1.6f, 0.4f, 0.4f);
 	counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	counter.transform.m_pos = glm::vec3(-1.f, -2.5, -2.29f);
 	renderingEntities.push_back(&counter);
+
 
 
 	Entity bin = Entity::Create();
@@ -1467,12 +1406,36 @@ int main()
 	tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
 
-	loadMaterialCreatorData(dialogueList, tileMesh, "UI/textures/dialogue",4);
+	loadMaterialCreatorData(dialogueList, tileMesh, "UI/textures/dialogue/Dialogue",18);
 	
 	tutorialSteps.push_back(TutorialStep(dialogueList[0],true));
 	tutorialSteps.push_back(TutorialStep(dialogueList[1],true));
 	tutorialSteps.push_back(TutorialStep(dialogueList[2],false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[3],true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[3],false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[4],true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[5], true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[6], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[7], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[8], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[9], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[10], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[11], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[12], false));
+	tutorialSteps.push_back(TutorialStep(dialogueList[13], true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[14], true));
+	tutorialSteps.push_back(TutorialStep(&nothingTile, false));//transparent, continues at second order
+	tutorialSteps.push_back(TutorialStep(dialogueList[15], true));//upurr1
+	tutorialSteps.push_back(TutorialStep(dialogueList[16], true));//lets get to work
+	tutorialSteps.push_back(TutorialStep(&nothingTile, false));//transparent, continues at third order
+	tutorialSteps.push_back(TutorialStep(dialogueList[17], true));//last upurr eats order, which can be hidden by a spacebar
+	
+
+	
+
+
+
+
+
 
 	tutorialPlane = Entity::Allocate();
 	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *dialogueList[0]->getMesh(), *dialogueList[0]->getMaterial());
@@ -1826,7 +1789,7 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
-		/*
+		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
@@ -1843,9 +1806,9 @@ int main()
 
 		App::EndImgui();
 		
-		fridge.transform.m_pos = glm::vec3(tempA,tempB, tempC);
-		fridge.transform.m_scale = glm::vec3(tempD);
-		*/
+		tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
+		tablet.transform.m_scale = glm::vec3(tempD);
+		
 		
 
 		bool keepCheckingRaycast = true;
@@ -1968,6 +1931,31 @@ int main()
 					isInMainMenu = true;
 					isInTutorialMenu = false;
 					bakeryUtils::setRoundsLasted(0);
+					int slot = 0;
+					trayPastry[slot] = Entity::Allocate().release();
+					trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *burntMat.getMesh(), *burntMat.getMaterial());
+					trayPastry[slot]->Add<Pastry>();
+					trayPastry[slot]->Get<Pastry>().setType(bakeryUtils::pastryType::BURNT);
+					trayPastry[slot]->Get<Pastry>().setCookedSeconds(bakeryUtils::returnBurnTime());
+					trayPastry[slot]->Add<Transparency>(*trayPastry[slot]);
+					trayPastry[slot]->Get<Transparency>().setTransparency(1.f);
+					trayPastry[slot]->Get<Transparency>().setWantedTransparency(0.f);
+					trayPastry[slot]->Get<Transparency>().setTime(0.2);
+
+
+					trayPastry[slot]->transform.m_scale = glm::vec3(0.009f, 0.009f, 0.009f);
+					trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+					//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl; 
+
+					trayPastry[slot]->transform.m_pos = glm::vec3(-20);
+					trayPastry[slot]->Get<Pastry>().setInOven(true);
+					ovenScript->canAdd(trayPastry[0], 0);
+					
+
+					trayPastry[0] = nullptr;
+					//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl; 
+
 				}
 				else if (tutorialMenuChosen == 1) {//NO
 					shouldShowTutorial = false;
@@ -2254,6 +2242,7 @@ int main()
 						wantedCameraQuat = standardCameraQuat;
 						cameraX = 90.f;
 						cameraY = 0.f;
+
 					}
 					if (mainMenuChosen == 1) {
 
@@ -3177,8 +3166,35 @@ int main()
 		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f)); 
 		//tutorialPlane->transform.m_scale = glm::vec3(tempD);
 		
+		if (shouldShowTutorial && bakeryUtils::getRoundsLasted() < 2 && !isPaused) {
+			for (int i = 0; i < 4; i++) {
 
+				if (trayPastry[i] != nullptr) {
+					if (isInRendering(accessEntities[i])) {
+						removeFromRendering(accessEntities[i]);
+						//accessEntities[i]->transform.SetParent(nullptr);
+					}
+					
+				}
+				else
+				{
+					if (!isInRendering(accessEntities[i])) {
+						renderingEntities.push_back(accessEntities[i]);
+						//accessEntities[i]->transform.SetParent(nullptr);
+					}
+				}
+				
 
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 4; i++) {
+				accessEntities[i]->transform.m_scale = glm::vec3(0);
+			}
+		}
+		
+		
 
 
 		lastActionTime += deltaTime;
@@ -3297,6 +3313,8 @@ int main()
 						wantedSlot = getFirstTraySlot();
 					}
 					if (wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
+						setTutorialChange(6);
+						UpdateTutorial();
 						int slot = wantedSlot;
 						lastActionTime = 0;
 						trayPastry[slot] = Entity::Allocate().release();
@@ -3323,10 +3341,7 @@ int main()
 
 						//nextStepTutorialIfNeeded(2);
 						//if (shouldShowTutorial) {
-							for (int i = 0; i < 4; i++) {
-								accessEntities[i]->transform.SetParent(nullptr);
-								removeFromRendering(accessEntities[i]);
-							}
+							
 						//}
 
 					}
@@ -3416,6 +3431,8 @@ int main()
 
 
 						if (putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0) {
+							setTutorialChange(7);
+							UpdateTutorial();
 							lastActionTime = 0;
 							//std::cout << "B" << std::endl; 
 							ovenScript->canAdd(trayPastry[affectedTraySlot], affectedOvenSlot);
@@ -3451,7 +3468,9 @@ int main()
 								trayPastry[newSlot]->Get<Transparency>().setWantedTransparency(0.f);
 								trayPastry[newSlot]->Get<Transparency>().setTime(0.15);
 
-
+								if (!isInRendering(trayPastry[newSlot])) {
+									renderingEntities.push_back(trayPastry[newSlot]);
+								}
 								/*
 								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
 								{
@@ -3459,10 +3478,15 @@ int main()
 								}
 								*/
 								ovenScript->removeFromSlot(affectedOvenSlot);
-								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH) {
+								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::BURNT) {
+									
 									//nextStepTutorialIfNeeded(4);
 									//nextStepTutorialIfNeeded();
 									setTutorialChange(2);
+									UpdateTutorial();
+								}
+								else if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::CROISSANT) {
+									setTutorialChange(8);
 									UpdateTutorial();
 								}
 								
@@ -3876,6 +3900,8 @@ int main()
 					int wantedSlot = getWantedSlot();
 					if (wantedSlot >= 0) {
 						if (trayPastry[wantedSlot] != nullptr) {
+							setTutorialChange(3);
+							UpdateTutorial();
 							lastActionTime = 0;
 							removeFromRendering(trayPastry[wantedSlot]);
 							trayPastry[wantedSlot] = nullptr;
@@ -3948,7 +3974,29 @@ int main()
 								//int a = 1; 
 								//std::cout << "IS DRINK -1" << std::endl; 
 							}
-							
+							if (bakeryUtils::getRoundsLasted() == 0) {
+								setTutorialChange(9);
+								UpdateTutorial();
+							}
+							else if (bakeryUtils::getRoundsLasted() == 1) {
+								for (int i = 0; i < 4; i++) {
+									if (isInRendering(accessEntities[i])) {
+										removeFromRendering(accessEntities[i]);
+										accessEntities[i]->transform.SetParent(nullptr);
+									}
+								}
+								setTutorialChange(10);
+								UpdateTutorial();
+							}
+							else if (bakeryUtils::getRoundsLasted() == 2) {
+								setTutorialChange(11);
+								UpdateTutorial();
+							}
+							else if (bakeryUtils::getRoundsLasted() == 3) {
+								setTutorialChange(12);
+								UpdateTutorial();
+								
+							}
 							bakeryUtils::addToRounds(1);
 							//std::cout << "HERE" << std::endl; 
 							createNewOrder(u, true);
@@ -4029,7 +4077,8 @@ int main()
 
 			if ((bakeryUtils::getRoundsLasted() >= 6 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 1)
 				) {//|| currentOrders.size() == 1 
-
+				setTutorialChange(15);
+				UpdateTutorial();
 				//std::cout << "JJJ" << std::endl; 
 				createNewOrder(1, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1); 
@@ -4046,6 +4095,8 @@ int main()
 			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl; 
 			if ((bakeryUtils::getRoundsLasted() >= 10 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
 				) {//|| currentOrders.size() == 2 
+				setTutorialChange(18);
+				UpdateTutorial();
 				//std::cout << "JJJ" << std::endl; 
 				createNewOrder(2, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1); 
@@ -4101,6 +4152,14 @@ void LoadDefaultResources()
 	std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
 	std::vector<Shader*> texLit = { vs_texLitShader.get(), fs_texLitShader.get() };
 	prog_texLit = std::make_unique<ShaderProgram>(texLit);
+
+
+	std::unique_ptr vs_UIShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
+	//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+	std::unique_ptr fs_UIShader = std::make_unique<Shader>("shaders/UI.frag", GL_FRAGMENT_SHADER);
+	std::vector<Shader*> UIShader = { vs_UIShader.get(), fs_UIShader.get() };
+	prog_UI = std::make_unique<ShaderProgram>(UIShader);
+
 	
 	// Untextured lit shader 
 	std::unique_ptr vs_litShader = std::make_unique<Shader>("shaders/lit.vert", GL_VERTEX_SHADER);
@@ -4851,7 +4910,7 @@ void loadMaterialCreatorData(std::vector<MaterialCreator*>& toModify, Mesh& mesh
 		std::string filename = prefix + std::to_string(i) + ".png";
 
 		MaterialCreator* frame = new MaterialCreator();
-		frame->createMaterial(meshName, filename, *prog_texLit);
+		frame->createMaterial(meshName, filename, *prog_UI);
 
 		toModify.push_back(frame);
 	}
@@ -4994,6 +5053,11 @@ void restartGame() {
 	tutorialPos = 0;
 	
 	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+	for (int i = 0; i < tutorialSteps.size(); i++) {
+		tutorialSteps[i].setContinueState(false);
+	}
+	
+	UpdateTutorial();
 
 	ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[0]->getMaterial());
 	for (int i = 0; i < currentOrders.size(); i++) {
@@ -5089,7 +5153,15 @@ void restartGame() {
 	if (shouldShowTutorial) {
 		renderingEntities.push_back(tutorialPlane.get());
 	}
-
+	lastCameraX = 0;
+	lastCameraY = 0;
+	//standardCameraQuat = getCameraRotation(); 
+	wantedCameraQuat = standardCameraQuat;
+	cameraX = 90.f;
+	cameraY = 0.f;
+	//menuCameraQuat = getCameraRotation(); 
+	currentCameraQuat = menuCameraQuat;
+	lastCameraQuat = standardCameraQuat;
 }
 
 int selectedOvenPosition(float x) {
@@ -5126,10 +5198,22 @@ void UpdateTutorial()
 		}
 		else
 		{
-			tutorialPlane->Remove<CMeshRenderer>();
-			tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
-			//std::cout << "showing: " << i << std::endl;
-			break;
+			if (tutorialSteps[i].getMaterialCreator()->getMaterial() != nothingTile.getMaterial()) {
+				tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+				tutorialPlane->Remove<CMeshRenderer>();
+				tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
+				//std::cout << "showing: " << i << std::endl;
+				break;
+			}
+			else
+			{
+				//tutorialPlane->Remove<CMeshRenderer>();
+				//tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
+				//std::cout << "showing: " << i << std::endl;
+				tutorialPlane->transform.m_scale = glm::vec3(0);
+				break;
+			}
+			
 			
 			
 			
