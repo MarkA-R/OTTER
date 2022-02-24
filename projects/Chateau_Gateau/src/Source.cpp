@@ -148,6 +148,7 @@ std::vector<glm::vec3> cameraKeys = std::vector<glm::vec3>();
 
 std::vector<MaterialCreator*> registerImages;
 Entity* ent_register;
+Entity* tablet;
 
 int ovenFrame = -1;
 std::vector<Mesh*> currentOvenFrames;
@@ -390,7 +391,7 @@ glm::vec3 lastCarPos = glm::vec3(-15, -1.9, 10);
 Entity* customerLine[3];
 std::vector<Entity*> customers;
 float lastActionTime = 0.f;
-
+std::vector<MaterialCreator*> tabletMats;
 
 float currentGameTime = 0;
 int difficulty = 1;
@@ -580,12 +581,18 @@ int main()
 	MaterialCreator boothMat = MaterialCreator();
 	boothMat.createMaterial("bakery/models/booth.gltf", "bakery/textures/boothTableTex.png", *prog_allLights);
 
-	MaterialCreator tabletMat = MaterialCreator();
-	tabletMat.createMaterial("bakery/models/tablet.gltf", "bakery/textures/TexTablet.png", *prog_allLights);
-
+	MaterialCreator tabletMat0 = MaterialCreator();
+	tabletMat0.createMaterial("bakery/models/tablet.gltf", "bakery/textures/tablet0.png", *prog_allLights);
+	MaterialCreator tabletMat1 = MaterialCreator();
+	tabletMat1.createMaterial("bakery/models/tablet.gltf", "bakery/textures/tablet1.png", *prog_allLights);
+	MaterialCreator tabletMat2 = MaterialCreator();
+	tabletMat2.createMaterial("bakery/models/tablet.gltf", "bakery/textures/tablet2.png", *prog_allLights);
+	tabletMats.push_back(&tabletMat0);
+	tabletMats.push_back(&tabletMat1);
+	tabletMats.push_back(&tabletMat2);
 	MaterialCreator trayMat = MaterialCreator();
 	trayMat.createMaterial("bakery/models/tray.gltf", "bakery/textures/tray.png", *prog_allLights);
-
+	
 	MaterialCreator fridgeClosedMat = MaterialCreator();
 	fridgeClosedMat.createMaterial("bakery/models/closedFridge.gltf", "bakery/textures/fridgeTexture.png", *prog_morph);
 
@@ -957,13 +964,13 @@ int main()
 
 	renderingEntities.push_back(&booth);
 
-	Entity tablet = Entity::Create();
-	tablet.Add<CMeshRenderer>(tablet, *tabletMat.getMesh(), *tabletMat.getMaterial());
-	tablet.transform.m_scale = glm::vec3(0.45f, 0.45f, 0.45f);
-	tablet.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tablet.transform.m_pos = glm::vec3(-0.6, -2.59, -2.29f);
+	tablet = Entity::Allocate().release();
+	tablet->Add<CMeshRenderer>(*tablet, *tabletMat0.getMesh(), *tabletMat0.getMaterial());
+	tablet->transform.m_scale = glm::vec3(0.630);
+	tablet->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tablet->transform.m_pos = glm::vec3(-0.750, -1.180, -2.190);
 
-	renderingEntities.push_back(&tablet);
+	renderingEntities.push_back(tablet);
 
 	Entity counter = Entity::Create();
 	counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
@@ -1789,7 +1796,7 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
-		
+		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
 		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
@@ -1805,9 +1812,9 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		
-		tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
-		tablet.transform.m_scale = glm::vec3(tempD);
+		*/
+		//tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
+		//tablet.transform.m_scale = glm::vec3(tempD);
 		
 		
 
@@ -2389,7 +2396,7 @@ int main()
 						}
 
 					}
-					
+					tutorialPlane->transform.m_pos = glm::vec3(-20);
 					if (isInContinueMenu) {
 
 						isInContinueMenu = false;
@@ -2538,7 +2545,42 @@ int main()
 						for (int i = 0; i < 6; i++) {
 							numberEntities[i]->transform.m_pos = beginingNumberPos[i];
 						}
+						if (shouldShowTutorial) {//YES
+							shouldShowTutorial = true;
+							
+							bakeryUtils::setRoundsLasted(0);
+							int slot = 0;
+							trayPastry[slot] = Entity::Allocate().release();
+							trayPastry[slot]->Add<CMeshRenderer>(*trayPastry[slot], *burntMat.getMesh(), *burntMat.getMaterial());
+							trayPastry[slot]->Add<Pastry>();
+							trayPastry[slot]->Get<Pastry>().setType(bakeryUtils::pastryType::BURNT);
+							trayPastry[slot]->Get<Pastry>().setCookedSeconds(bakeryUtils::returnBurnTime());
+							trayPastry[slot]->Add<Transparency>(*trayPastry[slot]);
+							trayPastry[slot]->Get<Transparency>().setTransparency(1.f);
+							trayPastry[slot]->Get<Transparency>().setWantedTransparency(0.f);
+							trayPastry[slot]->Get<Transparency>().setTime(0.2);
 
+
+							trayPastry[slot]->transform.m_scale = glm::vec3(0.009f, 0.009f, 0.009f);
+							trayPastry[slot]->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+							//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl; 
+
+							trayPastry[slot]->transform.m_pos = glm::vec3(-20);
+							trayPastry[slot]->Get<Pastry>().setInOven(true);
+							ovenScript->canAdd(trayPastry[0], 0);
+
+
+							trayPastry[0] = nullptr;
+							//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl; 
+
+						}
+						else {//NO
+							
+							bakeryUtils::setRoundsLasted(0);
+							//bakeryUtils::setDifficulty(4);
+
+						}
 
 						isCameraMoving = true;
 						isInPauseMenu = false;
@@ -2653,6 +2695,10 @@ int main()
 		}
 
 		if (isInContinueMenu) {
+			tutorialPlane->transform.m_pos = glm::vec3(-20);
+			if (isInRendering(tutorialPlane.get())) {
+				removeFromRendering(tutorialPlane.get());
+			}
 			//std::cout << static_cast<int>(floor(static_cast<float>(receiptT * 100.f))) << std::endl; 
 			if ((static_cast<int>(floor(static_cast<float>(receiptT * 100.f))) % 2 == 0) && receiptStopT < 1
 				&& receiptT >= 0.8 && receiptT <= 0.9) {
@@ -2800,6 +2846,7 @@ int main()
 			if (isPaused) {
 				removeFromRendering(&tray);
 				removeFromRendering(tutorialPlane.get());
+				tutorialPlane->transform.m_pos = glm::vec3(-20);
 				removeFromRendering(&cursor);
 				for (int i = 0; i < 4; i++) {
 					removeFromRendering(accessEntities[i]);
@@ -2840,6 +2887,7 @@ int main()
 		}
 		if (!isPaused) {
 			//std::cout << isPaused << std::endl; 
+			tutorialPlane->transform.m_pos = glm::vec3(-20);
 			timeSinceClickedSpace += deltaTime;
 			if (isClickingSpace && timeSinceClickedSpace >= 1) {
 				
@@ -3159,7 +3207,7 @@ int main()
 			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 			* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//glm::inverse(cursor.transform.m_rotation); 
 
-		
+		//tutorialPlane->transform.SetParent(&globalCameraEntity->transform);
 		
 		//tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f)) 
@@ -4079,6 +4127,9 @@ int main()
 				) {//|| currentOrders.size() == 1 
 				setTutorialChange(15);
 				UpdateTutorial();
+				tablet->Remove<CMeshRenderer>();
+				tablet->Add<CMeshRenderer>(*tablet, *tabletMats[1]->getMesh(), *tabletMats[1]->getMaterial());
+
 				//std::cout << "JJJ" << std::endl; 
 				createNewOrder(1, false, false);
 				//orderBubbleTimers.push_back(&upurrTimer1); 
@@ -4095,6 +4146,8 @@ int main()
 			//std::cout << bakeryUtils::getRoundsLasted() << " " << bakeryUtils::getDifficulty() << std::endl; 
 			if ((bakeryUtils::getRoundsLasted() >= 10 && bakeryUtils::getDifficulty() >= 3 && currentOrders.size() == 2)
 				) {//|| currentOrders.size() == 2 
+				tablet->Remove<CMeshRenderer>();
+				tablet->Add<CMeshRenderer>(*tablet, *tabletMats[2]->getMesh(), *tabletMats[2]->getMaterial());
 				setTutorialChange(18);
 				UpdateTutorial();
 				//std::cout << "JJJ" << std::endl; 
@@ -5047,12 +5100,13 @@ void restartGame() {
 	bakeryUtils::setTime(0);
 	bakeryUtils::setOrdersFailed(0);
 	bakeryUtils::setRoundsLasted(0);
-	if (getHighscore() > 4) {
-		shouldShowTutorial = false;
-	}
+	tablet->Remove<CMeshRenderer>();
+	tablet->Add<CMeshRenderer>(*tablet, *tabletMats[0]->getMesh(), *tabletMats[0]->getMaterial());
+	
 	tutorialPos = 0;
 	
 	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+	
 	for (int i = 0; i < tutorialSteps.size(); i++) {
 		tutorialSteps[i].setContinueState(false);
 	}
@@ -5153,6 +5207,7 @@ void restartGame() {
 	if (shouldShowTutorial) {
 		renderingEntities.push_back(tutorialPlane.get());
 	}
+	tutorialPlane->transform.m_pos = glm::vec3(-20);
 	lastCameraX = 0;
 	lastCameraY = 0;
 	//standardCameraQuat = getCameraRotation(); 

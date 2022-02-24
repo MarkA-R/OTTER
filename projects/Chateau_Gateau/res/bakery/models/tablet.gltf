@@ -8,55 +8,13 @@
         {
             "name" : "Scene",
             "nodes" : [
-                0,
-                1,
-                2
+                0
             ]
         }
     ],
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Cube.001",
-            "rotation" : [
-                0.5,
-                0.5,
-                0.4999999701976776,
-                0.5
-            ],
-            "scale" : [
-                0.01049147266894579,
-                0.29897502064704895,
-                0.4852481186389923
-            ],
-            "translation" : [
-                0,
-                0.8820641040802002,
-                0
-            ]
-        },
-        {
-            "mesh" : 1,
-            "name" : "Cube.002",
-            "rotation" : [
-                0.28780901432037354,
-                0.6458838582038879,
-                0.2878090441226959,
-                0.6458838582038879
-            ],
-            "scale" : [
-                0.01036818977445364,
-                0.27244019508361816,
-                -0.07580213993787766
-            ],
-            "translation" : [
-                -0.3843807578086853,
-                1.079361915588379,
-                -0.02629639208316803
-            ]
-        },
-        {
-            "mesh" : 2,
             "name" : "TabletAll"
         }
     ],
@@ -75,7 +33,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Cube.001",
+            "name" : "Cube.003",
             "primitives" : [
                 {
                     "attributes" : {
@@ -83,33 +41,7 @@
                         "NORMAL" : 1,
                         "TEXCOORD_0" : 2
                     },
-                    "indices" : 3
-                }
-            ]
-        },
-        {
-            "name" : "Cube.002",
-            "primitives" : [
-                {
-                    "attributes" : {
-                        "POSITION" : 4,
-                        "NORMAL" : 5,
-                        "TEXCOORD_0" : 6
-                    },
-                    "indices" : 7
-                }
-            ]
-        },
-        {
-            "name" : "Cube.003",
-            "primitives" : [
-                {
-                    "attributes" : {
-                        "POSITION" : 8,
-                        "NORMAL" : 9,
-                        "TEXCOORD_0" : 10
-                    },
-                    "indices" : 11,
+                    "indices" : 3,
                     "material" : 0
                 }
             ]
@@ -132,74 +64,6 @@
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 48,
-            "max" : [
-                1.0000008344650269,
-                1,
-                1
-            ],
-            "min" : [
-                -1.0000005960464478,
-                -1,
-                -1
-            ],
-            "type" : "VEC3"
-        },
-        {
-            "bufferView" : 1,
-            "componentType" : 5126,
-            "count" : 48,
-            "type" : "VEC3"
-        },
-        {
-            "bufferView" : 2,
-            "componentType" : 5126,
-            "count" : 48,
-            "type" : "VEC2"
-        },
-        {
-            "bufferView" : 3,
-            "componentType" : 5123,
-            "count" : 84,
-            "type" : "SCALAR"
-        },
-        {
-            "bufferView" : 4,
-            "componentType" : 5126,
-            "count" : 24,
-            "max" : [
-                1,
-                1,
-                1
-            ],
-            "min" : [
-                -1,
-                -1,
-                -1
-            ],
-            "type" : "VEC3"
-        },
-        {
-            "bufferView" : 5,
-            "componentType" : 5126,
-            "count" : 24,
-            "type" : "VEC3"
-        },
-        {
-            "bufferView" : 6,
-            "componentType" : 5126,
-            "count" : 24,
-            "type" : "VEC2"
-        },
-        {
-            "bufferView" : 7,
-            "componentType" : 5123,
-            "count" : 36,
-            "type" : "SCALAR"
-        },
-        {
-            "bufferView" : 8,
-            "componentType" : 5126,
             "count" : 212,
             "max" : [
                 0.4782654345035553,
@@ -214,19 +78,19 @@
             "type" : "VEC3"
         },
         {
-            "bufferView" : 9,
+            "bufferView" : 1,
             "componentType" : 5126,
             "count" : 212,
             "type" : "VEC3"
         },
         {
-            "bufferView" : 10,
+            "bufferView" : 2,
             "componentType" : 5126,
             "count" : 212,
             "type" : "VEC2"
         },
         {
-            "bufferView" : 11,
+            "bufferView" : 3,
             "componentType" : 5123,
             "count" : 348,
             "type" : "SCALAR"
@@ -235,43 +99,8 @@
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 576,
+            "byteLength" : 2544,
             "byteOffset" : 0
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 576,
-            "byteOffset" : 576
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 384,
-            "byteOffset" : 1152
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 168,
-            "byteOffset" : 1536
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 288,
-            "byteOffset" : 1704
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 288,
-            "byteOffset" : 1992
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 192,
-            "byteOffset" : 2280
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 72,
-            "byteOffset" : 2472
         },
         {
             "buffer" : 0,
@@ -280,18 +109,13 @@
         },
         {
             "buffer" : 0,
-            "byteLength" : 2544,
+            "byteLength" : 1696,
             "byteOffset" : 5088
         },
         {
             "buffer" : 0,
-            "byteLength" : 1696,
-            "byteOffset" : 7632
-        },
-        {
-            "buffer" : 0,
             "byteLength" : 696,
-            "byteOffset" : 9328
+            "byteOffset" : 6784
         }
     ],
     "samplers" : [
@@ -302,7 +126,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 10024,
+            "byteLength" : 7480,
             "uri" : "tablet.bin"
         }
     ]

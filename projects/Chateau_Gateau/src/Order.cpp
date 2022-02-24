@@ -30,37 +30,18 @@ void Order::createOrder(int difficulty)
 		difficulty = 4;
 	}
 	
-	int pastryDifficulty = difficulty;
-	if (difficulty == 4) {
-		pastryDifficulty = 3;
-	}
-	//int random = (rand() % (difficulty)) + 1;
-	int random = 0;
-	float randomPastry = rand();
-	randomPastry = randomPastry / 4 - pastryDifficulty;
-	if (randomPastry <= 0.4) {
-		random = 1;
-	}
-	else if (randomPastry > 0.4 && randomPastry <= 0.7)
-	{
-		random = 2;
-	}
-	else if (randomPastry > 0.7 && randomPastry <= 0.9)
-	{
-		random = 3;
-	}
-	else if (randomPastry > 0.9 && randomPastry <= 1)
-	{
-		random = 4;
-	}
-	/*
+	
+	int random = (rand() % (difficulty)) + 1;
+	
+	
+	
 	if (random > 4) {
 		random = 4;
 	}
 	if (random < 1) {
 		random = 1;
 	}
-	*/
+	
 
 	int fillingRand = (rand() % 3) + 1;
 	int toppingRand = (rand() % 3) + 1;
