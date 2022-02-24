@@ -620,17 +620,17 @@ int main()
 	fillingFrames.push_back(fillingMat2.getMesh().get());
 
 	MaterialCreator barMat1 = MaterialCreator();
-	barMat1.createMaterial("bakery/models/bar1.gltf", "bakery/textures/bar.png", *prog_morph);
+	barMat1.createMaterial("bakery/models/fillbar1.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
 	MaterialCreator barMat2 = MaterialCreator();
-	barMat2.createMaterial("bakery/models/bar2.gltf", "bakery/textures/bar.png", *prog_morph);
+	barMat2.createMaterial("bakery/models/fillbar2.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
 
 
 
 	MaterialCreator drinkMat1 = MaterialCreator();//for morphs 
-	drinkMat1.createMaterial("bakery/models/drinkMachine1.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
+	drinkMat1.createMaterial("bakery/models/drinkMachineClosed.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
 
 	MaterialCreator drinkMat2 = MaterialCreator();//for morphs 
-	drinkMat2.createMaterial("bakery/models/drinkMachine2.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
+	drinkMat2.createMaterial("bakery/models/drinkMachineOpen.gltf", "bakery/textures/drinkMachine.png", *prog_morph);
 
 
 
@@ -1083,16 +1083,24 @@ int main()
 	filling.Get<FillingMachine>().setTransform(fillTransform);
 	
 
+	Entity tester = Entity::Create();
+	tester.Add<CMeshRenderer>(tester, *cursorMat.getMesh(), *cursorMat.getMaterial());
+	//cursorScale = glm::vec3(0.001f, 0.001f, 0.001f);
+	tester.transform.m_scale = glm::vec3(0.1f, 0.1f, 0.1f);
+	tester.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	tester.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
+	//renderingEntities.push_back(&tester);
+
 	Entity drink = Entity::Create();
 	drink.Add<CMorphMeshRenderer>(drink, *drinkMat1.getMesh(), *drinkMat1.getMaterial());
 
 	drink.Add<Machine>();
 	drink.Add<DrinkMachine>();
 	drink.Add<Transparency>(drink);
-	drink.transform.m_scale = glm::vec3(0.3f, 1.f, 0.3f);
-	drink.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	drink.transform.m_pos = glm::vec3(-0.9f, -1.0f, 2.0f);
-	drink.Add<BoundingBox>(glm::vec3(0.32, 2, 0.35), filling);
+	drink.transform.m_scale = glm::vec3(0.370);
+	drink.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	drink.transform.m_pos = glm::vec3(-0.900, -1.900, 2.0f);
+	drink.Add<BoundingBox>(glm::vec3(0.32, 2, 0.35), drink);//filling????
 	glm::vec3 drinkPos = drink.transform.m_pos;
 	drink.Get<BoundingBox>().setOrigin(glm::vec3(drinkPos.x - 0.0, drinkPos.y, drinkPos.z));
 	renderingEntities.push_back(&drink);
@@ -1101,20 +1109,23 @@ int main()
 	animatordrink.SetFrameTime(1.0f);
 	animatordrink.SetFrames(drinkFrames);
 
-	Transform drinkBarPos = drink.transform;
-	drinkBarPos.m_pos.z -= 0.65;
-	drinkBarPos.m_pos.y += 0.7;
-	drinkBarPos.m_pos.x += 0.1;
-	drinkBarPos.m_scale = glm::vec3(0.05, 0.5, 0.1);
-	//drinkBarPos.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f)); 
+	Transform drinkBarPos = Transform();
+	drinkBarPos.m_pos.z = 1.900;
+	drinkBarPos.m_pos.y = -1.770;
+	drinkBarPos.m_pos.x = -0.960;
+	drinkBarPos.m_scale = glm::vec3(0.340);
+	drinkBarPos.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f)); 
 
 	FillBar drinkFill;
 	drinkFill.setup(barMat1, barMat2, drinkBarPos);
-	Transform outDrinkTrans = drink.transform;
-	outDrinkTrans.m_pos.z -= 0.3;
-	outDrinkTrans.m_pos.y -= 0.05;
-	Transform inDrinkTrans = drink.transform;
-	inDrinkTrans.m_pos.y -= 0.05;
+	Transform outDrinkTrans = Transform();
+	outDrinkTrans.m_pos.z = 1.700;
+	outDrinkTrans.m_pos.y = -0.840;
+	outDrinkTrans.m_pos.x = -1.000;
+	Transform inDrinkTrans = Transform();
+	inDrinkTrans.m_pos.z = 2.000;
+	inDrinkTrans.m_pos.y = -0.840;
+	inDrinkTrans.m_pos.x = -1.000;
 	drink.Get<DrinkMachine>().setTransform(inDrinkTrans, outDrinkTrans);
 	drink.Get<DrinkMachine>().setup(&coffeeTile, &milkshakeTile, &teaTile, &drinkFill);
 	drinkFill.getEntity()->Add<Transparency>(*drinkFill.getEntity());
@@ -1126,11 +1137,11 @@ int main()
 	Entity drinkPlane = Entity::Create();
 	drinkPlane.Add<CMeshRenderer>(drinkPlane, *coffeeTile.getMesh(), *coffeeTile.getMaterial());
 	drinkPlane.Add<Transparency>(drinkPlane);
-	drinkPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
+	drinkPlane.transform.m_scale = glm::vec3(0.20f, 0.20f, 0.20f);
 	drinkPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
 	glm::vec3 drinkTilePos = drink.transform.m_pos;
-	drinkPlane.transform.m_pos = glm::vec3(drinkTilePos.x - 0.1, drinkTilePos.y + 0.8, drinkTilePos.z - 0.5);
+	drinkPlane.transform.m_pos = glm::vec3(-1.010, 0.020, 1.500);
 	renderingEntities.push_back(&drinkPlane);
 	drink.Get<DrinkMachine>().setDrinkPlane(&drinkPlane);
 
@@ -1796,15 +1807,15 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
-		/*
+		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		//ImGui::DragFloat("X", &(bakeryTop.transform.m_pos.x), 0.1f);
-		//ImGui::DragFloat("Y", &(bakeryTop.transform.m_pos.y), 0.1f);
-		//ImGui::DragFloat("Z", &(bakeryTop.transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("X", &(tempA), 0.01f);
-		ImGui::DragFloat("Y", &(tempB), 0.01f);
-		ImGui::DragFloat("Z", &(tempC), 0.01f);
+		ImGui::DragFloat("X", &(inDrinkTrans.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(inDrinkTrans.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(inDrinkTrans.m_pos.z), 0.1f);
+		ImGui::DragFloat("A", &(tempA), 0.01f);
+		//ImGui::DragFloat("B", &(tempB), 0.01f);
+		//ImGui::DragFloat("C", &(tempC), 0.01f);
 		ImGui::DragFloat("S", &(tempD), 0.01f);
 
 
@@ -1812,10 +1823,12 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		*/
-		//tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
-		//tablet.transform.m_scale = glm::vec3(tempD);
 		
+		//tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
+		tester.transform.m_scale = glm::vec3(tempD);
+		tester.transform.m_pos = inDrinkTrans.m_pos;
+		//drinkFill.getEntity()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f));
+
 		
 
 		bool keepCheckingRaycast = true;
@@ -2889,7 +2902,7 @@ int main()
 			//std::cout << isPaused << std::endl; 
 			tutorialPlane->transform.m_pos = glm::vec3(-20);
 			timeSinceClickedSpace += deltaTime;
-			if (isClickingSpace && timeSinceClickedSpace >= 1) {
+			if (isClickingSpace && timeSinceClickedSpace >= 0.25) {
 				
 				nextStepTutorialIfNeeded();
 				UpdateTutorial();
@@ -3862,7 +3875,7 @@ int main()
 							drinkScript.addFill((deltaTime / bakeryUtils::getDrinkFillAmount()) * 2);//*2 because it only goes every other frame cause of the last action time check up top 
 							drinkScript.getFillBar()->setT(drinkScript.getFill());
 							drinkScript.getFillBar()->updateArrow();
-
+							//std::cout << drinkScript.getFill() << std::endl;
 						}
 						else if (scrollY != 0) {
 							lastActionTime = 0;
@@ -3871,7 +3884,7 @@ int main()
 						}
 						else
 						{
-							if (drinkScript.getFill() > 0.9f && drinkScript.getFill() < 1.05f
+							if (drinkScript.getFill() > 0.80f && drinkScript.getFill() < 1.05f
 								&& (!drinkScript.isOpening || !drinkScript.isClosing)) {
 
 								drinkScript.isOpening = true;
@@ -4104,7 +4117,9 @@ int main()
 		if (addedSlot >= 0) {
 			renderingEntities.push_back(trayPastry[addedSlot]);
 		}
-
+		if (isPaused) {
+			tutorialPlane->transform.m_pos = glm::vec3(-20);
+		}
 		if (orderBubblesToRemove.size() > 0) {
 
 

@@ -8,67 +8,32 @@
         {
             "name" : "Scene",
             "nodes" : [
-                0,
-                1,
-                2
+                0
             ]
         }
     ],
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Cube",
-            "scale" : [
-                0.359078586101532,
-                1,
-                0.359078586101532
-            ]
-        },
-        {
-            "name" : "Light",
-            "rotation" : [
-                0.16907575726509094,
-                0.7558803558349609,
-                -0.27217137813568115,
-                0.570947527885437
-            ],
-            "translation" : [
-                4.076245307922363,
-                5.903861999511719,
-                -1.0054539442062378
-            ]
-        },
-        {
-            "name" : "Camera",
-            "rotation" : [
-                0.483536034822464,
-                0.33687159419059753,
-                -0.20870360732078552,
-                0.7804827094078064
-            ],
-            "translation" : [
-                7.358891487121582,
-                4.958309173583984,
-                6.925790786743164
-            ]
+            "name" : "Cube.007"
         }
     ],
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Material",
+            "name" : "Material.003",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
                 },
                 "metallicFactor" : 0,
-                "roughnessFactor" : 0.4000000059604645
+                "roughnessFactor" : 0.5
             }
         }
     ],
     "meshes" : [
         {
-            "name" : "Cube",
+            "name" : "Cube.004",
             "primitives" : [
                 {
                     "attributes" : {
@@ -91,23 +56,23 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "Untitled",
-            "uri" : "Untitled.png"
+            "name" : "DrinkMachine",
+            "uri" : "DrinkMachine.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 110,
+            "count" : 152,
             "max" : [
                 1,
-                1,
+                6.099999904632568,
                 1
             ],
             "min" : [
                 -1,
-                -1,
+                0,
                 -1
             ],
             "type" : "VEC3"
@@ -115,42 +80,42 @@
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 110,
+            "count" : 152,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 110,
+            "count" : 152,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 204,
+            "count" : 258,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 1320,
+            "byteLength" : 1824,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 1320,
-            "byteOffset" : 1320
+            "byteLength" : 1824,
+            "byteOffset" : 1824
         },
         {
             "buffer" : 0,
-            "byteLength" : 880,
-            "byteOffset" : 2640
+            "byteLength" : 1216,
+            "byteOffset" : 3648
         },
         {
             "buffer" : 0,
-            "byteLength" : 408,
-            "byteOffset" : 3520
+            "byteLength" : 516,
+            "byteOffset" : 4864
         }
     ],
     "samplers" : [
@@ -161,8 +126,8 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 3928,
-            "uri" : "drinkMachine2.bin"
+            "byteLength" : 5380,
+            "uri" : "drinkMachineClosed.bin"
         }
     ]
 }

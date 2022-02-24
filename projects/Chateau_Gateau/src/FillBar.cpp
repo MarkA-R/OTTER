@@ -43,16 +43,16 @@ void FillBar::setup(MaterialCreator& bottom, MaterialCreator& top, Transform pos
 
 	bar = Entity::Allocate();
 	bar.get()->Add<CMorphMeshRenderer>(*bar, *bottom.getMesh(), *bottom.getMaterial());
-	
-	bar.get()->transform.SetParent(&position);
-	bar.get()->transform.m_rotation = position.m_rotation;
+	bar->transform = position;
+	//bar.get()->transform.SetParent(&position);
+	//bar.get()->transform.m_rotation = position.m_rotation;
 	/*
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));// *
 		//;
 		*/
-	bar.get()->transform.m_scale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
-	bar.get()->transform.m_pos = position.m_pos;
+	//bar.get()->transform.m_scale = glm::vec3(1.0, 1.0, 1.0) * transformScale;
+	//bar.get()->transform.m_pos = position.m_pos;
 	
 	auto& animator = bar.get()->Add<CMorphAnimator>(*bar.get());
 	animator.SetFrameTime(1.0f);
