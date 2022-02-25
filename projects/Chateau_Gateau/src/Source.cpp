@@ -2000,13 +2000,14 @@ int main()
 
 					trayPastry[0] = nullptr;
 					//std::cout << traySlot[slot].m_pos.x << " " << traySlot[slot].m_pos.y << " " << traySlot[slot].m_pos.z << std::endl; 
-
+					tutorialMultiplier = 1;
 				}
 				else if (tutorialMenuChosen == 1) {//NO
 					shouldShowTutorial = false;
 					isInMainMenu = true;
 					isInTutorialMenu = false;
 					bakeryUtils::setRoundsLasted(0);
+					tutorialMultiplier = 0;
 					//bakeryUtils::setDifficulty(4);
 
 				}
@@ -5153,9 +5154,16 @@ void restartGame() {
 	tablet->Add<CMeshRenderer>(*tablet, *tabletMats[0]->getMesh(), *tabletMats[0]->getMaterial());
 	
 	tutorialPos = 0;
-	tutorialMultiplier = 1;
+	if (shouldShowTutorial) {
+		tutorialMultiplier = 1;
+	}
+	else
+	{
+		tutorialMultiplier = 0;
+	}
+	
 	//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
-	tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+	tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05))*tutorialMultiplier);
 
 	
 	for (int i = 0; i < tutorialSteps.size(); i++) {
@@ -5332,8 +5340,15 @@ void UpdateTutorial()
 	if (amountSkipped == tutorialSteps.size()) {
 		//tutorialPlane->transform.m_pos.y = 5;
 		//std::cout << "STOP" << std::endl;
-		removeFromRendering(tutorialPlane.get());
+		//removeFromRendering(tutorialPlane.get());
+		tutorialPlane->transform.m_scale = glm::vec3(0);
+		tutorialMultiplier = 0;
 		shouldShowTutorial = false;
+	}
+
+	if (!shouldShowTutorial) {
+		tutorialPlane->transform.m_scale = glm::vec3(0);
+		tutorialMultiplier = 0;
 	}
 
 
