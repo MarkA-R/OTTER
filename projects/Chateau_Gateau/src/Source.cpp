@@ -1159,7 +1159,7 @@ int main()
 	Entity drinkPlane = Entity::Create();
 	drinkPlane.Add<CMeshRenderer>(drinkPlane, *coffeeTile.getMesh(), *coffeeTile.getMaterial());
 	drinkPlane.Add<Transparency>(drinkPlane);
-	drinkPlane.transform.m_scale = glm::vec3(0.20f, 0.20f, 0.20f);
+	drinkPlane.transform.m_scale = glm::vec3(0.15f, 0.15f, 0.15f);
 	drinkPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
 	glm::vec3 drinkTilePos = drink.transform.m_pos;
@@ -5261,6 +5261,8 @@ void restartGame() {
 	wantedCameraQuat = standardCameraQuat;
 	cameraX = 90.f;
 	cameraY = 0.f;
+	xPos = 0;
+	yPos = 0;
 	//menuCameraQuat = getCameraRotation(); 
 	currentCameraQuat = menuCameraQuat;
 	lastCameraQuat = standardCameraQuat;
