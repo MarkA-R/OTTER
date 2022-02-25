@@ -363,6 +363,8 @@ int tutorialPos = 0;
 int tutorialImage = 0;
 std::vector<float> tutorialPeriods;
 bool shouldShowTutorial = true;
+float tutorialMultiplier = 1;
+
 
 std::vector<std::vector<MaterialCreator*>> pastryMats;
 /*0,0 = croissant plain (with topping enum 0)
@@ -3338,7 +3340,7 @@ int main()
 		}
 
 		//sneaking this here since its important to only do it when the game is running
-		tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+		tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05))*tutorialMultiplier);
 
 		for each (Entity * e in UIEntities) {
 			if (e->Has<Transparency>()) {
@@ -5300,7 +5302,8 @@ void UpdateTutorial()
 		{
 			if (tutorialSteps[i].getMaterialCreator()->getMaterial() != nothingTile.getMaterial()) {
 				//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
-				tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+				//tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+				tutorialMultiplier = 1;
 				tutorialPlane->Remove<CMeshRenderer>();
 				tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
 				//std::cout << "showing: " << i << std::endl;
@@ -5311,7 +5314,9 @@ void UpdateTutorial()
 				//tutorialPlane->Remove<CMeshRenderer>();
 				//tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
 				//std::cout << "showing: " << i << std::endl;
-				tutorialPlane->transform.m_scale = glm::vec3(0);
+				//tutorialPlane->transform.m_scale = glm::vec3(0);
+				tutorialMultiplier = 0;
+
 				break;
 			}
 			
