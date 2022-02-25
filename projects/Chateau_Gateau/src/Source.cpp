@@ -575,6 +575,9 @@ int main()
 	MaterialCreator fridgePosterMat = MaterialCreator();
 	fridgePosterMat.createMaterial("bakery/models/poster.gltf", "bakery/textures/fridge poster.png", *prog_UI);
 
+	MaterialCreator ovenPosterMat = MaterialCreator();
+	ovenPosterMat.createMaterial("bakery/models/poster.gltf", "bakery/textures/oven poster.png", *prog_UI);
+
 	MaterialCreator chairsMat = MaterialCreator();
 	chairsMat.createMaterial("bakery/models/chairTable.gltf", "bakery/textures/texTable.png", *prog_allLights);
 
@@ -908,8 +911,24 @@ int main()
 
 
 
+	Entity fridgePoster = Entity::Create();
+	fridgePoster.Add<CMeshRenderer>(fridgePoster, *fridgePosterMat.getMesh(), *fridgePosterMat.getMaterial());
+	fridgePoster.transform.m_scale = glm::vec3(1.270);
+	fridgePoster.transform.m_pos = glm::vec3(-3.700, -0.10, -1.090);
+	fridgePoster.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
+	renderingEntities.push_back(&fridgePoster);
 
-	
+	Entity ovenPoster = Entity::Create();
+	ovenPoster.Add<CMeshRenderer>(ovenPoster, *ovenPosterMat.getMesh(), *ovenPosterMat.getMaterial());
+	ovenPoster.transform.m_scale = glm::vec3(1.270);
+	ovenPoster.transform.m_pos = glm::vec3(1.700, -0.090, -1.090);
+	ovenPoster.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
+	renderingEntities.push_back(&ovenPoster);
+
 	//MorphAnimation flowerAnimation = MorphAnimation(flowerAnim, 0.5); 
 	//renderingEntities.push_back(&vase);
 
@@ -985,10 +1004,10 @@ int main()
 	bin.Add<CMeshRenderer>(bin, *binMat.getMesh(), *binMat.getMaterial());
 	bin.Add<Machine>();
 	bin.Add<TrashCan>();
-	bin.transform.m_scale = glm::vec3(0.2f, 0.5f, 0.2f);
+	bin.transform.m_scale = glm::vec3(0.530);
 	bin.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	bin.transform.m_pos = glm::vec3(-3.f, -1.3, -1.3);
-	bin.Add<BoundingBox>(glm::vec3(0.2, 1, 0.3), bin);
+	bin.transform.m_pos = glm::vec3(-3.f, -1.500, -1.200);
+	bin.Add<BoundingBox>(glm::vec3(0.3, 1, 0.3), bin);
 	renderingEntities.push_back(&bin);
 	//	std::cout << bin.Get<BoundingBox>().getOrigin().x << " " << bin.Get<BoundingBox>().getOrigin().y << 
 		//	" " << bin.Get<BoundingBox>().getOrigin().z << std::endl; 
@@ -1807,15 +1826,15 @@ int main()
 		prog_morph.get()->SetUniform("ambientPower", 0.4f);
 
 
-		
+		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(inDrinkTrans.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(inDrinkTrans.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(inDrinkTrans.m_pos.z), 0.1f);
+		ImGui::DragFloat("X", &(ovenPoster.transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(ovenPoster.transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(ovenPoster.transform.m_pos.z), 0.1f);
 		ImGui::DragFloat("A", &(tempA), 0.01f);
-		//ImGui::DragFloat("B", &(tempB), 0.01f);
-		//ImGui::DragFloat("C", &(tempC), 0.01f);
+		ImGui::DragFloat("B", &(tempB), 0.01f);
+		ImGui::DragFloat("C", &(tempC), 0.01f);
 		ImGui::DragFloat("S", &(tempD), 0.01f);
 
 
@@ -1823,10 +1842,15 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
+		*/
+		//ovenPoster.transform.m_scale = glm::vec3(tempD);
 		
+		//ovenPoster.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		//	glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f))
+		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));//0 
 		//tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
-		tester.transform.m_scale = glm::vec3(tempD);
-		tester.transform.m_pos = inDrinkTrans.m_pos;
+		//bin.transform.m_scale = glm::vec3(tempD);
+		//tester.transform.m_pos = inDrinkTrans.m_pos;
 		//drinkFill.getEntity()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		
