@@ -1008,9 +1008,11 @@ int main()
 	bin.Add<Machine>();
 	bin.Add<TrashCan>();
 	bin.transform.m_scale = glm::vec3(0.530);
-	bin.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	bin.transform.m_rotation = glm::angleAxis(glm::radians(55.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	bin.transform.m_pos = glm::vec3(-3.f, -1.500, -1.200);
-	bin.Add<BoundingBox>(glm::vec3(0.3, 1, 0.3), bin);
+	bin.Add<BoundingBox>(glm::vec3(1.0, 1, 1.0), bin);
+	glm::vec3 binOrigin = bin.transform.m_pos;
+	bin.Get<BoundingBox>().setOrigin(glm::vec3(binOrigin.x, binOrigin.y, binOrigin.z-0.4));
 	renderingEntities.push_back(&bin);
 	//	std::cout << bin.Get<BoundingBox>().getOrigin().x << " " << bin.Get<BoundingBox>().getOrigin().y << 
 		//	" " << bin.Get<BoundingBox>().getOrigin().z << std::endl; 
