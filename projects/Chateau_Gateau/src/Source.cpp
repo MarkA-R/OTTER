@@ -5151,7 +5151,7 @@ void restartGame() {
 	tablet->Add<CMeshRenderer>(*tablet, *tabletMats[0]->getMesh(), *tabletMats[0]->getMaterial());
 	
 	tutorialPos = 0;
-	
+	tutorialMultiplier = 1;
 	//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
 	tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
 
