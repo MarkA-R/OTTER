@@ -190,10 +190,10 @@ public:
        return drinkFillAmount;
    }
 protected:
-    inline static float timeToCroissant = 1;
-    inline static float timeToCookie = 2;
-    inline static float timeToCupcake = 3;
-    inline static float timeToCake = 5;
+    inline static float timeToCroissant = 10;
+    inline static float timeToCookie = 20;
+    inline static float timeToCupcake = 30;
+    inline static float timeToCake = 50;
     inline static float timeToBurn = 60;
     inline static float drinkFillAmount = 3.f;
     inline static float gameTime = 0;

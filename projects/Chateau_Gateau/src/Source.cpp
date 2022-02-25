@@ -212,6 +212,7 @@ int currentCameraPoint = 0;
 bool isCameraMoving = false;
 
 std::vector<Entity*> renderingEntities = std::vector<Entity*>();
+std::vector<Entity*> UIEntities = std::vector<Entity*>();
 Transform traySlot[4] = {};
 
 //std::unique_ptr<Entity> trayPastry[4] = {nullptr, nullptr, nullptr, nullptr}; 
@@ -1474,16 +1475,8 @@ int main()
 
 
 
-	tutorialPlane = Entity::Allocate();
-	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *dialogueList[0]->getMesh(), *dialogueList[0]->getMaterial());
-	//tutorialPlane->transform.m_pos = glm::vec3(0);
-	//tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//tutorialPlane->transform.m_scale = glm::vec3(0.25f * (UIScale + 0.05));
-	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
-	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
-
-	//renderingEntities.push_back(&tray); 
+	
+																											  //renderingEntities.push_back(&tray); 
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
 	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.0173;
@@ -1794,8 +1787,17 @@ int main()
 	drinkPlane.Get<Transparency>().setTransparency(0.5);
 	drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
 
-	//bakeryUtils::setDifficulty(4); 
-	//bakeryUtils::setRoundsLasted(6); 
+	//has to be defined after the settings get applied!
+	tutorialPlane = Entity::Allocate();
+	tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *dialogueList[0]->getMesh(), *dialogueList[0]->getMaterial());
+	tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+	tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 	//tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
+	tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x + 1.006, cameraPos.y + 0.497, cameraPos.z - 0.010);// 0.552 
+	UIEntities.push_back(tutorialPlane.get());
+
+	
 	auto endTime = std::chrono::high_resolution_clock::now();//measure end time 
 	auto timeTook = endTime - startTime;//calculate elapsed time 
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
@@ -1829,30 +1831,25 @@ int main()
 		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(ovenPoster.transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(ovenPoster.transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(ovenPoster.transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("A", &(tempA), 0.01f);
-		ImGui::DragFloat("B", &(tempB), 0.01f);
-		ImGui::DragFloat("C", &(tempC), 0.01f);
-		ImGui::DragFloat("S", &(tempD), 0.01f);
+		ImGui::DragFloat("X", &(tutorialPlane->transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(tutorialPlane->transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(tutorialPlane->transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("A", &(tempA), 0.001f);
+		ImGui::DragFloat("B", &(tempB), 0.001f);
+		ImGui::DragFloat("C", &(tempC), 0.001f);
+		ImGui::DragFloat("S", &(tempD), 0.001f);
 
 
 		//ImGui::DragFloat("Scale", &(sc), 0.1f);
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		*/
-		//ovenPoster.transform.m_scale = glm::vec3(tempD);
 		
-		//ovenPoster.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(1.0f, 0.0f, 0.0f)) *
-		//	glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f))
-		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));//0 
-		//tablet.transform.m_pos = glm::vec3(tempA,tempB, tempC);
-		//bin.transform.m_scale = glm::vec3(tempD);
-		//tester.transform.m_pos = inDrinkTrans.m_pos;
-		//drinkFill.getEntity()->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f));
-
+		tutorialPlane->transform.m_scale = glm::vec3(tempD * (UIScale + 0.05));
+		tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - tempA, cameraPos.y +tempB, cameraPos.z - tempC);// 0.552 
+		*/
+		
+		
 		
 
 		bool keepCheckingRaycast = true;
@@ -2013,7 +2010,7 @@ int main()
 				tray.transform.m_scale = trayScale;
 				tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 				tray.transform.m_pos = glm::vec3(cameraPos.x + 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552 
-				tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+				//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
 				if (isInRendering(tutorialPlane.get())) {
 					removeFromRendering(tutorialPlane.get());
 				}
@@ -2280,6 +2277,7 @@ int main()
 						isInTutorialMenu = true;
 						isInMainMenu = false;
 						tray.transform.SetParent(&cameraEntity.transform);
+						tutorialPlane->transform.SetParent(&cameraEntity.transform);
 						lastCameraX = 0;
 						lastCameraY = 0;
 						//standardCameraQuat = getCameraRotation(); 
@@ -2428,12 +2426,10 @@ int main()
 						if (isInRendering(tutorialPlane.get())) {
 							removeFromRendering(tutorialPlane.get());
 						}
-						if (shouldShowTutorial) {
-							renderingEntities.push_back(tutorialPlane.get());
-						}
+						
 
 					}
-					tutorialPlane->transform.m_pos = glm::vec3(-20);
+					//tutorialPlane->transform.m_pos = glm::vec3(-20);
 					if (isInContinueMenu) {
 
 						isInContinueMenu = false;
@@ -2501,6 +2497,7 @@ int main()
 							removeFromRendering(cust);
 						}
 					}
+					//tutorialPlane->transform.m_scale = glm::vec3(0);
 
 					if (mainMenuChosen == 0) {//CONTINUE						 
 						isCameraMoving = true;
@@ -2732,7 +2729,7 @@ int main()
 		}
 
 		if (isInContinueMenu) {
-			tutorialPlane->transform.m_pos = glm::vec3(-20);
+			//tutorialPlane->transform.m_pos = glm::vec3(-20);
 			if (isInRendering(tutorialPlane.get())) {
 				removeFromRendering(tutorialPlane.get());
 			}
@@ -2883,7 +2880,7 @@ int main()
 			if (isPaused) {
 				removeFromRendering(&tray);
 				removeFromRendering(tutorialPlane.get());
-				tutorialPlane->transform.m_pos = glm::vec3(-20);
+				//tutorialPlane->transform.m_pos = glm::vec3(-20);
 				removeFromRendering(&cursor);
 				for (int i = 0; i < 4; i++) {
 					removeFromRendering(accessEntities[i]);
@@ -2924,7 +2921,7 @@ int main()
 		}
 		if (!isPaused) {
 			//std::cout << isPaused << std::endl; 
-			tutorialPlane->transform.m_pos = glm::vec3(-20);
+			//tutorialPlane->transform.m_pos = glm::vec3(-20);
 			timeSinceClickedSpace += deltaTime;
 			if (isClickingSpace && timeSinceClickedSpace >= 0.25) {
 				
@@ -3236,20 +3233,7 @@ int main()
 			numberEntities[i]->transform.m_pos = beginingNumberPos[i];
 			numberEntities[i]->transform.m_scale = numberScale;
 		}
-		//receipt.transform.m_rotation = cameraQuat; 
-		//tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (tempA)) + (up * tempB);
-		tutorialPlane->transform.m_pos = raycastPoints[4] + (left * (0.180f * (1/(UIScale + 0.05f)))) + (up * (-0.1f * (1 / (UIScale + 0.05f))));
-
-		tutorialPlane->transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-			glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-			* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//glm::inverse(cursor.transform.m_rotation); 
-
-		//tutorialPlane->transform.SetParent(&globalCameraEntity->transform);
-		
-		//tutorialPlane->transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(0.0f, 1.0f, 0.0f))
-		//	* glm::angleAxis(glm::radians(tempB), glm::vec3(1.0f, 0.0f, 0.0f)) 
-		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f)); 
-		//tutorialPlane->transform.m_scale = glm::vec3(tempD);
+	
 		
 		if (shouldShowTutorial && bakeryUtils::getRoundsLasted() < 2 && !isPaused) {
 			for (int i = 0; i < 4; i++) {
@@ -3286,7 +3270,6 @@ int main()
 		hitEntity = nullptr;
 		for each (Entity * e in renderingEntities) {
 
-			//e->transform.RecomputeGlobal(); 
 
 
 			if (e->Has<Transparency>()) {
@@ -3354,6 +3337,37 @@ int main()
 
 		}
 
+		//sneaking this here since its important to only do it when the game is running
+		tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+
+		for each (Entity * e in UIEntities) {
+			if (e->Has<Transparency>()) {
+				if (e->Get<Transparency>().getWantedTransparency() > -1) {
+
+					e->Get<Transparency>().updateTransparency(deltaTime);
+				}
+				e->transform.RecomputeGlobal();
+				prog_transparent->Bind();
+				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
+				//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+			}
+			else
+			{
+				e->transform.RecomputeGlobal();
+				if (e->Has<CMeshRenderer>()) {
+					prog_transparent->Bind();
+					prog_transparent.get()->SetUniform("transparency", 0.f);
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+				
+			}
+		}
 		if ((drinkScript.isOpening || drinkScript.isClosing) && !isPaused) {
 			float multiplier = 1;
 			if (drinkScript.isClosing) {
@@ -4141,9 +4155,7 @@ int main()
 		if (addedSlot >= 0) {
 			renderingEntities.push_back(trayPastry[addedSlot]);
 		}
-		if (isPaused) {
-			tutorialPlane->transform.m_pos = glm::vec3(-20);
-		}
+		
 		if (orderBubblesToRemove.size() > 0) {
 
 
@@ -4200,13 +4212,7 @@ int main()
 					renderingEntities.push_back(foe);
 				}
 			}
-			if (shouldShowTutorial) {
-				if (isInRendering(tutorialPlane.get())) {
-					removeFromRendering(tutorialPlane.get());
-					renderingEntities.push_back(tutorialPlane.get());
-				}
-				
-			}
+			
 			
 		}
 		orderBubblesToRemove.clear();
@@ -5144,7 +5150,9 @@ void restartGame() {
 	
 	tutorialPos = 0;
 	
-	tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+	//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+	tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
+
 	
 	for (int i = 0; i < tutorialSteps.size(); i++) {
 		tutorialSteps[i].setContinueState(false);
@@ -5243,10 +5251,8 @@ void restartGame() {
 		trayPastry[i] = nullptr;
 
 	}
-	if (shouldShowTutorial) {
-		renderingEntities.push_back(tutorialPlane.get());
-	}
-	tutorialPlane->transform.m_pos = glm::vec3(-20);
+	
+	//tutorialPlane->transform.m_pos = glm::vec3(-20);
 	lastCameraX = 0;
 	lastCameraY = 0;
 	//standardCameraQuat = getCameraRotation(); 
@@ -5293,7 +5299,8 @@ void UpdateTutorial()
 		else
 		{
 			if (tutorialSteps[i].getMaterialCreator()->getMaterial() != nothingTile.getMaterial()) {
-				tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+				//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+				tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
 				tutorialPlane->Remove<CMeshRenderer>();
 				tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
 				//std::cout << "showing: " << i << std::endl;
