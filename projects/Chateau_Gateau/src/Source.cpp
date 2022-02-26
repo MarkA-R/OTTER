@@ -615,7 +615,7 @@ int main()
 	ovenMat.createMaterial("bakery/models/legs.gltf", "bakery/textures/ovenTexture.png", *prog_texLit);
 
 	MaterialCreator toppingMat = MaterialCreator();
-	toppingMat.createMaterial("bakery/models/topping.gltf", "bakery/textures/topping.png", *prog_transparent);
+	toppingMat.createMaterial("bakery/models/toppingMachine.gltf", "bakery/textures/topping.png", *prog_transparent);
 
 	MaterialCreator fillingMat1 = MaterialCreator();
 	fillingMat1.createMaterial("bakery/models/fillingMachine1.gltf", "bakery/textures/fillingMachine.png", *prog_morph);
@@ -1187,9 +1187,9 @@ int main()
 	topping.Add<Transparency>(topping);
 	topping.Add<Machine>();
 	topping.Add<ToppingMachine>();
-	topping.transform.m_scale = glm::vec3(0.4f, 1.f, 0.4f);
-	topping.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	topping.transform.m_pos = glm::vec3(-2.0, -1.0f, 2.0f);
+	topping.transform.m_scale = glm::vec3(0.351);
+	topping.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	topping.transform.m_pos = glm::vec3(-2.0, -1.900, 2.0f);
 	topping.Add<BoundingBox>(glm::vec3(0.4f, 2, 0.5), topping);
 
 	glm::vec3 tempTopPos = topping.transform.m_pos;
@@ -1199,18 +1199,21 @@ int main()
 	renderingEntities.push_back(&topping);
 
 	Transform topParticleTransform = topping.transform;
-	topParticleTransform.m_pos.y += 0.11;
+	//topParticleTransform.m_pos.y += 0.38;
 	//topParticleTransform.m_pos.x -= 0.05; 
-	//topParticleTransform.m_pos.z += 1.0; 
+	topParticleTransform.m_pos = glm::vec3(-1.971, -0.704, 1.765);
 	topping.Get<ToppingMachine>().setParticleTransform(topParticleTransform);
 
 	Transform toppingTL = topping.transform;
-	toppingTL.m_pos.y -= 0.5;
-	toppingTL.m_pos.x -= 0.2;
+	toppingTL.m_pos.y += 0.77;
+	toppingTL.m_pos.x -= 0.22;
+	toppingTL.m_pos.z -= 0.2;
+
 
 	Transform toppingTR = topping.transform;
-	toppingTR.m_pos.y -= 0.5;
-	toppingTR.m_pos.x += 0.2;
+	toppingTR.m_pos.y += 0.77;
+	toppingTR.m_pos.x += 0.22;
+	toppingTR.m_pos.z -= 0.2;
 
 	topping.Get<ToppingMachine>().setup(&pecanTopping, &sprinkleTopping, &stawberryTopping);
 	topping.Get<ToppingMachine>().setTransform(toppingTL, toppingTR);
@@ -1239,8 +1242,8 @@ int main()
 	toppingPlane.transform.m_scale = glm::vec3(0.24f, 0.24f, 0.24f);
 	toppingPlane.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
-	glm::vec3 topPos = topping.transform.m_pos;
-	toppingPlane.transform.m_pos = glm::vec3(topPos.x - 0.1, topPos.y + 0.8, topPos.z - 0.5);
+	//glm::vec3 topPos = topping.transform.m_pos;
+	toppingPlane.transform.m_pos = glm::vec3(-2.070, 0.160, 1.650);
 	renderingEntities.push_back(&toppingPlane);
 	topping.Get<ToppingMachine>().setTopPlane(&toppingPlane);
 
@@ -1811,6 +1814,7 @@ int main()
 	//audioEngine.playSound("ambient1");
 	//shouldShowTutorial = false;
 	float fridgeMultiplier = 4;
+	//renderingEntities.push_back(&tester);
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		audioEngine.Update();
@@ -1835,12 +1839,12 @@ int main()
 		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(tutorialPlane->transform.m_pos.x), 0.1f);
-		ImGui::DragFloat("Y", &(tutorialPlane->transform.m_pos.y), 0.1f);
-		ImGui::DragFloat("Z", &(tutorialPlane->transform.m_pos.z), 0.1f);
-		ImGui::DragFloat("A", &(tempA), 0.001f);
-		ImGui::DragFloat("B", &(tempB), 0.001f);
-		ImGui::DragFloat("C", &(tempC), 0.001f);
+		ImGui::DragFloat("X", &(toppingPlane.transform.m_pos.x), 0.1f);
+		ImGui::DragFloat("Y", &(toppingPlane.transform.m_pos.y), 0.1f);
+		ImGui::DragFloat("Z", &(toppingPlane.transform.m_pos.z), 0.1f);
+		ImGui::DragFloat("A", &(topParticleTransform.m_pos.x), 0.001f);
+		ImGui::DragFloat("B", &(topParticleTransform.m_pos.y), 0.001f);
+		ImGui::DragFloat("C", &(topParticleTransform.m_pos.z), 0.001f);
 		ImGui::DragFloat("S", &(tempD), 0.001f);
 
 
@@ -1848,11 +1852,12 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		
-		tutorialPlane->transform.m_scale = glm::vec3(tempD * (UIScale + 0.05));
-		tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - tempA, cameraPos.y +tempB, cameraPos.z - tempC);// 0.552 
 		*/
-		
+		//topping.transform.m_scale = glm::vec3(tempD);
+		//tester.transform.m_pos = topParticleTransform.m_pos;
+		//tester.transform.m_scale = glm::vec3(0.07);
+		//topping.transform.m_rotation = glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 1.0f, 0.0f));
+
 		
 		
 
