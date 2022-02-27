@@ -2785,6 +2785,7 @@ int main()
 				std::reverse(cameraKeys.begin(), cameraKeys.end());
 				selectedOption = -1;
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[0]);
+				restartGame();
 				currentCameraPoint = 0;
 				cameraT = 0.f;
 				isCameraMoving = true;
@@ -2803,7 +2804,7 @@ int main()
 						removeFromRendering(ent);
 					}
 				}
-				restartGame();
+			
 				createNewOrder(0, false, false);
 				for (int i = 0; i < 4; i++) {
 					if (ovenScript->canRemove(i)) {
