@@ -8,7 +8,7 @@ used by a model.
 */
 
 #include "NOU/Material.h"
-
+#include <iostream>
 namespace nou
 {
 	Material::Material(const ShaderProgram& program)
@@ -28,7 +28,9 @@ namespace nou
 		GLenum slot = m_curSlot;
 		GLint loc = m_program->GetUniformLoc(name);
 
-		m_tex.push_back({ slot, loc, tex.GetID() });
+		m_tex.push_back({ slot, loc, tex.GetID(), name });
+		
+		//std::cout << m_curSlot << std::endl;
 
 		//Keep track of which GL texture slots we've already used for this material.
 		++m_curSlot;
@@ -41,14 +43,23 @@ namespace nou
 		m_program->Bind();
 
 		m_program->SetUniform("matColor", m_color);
-
+		int numTex = 0;
+		glBindTexture(GL_TEXTURE_2D, 0);
 		//Bind the textures used by this material.
 		for (auto& t : m_tex)
 		{
-			glUniform1i(t.loc, t.slot);
-			glActiveTexture(t.slot - GL_TEXTURE0);
+			glUniform1i(t.loc, numTex);
+			glActiveTexture(GL_TEXTURE0 + numTex);
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, t.id);
+			
+			
+			
+				
+			
+				
+			
+			numTex++;
 		}
 	}
 }

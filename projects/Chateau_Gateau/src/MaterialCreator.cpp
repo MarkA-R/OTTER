@@ -234,3 +234,9 @@ void MaterialCreator::createMaterialOBJ(std::string filename, std::string textur
 	shade = std::make_unique<ShaderProgram>(shader);
 	material->AddTexture("albedo", *texture);
 }
+
+void MaterialCreator::addTexture(std::string shaderName, std::string TextureName)
+{
+	otherTextures.push_back(std::make_unique<Texture2D>(TextureName));
+	material->AddTexture(shaderName, *otherTextures.back());
+}

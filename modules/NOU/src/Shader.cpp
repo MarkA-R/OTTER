@@ -187,6 +187,13 @@ namespace nou
 		return glGetUniformLocation(m_id, name.c_str());
 	}
 
+	
+	template<>
+	void ShaderProgram::SetUniform<GLenum>(const std::string& name, const GLenum& value) const
+	{
+		glUniform1i(GetUniformLoc(name), value);
+	}
+
 	template<>
 	void ShaderProgram::SetUniform<int>(const std::string& name, const int& value) const
 	{

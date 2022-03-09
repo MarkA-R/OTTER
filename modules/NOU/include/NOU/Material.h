@@ -43,6 +43,7 @@ namespace nou
 			GLenum slot;
 			GLint loc;
 			GLuint id;
+			std::string name;
 		};
 
 		GLenum m_curSlot;

@@ -9,6 +9,7 @@ Simple wrapper for STB image loading into 2D textures.
 #include "NOU/Texture.h"
 
 #include "stb_image.h"
+#include <iostream>
 
 namespace nou
 {
@@ -31,6 +32,7 @@ namespace nou
 
 		//Generate a new OpenGL texture.
 		glGenTextures(1, &m_id);
+		//std::cout << m_id << std::endl;
 		//Bind the texture to specify we want to change its properties/data.
 		glBindTexture(GL_TEXTURE_2D, m_id);
 

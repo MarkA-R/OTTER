@@ -53,7 +53,7 @@
 #include "Audio.h"
 #include "TutorialStep.h"
 
-
+#include "ToneFire.h"
 
 using namespace nou;
 
@@ -229,8 +229,8 @@ std::vector<glm::vec2> mouseMovements;
 
 
 GLuint trayKeys[4] = { GLFW_KEY_1 ,GLFW_KEY_2 ,GLFW_KEY_3 ,GLFW_KEY_4 };
-int soundVolume = 3;
-int musicVolume = 3;
+float soundVolume = 50;
+float musicVolume = 50;
 float UIScale = 0.95;//1.35 
 //float sensitivity = 1; 
 bool largeFont = false;
@@ -486,9 +486,7 @@ int main()
 	// Load in our model/texture resources 
 	LoadDefaultResources();
 
-	if (getHighscore() > 4) {
-		shouldShowTutorial = false;
-	}
+	
 
 	//this is to save loading time, not memory!
 	//cant really save memory without reworking OTTER itself lol
@@ -503,12 +501,24 @@ int main()
 	glfwSwapInterval(1);
 	//App::Tick(); 
 
-	Audio audioEngine;
-	audioEngine.Init();
+	//Audio audioEngine;
+	//audioEngine.Init();
 	//audioEngine.loadSound("ambient1", "audio/Duel of the Fates.wav",true,true,false);
+	//ToneFire::FMODStudio::FMODStudio(512, "./audio/") ;
+	ToneFire::FMODStudio studio = ToneFire::FMODStudio(512, "./audio/");
+	//ToneFire::FMODStudio::FMODStudio(512, "./audio/");
+	//ToneFire::FMODStudio::FMODStudio(512,"./audio/") studio;
+	
+	studio.LoadBank("Master.bank");
+	studio.LoadBank("Master.strings.bank");
+	ToneFire::StudioSound menuBGM;
+	menuBGM.LoadEvent("event:/BackgroundMusic");
+	ToneFire::StudioSound pop;
+	pop.LoadEvent("event:/DoughTray");
+	ToneFire::StudioSound ding;
+	ding.LoadEvent("event:/CashRegister");
 
-
-
+	
 	// Create and set up camera 
 	Entity cameraEntity = Entity::Create();
 	CCamera& cam = cameraEntity.Add<CCamera>(cameraEntity);
@@ -533,6 +543,7 @@ int main()
 
 	MaterialCreator loading = MaterialCreator();
 	loading.createMaterial(tileMesh, "UI/textures/LoadingScreen.png", *prog_texLit);
+	loading.addTexture("Nmap", "bakery/textures/waterMap.png");
 	Entity loadingEntity = Entity::Create();
 	loadingEntity.Add<CMeshRenderer>(loadingEntity, *loading.getMesh(), *loading.getMaterial());
 	loadingEntity.transform.m_scale = glm::vec3(0.41, 0.41, 0.41);
@@ -762,7 +773,7 @@ int main()
 	//crossantMat = *pastryMats[0][0]; 
 	crossantMat.createMaterial("pastries/models/croissantPlain.gltf", "pastries/textures/croissantPlain.png", *prog_transparent);
 	doughMat.createMaterial("bakery/models/dough.gltf", "bakery/textures/dough.png", *prog_transparent);
-
+	doughMat.addTexture("Nmap", "bakery/textures/waterMap.png");
 	cookieMat.createMaterial("pastries/models/cookiePlain.gltf", "pastries/textures/cookiePlain.png", *prog_transparent);
 	cupcakeMat.createMaterial("pastries/models/cupcakePlain.gltf", "pastries/textures/cupcakePlain.png", *prog_transparent);
 	cakeMat.createMaterial("pastries/models/cakePlain.gltf", "pastries/textures/cakePlain.png", *prog_transparent);
@@ -1815,11 +1826,13 @@ int main()
 	//shouldShowTutorial = false;
 	float fridgeMultiplier = 4;
 	//renderingEntities.push_back(&tester);
+	menuBGM.PlayEvent("event:/BackgroundMusic");
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
-		audioEngine.Update();
-		
-		
+		//audioEngine.Update();
+		studio.Update();
+		menuBGM.SetEventParameter("event:/BackgroundMusic", "parameter:/Volume", musicVolume);
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f)); 
 		
 		prog_allLights->Bind();
@@ -2016,6 +2029,7 @@ int main()
 					//bakeryUtils::setDifficulty(4);
 
 				}
+				menuBGM.StopEvent("event:/BackgroundMusic");
 				orderBubbles[0]->updateScale(UIScale);
 				tray.transform.m_scale = trayScale;
 				tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -2026,6 +2040,14 @@ int main()
 				}
 				isCameraMoving = true;
 				isInMainMenu = true;
+				lastCameraX = 0;
+				lastCameraY = 0;
+				//standardCameraQuat = getCameraRotation(); 
+				wantedCameraQuat = standardCameraQuat;
+				cameraX = 90.f;
+				cameraY = 0.f;
+				xPos = 0;
+				yPos = 0;
 			}
 
 			for each (Entity * e in renderingEntities) {
@@ -2288,12 +2310,7 @@ int main()
 						isInMainMenu = false;
 						tray.transform.SetParent(&cameraEntity.transform);
 						tutorialPlane->transform.SetParent(&cameraEntity.transform);
-						lastCameraX = 0;
-						lastCameraY = 0;
-						//standardCameraQuat = getCameraRotation(); 
-						wantedCameraQuat = standardCameraQuat;
-						cameraX = 90.f;
-						cameraY = 0.f;
+						
 
 					}
 					if (mainMenuChosen == 1) {
@@ -3089,6 +3106,8 @@ int main()
 					ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[failed]->getMaterial());
 
 					if (bakeryUtils::getOrdersFailed() == 3) {
+						int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
+						setScores(bakeryUtils::getRoundsLasted(), highScore);
 						if (cameraX == 0 && cameraY == 0) {
 							cameraX = 1;
 							cameraY = 1;
@@ -3113,8 +3132,7 @@ int main()
 							accessEntities[i]->transform.SetParent(nullptr);
 							removeFromRendering(accessEntities[i]);
 						}
-						int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
-						setScores(bakeryUtils::getRoundsLasted(), highScore);
+						
 						receiptT = 0;
 						isInContinueMenu = true;
 						break;
@@ -3453,7 +3471,9 @@ int main()
 						//if (shouldShowTutorial) {
 							
 						//}
-
+						//pop.SetEventParameter();
+						pop.PlayEvent("event:/DoughTray");
+						
 					}
 
 
@@ -4117,6 +4137,9 @@ int main()
 
 							resetBubble(u);
 
+							
+							ding.PlayEvent("event:/CashRegister");
+							
 							for each (Entity * foe in orderBubbles[u]->returnRenderingEntities()) {
 								renderingEntities.push_back(foe);
 							}
@@ -4239,7 +4262,7 @@ int main()
 	dialogueList.clear();
 	tutorialPlane.release();
 	//tutorialPlane = nullptr; 
-	audioEngine.Quit();
+	//audioEngine.Quit();
 	//std::fill(std::begin(trayPastry), std::end(trayPastry), nullptr); 
 	// Destroy window 
 	App::Cleanup();
@@ -5124,6 +5147,7 @@ int getHighscore() {
 		}
 
 	}
+	scoreKeeper.close();
 	return lastHs;
 }
 
@@ -5139,15 +5163,16 @@ int saveHighscore(int hs)
 		if (scoreKeeper.is_open()) {
 			if (scoreKeeper.good()) {
 				scoreKeeper << std::to_string(hs);
+				scoreKeeper.close();
 			}
 
 		}
 
 		lastHs = hs;
-		scoreKeeper.close();
+		
 	}
 
-
+	scoreKeeper.close();
 	return lastHs;
 }
 
@@ -5270,16 +5295,16 @@ void restartGame() {
 
 	}
 	
-	//tutorialPlane->transform.m_pos = glm::vec3(-20);
+	//tutorialPlane->transform.m_pos = glm::vec3(-20); 
 	lastCameraX = 0;
 	lastCameraY = 0;
-	//standardCameraQuat = getCameraRotation(); 
+	//standardCameraQuat = getCameraRotation();  
 	wantedCameraQuat = standardCameraQuat;
 	cameraX = 90.f;
 	cameraY = 0.f;
 	xPos = 0;
 	yPos = 0;
-	//menuCameraQuat = getCameraRotation(); 
+	//menuCameraQuat = getCameraRotation();  
 	currentCameraQuat = menuCameraQuat;
 	lastCameraQuat = standardCameraQuat;
 }
@@ -5612,8 +5637,11 @@ void applySettings() {
 	if (accessSettings[4] == 4) {
 		sensitivity = -0.15;
 	}
-	soundVolume = accessSettings[5];
-	musicVolume = accessSettings[6];
+	//int soundVol = accessSettings[5];
+	//int musicVol = accessSettings[6];
+	musicVolume = accessSettings[5] * 0.25;
+	soundVolume = accessSettings[6] * 0.25;
+
 	if (accessSettings[7] == 1) {
 		UIScale = 1.35;
 

@@ -14,6 +14,7 @@ public:
 	void createMaterial(Mesh&, std::string, ShaderProgram&);
 	void createMaterial(Mesh&, Texture2D&, ShaderProgram&);
 	void createMaterialOBJ(std::string, std::string, ShaderProgram&);
+	void addTexture(std::string shaderName, std::string TextureName);
 	const std::unique_ptr<Mesh>& getMesh();
 	const std::unique_ptr<Texture2D>& getTexture();
 	const std::unique_ptr<Material>& getMaterial();
@@ -23,5 +24,6 @@ protected:
 	std::unique_ptr<Texture2D> texture;
 	std::unique_ptr<Material> material;
 	std::unique_ptr<ShaderProgram> shade;
+	std::vector<std::unique_ptr<Texture2D>> otherTextures;
 };
 
