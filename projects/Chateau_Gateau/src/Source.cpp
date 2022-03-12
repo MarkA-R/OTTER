@@ -1701,7 +1701,7 @@ int main()
 	carLight.strength = 0.f;
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! ################################# 
-	bool canCheat = true;
+	bool canCheat = false;
 	bool skipMenu = false;
 	if (skipMenu)
 	{
