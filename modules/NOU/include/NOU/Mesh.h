@@ -31,7 +31,9 @@ namespace nou
 			NORMAL = 1,
 			UV = 2,
 			JOINT_INFLUENCE = 3,
-			SKIN_WEIGHT = 4
+			SKIN_WEIGHT = 4,
+			TANGENT = 5,
+			BITANGENT = 6
 		};
 
 		Mesh() = default;
@@ -40,6 +42,7 @@ namespace nou
 		void SetVerts(const std::vector<glm::vec3>& verts);
 		void SetNormals(const std::vector<glm::vec3>& normals);
 		void SetUVs(const std::vector<glm::vec2>& uvs);
+		void setTangentAndBitangents();
 		std::vector<glm::vec3> getVerts();
 		std::vector<glm::vec3> getNormals();
 		std::vector<glm::vec2> getUVS();
@@ -53,6 +56,8 @@ namespace nou
 		std::vector<glm::vec3> m_verts;
 		std::vector<glm::vec3> m_normals;
 		std::vector<glm::vec2> m_uvs;
+		std::vector<glm::vec3> m_tangents;
+		std::vector<glm::vec3> m_bitangents;
 
 		std::map<Attrib, std::unique_ptr<VertexBuffer>> m_vbo;
 

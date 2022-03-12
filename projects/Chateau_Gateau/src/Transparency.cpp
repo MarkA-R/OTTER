@@ -28,14 +28,23 @@ void Transparency::updateTransparency(float deltaTime)
 			currentTransparency = wantedTransparency;
 			transparencyT = -1;
 			wantedTransparency = -1;
-		
-		if (nextPosition.x > -999) {
+			glm::vec3 goingPos = nextPosition;
+			if (newTransPos != nullptr) {
+				//if (newTransPos->m_pos.x > -999) {
+					goingPos = newTransPos->m_pos;
+					
+				//}
+				
+			}
+		if (goingPos.x > -999) {
 			if (newParent != &owner->transform) {
 				owner->transform.SetParent(newParent);
 				newParent = nullptr;
 			}
-			owner->transform.m_pos = (nextPosition);
+			owner->transform.m_pos = (goingPos);
+			goingPos = glm::vec3(-999);
 			nextPosition = glm::vec3(-999);
+			newTransPos = nullptr;
 
 			if (nextWantedTransparency >= 0) {
 				
@@ -60,6 +69,8 @@ void Transparency::updateTransparency(float deltaTime)
 			{
 				nextWantedTransparency = -1;
 				nextScale = glm::vec3(-1);
+				
+				
 			}
 		}
 		
@@ -113,6 +124,13 @@ void Transparency::setNextPosition(glm::vec3 x, Transform* remove, glm::vec3 sca
 	newParent = remove;
 	copiedScale = scale;
 	//transparencyT = 0.f;
+}
+
+void Transparency::setNextTransformPos(Transform* x, Transform* remove, glm::vec3 scale)
+{
+	newTransPos = x;
+	newParent = remove;
+	copiedScale = scale;
 }
 
 void Transparency::setNextWantedTransparency(float x)

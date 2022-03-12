@@ -50,6 +50,8 @@ namespace nou
 		
 		virtual void Draw();
 
+		void Draw(unsigned int gBuffer, unsigned int gPosition, unsigned int gNormal, unsigned int gAlbedoSpec);
+
 		protected:
 
 		Entity* m_owner;

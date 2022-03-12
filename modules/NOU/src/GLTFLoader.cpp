@@ -140,6 +140,7 @@ namespace nou::GLTF
 		if(hasUVs)
 			mesh.SetUVs(uvs);
 
+		mesh.setTangentAndBitangents();
 		return true;
 	}
 

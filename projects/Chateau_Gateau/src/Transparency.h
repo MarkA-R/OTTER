@@ -16,6 +16,7 @@ protected:
 	float transparencyT = 0.f;
 	glm::vec3 nextPosition = glm::vec3(-999);
 	Transform* newParent;
+	Transform* newTransPos = nullptr;
 	Entity* owner;
 	Transform copyPos;
 	Transform* posToCopy = nullptr;
@@ -32,6 +33,7 @@ public:
 	float getTime();
 	void setTime(float);
 	void setNextPosition(glm::vec3, Transform*, glm::vec3 scale = glm::vec3(-1));
+	void setNextTransformPos(Transform*, Transform*, glm::vec3 scale = glm::vec3(-1));
 	void setNextWantedTransparency(float);
 	void setNextWantedTime(float);
 	void setNextWantedScale(glm::vec3);

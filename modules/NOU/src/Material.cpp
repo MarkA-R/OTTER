@@ -9,6 +9,7 @@ used by a model.
 
 #include "NOU/Material.h"
 #include <iostream>
+
 namespace nou
 {
 	Material::Material(const ShaderProgram& program)
@@ -43,6 +44,8 @@ namespace nou
 		m_program->Bind();
 
 		m_program->SetUniform("matColor", m_color);
+
+		//glBindBuffer(GL_FRAMEBUFFER)
 		int numTex = 0;
 		glBindTexture(GL_TEXTURE_2D, 0);
 		//Bind the textures used by this material.

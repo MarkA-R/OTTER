@@ -49,6 +49,12 @@ namespace nou
 
 		if ((vbo = mesh.GetVBO(Mesh::Attrib::UV)) != nullptr)
 			m_vao->BindAttrib(*vbo, (GLint)Mesh::Attrib::UV);
+
+		if ((vbo = mesh.GetVBO(Mesh::Attrib::TANGENT)) != nullptr)
+			m_vao->BindAttrib(*vbo, (GLint)Mesh::Attrib::TANGENT);
+
+		if ((vbo = mesh.GetVBO(Mesh::Attrib::BITANGENT)) != nullptr)
+			m_vao->BindAttrib(*vbo, (GLint)Mesh::Attrib::BITANGENT);
 	}
 
 	void CMeshRenderer::SetMaterial(Material& mat)
