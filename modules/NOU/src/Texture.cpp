@@ -60,6 +60,7 @@ namespace nou
 		//Very important - after we send our data to OpenGL, make sure to free the memory
 		//used by STBI!
 		stbi_image_free(data);
+		//std::cout << "Loaded texture: " << filename << std::endl;
 	}
 
 	Texture2D::~Texture2D()
