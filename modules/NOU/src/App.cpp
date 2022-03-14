@@ -208,4 +208,25 @@ namespace nou
 		}
 		
 	}
+
+	glm::vec2 App::setFullscreen() {
+		GLFWmonitor* primary = glfwGetPrimaryMonitor();
+		
+		const GLFWvidmode* mode = glfwGetVideoMode(primary);
+
+		glfwSetWindowMonitor(m_window, primary, 0, 0, mode->width, mode->height, mode->refreshRate);
+		glViewport(0, 0, (GLint)mode->width, (GLint)mode->height);
+		return glm::vec2(mode->width, mode->height);
+	}
+
+	glm::vec2 App::setWindowed(int width, int height) {
+		GLFWmonitor* primary = glfwGetPrimaryMonitor();
+
+		const GLFWvidmode* mode = glfwGetVideoMode(primary);
+		int xpos, ypos;
+		glfwGetWindowPos(m_window, &xpos, &ypos);
+		glfwSetWindowMonitor(m_window, nullptr, xpos, ypos, width, height, mode->refreshRate);
+		glViewport(0, 0, (GLint)width, (GLint)height);
+		return glm::vec2(width,height);
+	}
 }

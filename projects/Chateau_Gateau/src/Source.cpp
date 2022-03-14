@@ -304,6 +304,7 @@ MaterialCreator optionSensitivitySignMat = MaterialCreator();
 MaterialCreator optionMusicSignMat = MaterialCreator();
 MaterialCreator optionSoundSignMat = MaterialCreator();
 MaterialCreator optionEnlargeSignMat = MaterialCreator();
+MaterialCreator optionFullscreenSignMat = MaterialCreator();
 MaterialCreator optionExitSignMat = MaterialCreator();
 MaterialCreator optionKeybindSignMat = MaterialCreator();
 MaterialCreator optionKeybindDoneSignMat = MaterialCreator();
@@ -410,11 +411,11 @@ float dayDark = 0.2;
 
 MaterialCreator copyMaterials[4];
 
-Transform accessStart[4];
-Transform accessTray[8];
-Entity* accessEntities[4];
+Transform accessStart[5];
+Transform accessTray[10];
+Entity* accessEntities[5];
 int accessButtonPressed = -1;
-int accessSettings[8] = { 1,2,3,4,3,3,3,0 };
+int accessSettings[9] = { 1,2,3,4,3,3,3,0,0 };
 bool isInOption = false;
 glm::vec3 accessScale = glm::vec3(0.01f, 0.01f, 0.01f);
 
@@ -452,6 +453,9 @@ ToneFire::StudioSound tick;
 ToneFire::StudioSound click;
 void playSound(ToneFire::StudioSound* sound, std::string name);
 void playMusic(ToneFire::StudioSound* music, std::string name);
+float currentConfusion = 0.f;
+float confusionThreshold = 7.f;
+float modifiedConfusionThreshold = 7.f;
 
 int main()
 {
@@ -578,11 +582,7 @@ int main()
 	MaterialCreator cursorMat = MaterialCreator();
 	cursorMat.createMaterial("UI/cursor.gltf", "UI/cursor.png", *prog_texLit);//there isnt supposed to be an image on purpose
 
-	MaterialCreator flowerMat1 = MaterialCreator();
-	flowerMat1.createMaterialOBJ("bakery/models/flower1.obj", "bakery/textures/flower.png", *prog_morph);
-
-	MaterialCreator flowerMat2 = MaterialCreator();
-	flowerMat2.createMaterialOBJ("bakery/models/flower2.obj", "bakery/textures/flower.png", *prog_morph);
+	
 
 	MaterialCreator registerMaterial = MaterialCreator();
 	registerMaterial.createMaterial(registerMesh, "bakery/textures/cregister0.png", *prog_texLit);
@@ -822,6 +822,7 @@ int main()
 	optionMusicSignMat.createMaterial(signMesh, "UI/textures/optionMusicSign.png", *prog_texLit);
 	optionSoundSignMat.createMaterial(signMesh, "UI/textures/optionSoundSign.png", *prog_texLit);
 	optionEnlargeSignMat.createMaterial(signMesh, "UI/textures/optionEnlargeSign.png", *prog_texLit);
+	optionFullscreenSignMat.createMaterial(signMesh, "UI/textures/optionFullscreenSign.png", *prog_texLit);
 	optionExitSignMat.createMaterial(signMesh, "UI/textures/optionExitSign.png", *prog_texLit);
 
 	optionKeybindSignMat.createMaterial(signMesh, "UI/textures/optionKeybindSign.png", *prog_texLit);
@@ -843,6 +844,7 @@ int main()
 	signFrames.push_back(optionMusicSignMat.getMaterial().get());
 	signFrames.push_back(optionSoundSignMat.getMaterial().get());
 	signFrames.push_back(optionEnlargeSignMat.getMaterial().get());
+	signFrames.push_back(optionFullscreenSignMat.getMaterial().get());
 	signFrames.push_back(optionExitSignMat.getMaterial().get());
 	signFrames.push_back(optionKeybindSignMat.getMaterial().get());
 	signFrames.push_back(optionKeybindDoneSignMat.getMaterial().get());
@@ -1509,7 +1511,10 @@ int main()
 	tutorialSteps.push_back(TutorialStep(&nothingTile, false));//transparent, continues at third order
 	tutorialSteps.push_back(TutorialStep(dialogueList[17], true));//last upurr eats order, which can be hidden by a spacebar
 	
-
+	MaterialCreator tutorialConfusion;
+	tutorialConfusion.createMaterial(tileMesh, "UI/textures/Keys1.png", *prog_UI);
+	MaterialCreator optionConfusion;
+	optionConfusion.createMaterial(tileMesh, "UI/textures/Keys2.png", *prog_UI);
 	
 
 
@@ -1788,7 +1793,7 @@ int main()
 	}
 	loadSettings();
 	applySettings();
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		accessEntities[i] = Entity::Allocate().release();//make into other entity for accessibility and re use them for tray abd sign board 
 		accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *alphanumericMat[i].getMesh(), *alphanumericMat[i].getMaterial());
 		accessEntities[i]->transform.m_scale = accessScale;
@@ -1804,6 +1809,7 @@ int main()
 		accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
 		accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
 		accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
+		accessEntities[4]->Get<PictureSelector>().setPictures(booleanPointer);
 
 
 
@@ -1814,10 +1820,12 @@ int main()
 		accessTray[1].m_pos = glm::vec3(-0.81, -1.223, -10.725);
 		accessTray[2].m_pos = glm::vec3(-0.78, -1.223, -10.68);
 		accessTray[3].m_pos = glm::vec3(-0.78, -1.223, -10.725);
-		accessTray[4].m_pos = glm::vec3(-1, -1.198, -10.620);
-		accessTray[5].m_pos = glm::vec3(-1, -1.236, -10.620);
-		accessTray[6].m_pos = glm::vec3(-1, -1.273, -10.620);
-		accessTray[7].m_pos = glm::vec3(-1, -1.315, -10.620);
+		accessTray[4].m_pos = glm::vec3(-0.78, -4.223, -10.725);
+		accessTray[5].m_pos = glm::vec3(-1, -1.198, -10.620);
+		accessTray[6].m_pos = glm::vec3(-1, -1.236, -10.620);
+		accessTray[7].m_pos = glm::vec3(-1, -1.273, -10.620);
+		accessTray[8].m_pos = glm::vec3(-1, -1.315, -10.620);
+		accessTray[9].m_pos = glm::vec3(-1, -1.357, -10.620);
 
 	}
 
@@ -1837,7 +1845,23 @@ int main()
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 	//tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
 	tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x + 1.006, cameraPos.y + 0.497, cameraPos.z - 0.010);// 0.552 
+	
 	UIEntities.push_back(tutorialPlane.get());
+
+
+	//has to be defined after the settings get applied!
+	Entity confusionPlane = Entity::Create();
+	confusionPlane.Add<CMeshRenderer>(confusionPlane, *tutorialConfusion.getMesh(), *tutorialConfusion.getMaterial());
+	confusionPlane.transform.m_scale = glm::vec3(0.15 * (UIScale + 0.05));
+	confusionPlane.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+		* glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 	//tutorialPlane->transform.m_pos = glm::vec3(cameraPos.x - 0.92, cameraPos.y + 0.430, cameraPos.z + -0.147);// 0.552
+	confusionPlane.transform.m_pos = glm::vec3(-1.200, -1.280, -10.950);// 0.552 
+	//renderingEntities.insert(renderingEntities.begin() + 2, &confusionPlane);
+
+	//confusionPlane.transform.SetParent(&cameraEntity.transform);
+	//UIEntities.push_back(tutorialPlane.get());
+	renderingEntities.push_back(&confusionPlane);
 
 	
 	auto endTime = std::chrono::high_resolution_clock::now();//measure end time 
@@ -1854,6 +1878,9 @@ int main()
 	
 	float traySpeed = 8;
 	
+	if (getHighscore() == 0) {
+		modifiedConfusionThreshold = confusionThreshold / 5;
+	}
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
@@ -1891,15 +1918,15 @@ int main()
 	/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(fillingPlane.transform.m_pos.x), 0.001f);
-		ImGui::DragFloat("Y", &(fillingPlane.transform.m_pos.y), 0.001f);
-		ImGui::DragFloat("Z", &(fillingPlane.transform.m_pos.z), 0.001f);
+		ImGui::DragFloat("X", &(tempA), 0.01f);
+		ImGui::DragFloat("Y", &(tempB), 0.01f);
+		ImGui::DragFloat("Z", &(tempC), 0.01f);
 		//ImGui::DragFloat("R", &(tempA), 0.01f);
-		//ImGui::DragFloat("S", &(tempB), 0.001f);
+		ImGui::DragFloat("S", &(tempD), 0.001f);
 
-		//ImGui::DragFloat("A", &(topParticleTransform.m_pos.x), 0.001f);
-		//ImGui::DragFloat("B", &(topParticleTransform.m_pos.y), 0.001f);
-		//ImGui::DragFloat("C", &(topParticleTransform.m_pos.z), 0.001f);
+		ImGui::DragFloat("A", &(confusionPlane.transform.m_pos.x), 0.01f);
+		ImGui::DragFloat("B", &(confusionPlane.transform.m_pos.y), 0.01f);
+		ImGui::DragFloat("C", &(confusionPlane.transform.m_pos.z), 0.01f);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
 
 
@@ -1909,8 +1936,7 @@ int main()
 		App::EndImgui();
 		*/
 		
-		//tester.transform.m_pos = topParticleTransform.m_pos;
-		//tester.transform.m_scale = glm::vec3(0.07);
+		confusionPlane.transform.m_scale = glm::vec3(tempD);
 		//topping.transform.m_rotation = glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		
@@ -1925,7 +1951,29 @@ int main()
 		float deltaTime = App::GetDeltaTime();
 		getKeyInput();
 
+		
+
 		//UpdateTutorial(deltaTime);
+		if (isInMainMenu || isInOptionsMenu) {
+			currentConfusion += deltaTime;
+			
+			if (currentConfusion >= modifiedConfusionThreshold) {
+				confusionPlane.transform.m_scale = glm::vec3((0.15 * (UIScale + 0.05)) * 1);
+				//confusionPlane.Get<CMeshRenderer>().Draw();
+				//std::cout << "DONE" << std::endl;
+			}
+			else
+			{
+				confusionPlane.transform.m_scale = glm::vec3(0);
+				//std::cout << "NO" << std::endl;
+			}
+		}
+		else
+		{
+			currentConfusion = 0;
+			//std::cout << "NOT YET" << std::endl;
+			modifiedConfusionThreshold = confusionThreshold;
+		}
 
 		int roundsLasted = bakeryUtils::getRoundsLasted();
 		{//change transparencies 
@@ -2042,7 +2090,6 @@ int main()
 			int tutorialMenuChosen = getSignSelection(2, false);
 
 			sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 6]);
-
 			if (tutorialMenuChosen >= 0) {
 				if (tutorialMenuChosen == 0) {//YES
 					shouldShowTutorial = true;
@@ -2124,9 +2171,12 @@ int main()
 			continue;
 		}
 		if (isInOptionsMenu) {
-
+			
+			confusionPlane.Remove<CMeshRenderer>();
+			confusionPlane.Add<CMeshRenderer>(confusionPlane, *optionConfusion.getMesh(), *optionConfusion.getMaterial());
 
 			if (isClickingSpace) {
+				currentConfusion = 0;
 				isInOption = !isInOption;
 				playSound(&click, "tickTick");
 				
@@ -2137,7 +2187,7 @@ int main()
 				{
 					if (isInOption) {
 						if (selectedOption == 0) {
-							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[14]);
+							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[15]);
 							if (!isInRendering(&tray)) {
 								renderingEntities.push_back(&tray);
 								
@@ -2153,29 +2203,29 @@ int main()
 								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
 
 							}
-							for (int i = 0; i < 4; i++) {
+							for (int i = 0; i < 5; i++) {
 								if (isInRendering(accessEntities[i])) {
 									removeFromRendering(accessEntities[i]);
 								}
 							}
 							accessButtonPressed = 0;
 						}
-						else if (selectedOption == 5) {
+						else if (selectedOption == 6) {
 							isInMainMenu = true;
 							isInOptionsMenu = false;
 							isInOption = false;
 							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[1]);
 							selectedOption = 1;
-							for (int i = 0; i < 4; i++) {
+							for (int i = 0; i < 5; i++) {
 								if (isInRendering(accessEntities[i])) {
 									removeFromRendering(accessEntities[i]);
 								}
 							}
-
+							
 						}
 						else
 						{
-							for (int i = 0; i < 4; i++) {
+							for (int i = 0; i < 5; i++) {
 								if (selectedOption - 1 != i) {
 									if (isInRendering(accessEntities[i])) {
 										removeFromRendering(accessEntities[i]);
@@ -2187,12 +2237,12 @@ int main()
 					}
 					else
 					{
-						for (int i = 0; i < 4; i++) {
+						for (int i = 0; i < 5; i++) {
 							accessSettings[i + 4] = accessEntities[i]->Get<PictureSelector>().getIndex();
 						}
 						saveSettings();
 						applySettings();
-						for (int i = 0; i < 4; i++) {
+						for (int i = 0; i < 5; i++) {
 
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
@@ -2206,7 +2256,7 @@ int main()
 							{
 								accessEntities[i]->transform.m_scale = accessScale * (UIScale + 0.05f);
 							}
-							accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+							accessEntities[i]->transform.m_pos = accessTray[i + 5].m_pos;
 						}
 
 					}
@@ -2217,7 +2267,7 @@ int main()
 			}
 
 			if (!isInOption) {
-				int mainMenuChosen = getSignSelection(6, false);
+				int mainMenuChosen = getSignSelection(7, false);
 
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 8]);
 			}
@@ -2226,7 +2276,7 @@ int main()
 				if (selectedOption == 0) {
 
 					if (accessButtonPressed >= 0) {
-						for (int i = 0; i < std::size(accessEntities); i++) {
+						for (int i = 0; i < 4; i++) {
 							accessEntities[i]->transform.m_pos = accessTray[i].m_pos;
 						}
 
@@ -2254,10 +2304,10 @@ int main()
 								accessEntities[1]->Get<PictureSelector>().setPictures(sliderPointer);
 								accessEntities[2]->Get<PictureSelector>().setPictures(sliderPointer);
 								accessEntities[3]->Get<PictureSelector>().setPictures(booleanPointer);
-								for (int i = 0; i < 4; i++) {
+								for (int i = 0; i < 5; i++) {
 									accessEntities[i]->Get<PictureSelector>().setIndex(accessSettings[i + 4]);
 									accessEntities[i]->Get<PictureSelector>().updatePicture();
-									accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+									accessEntities[i]->transform.m_pos = accessTray[i + 5].m_pos;
 									if (i < 3) {
 										accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
 									}
@@ -2288,7 +2338,7 @@ int main()
 										accessSettings[accessButtonPressed] = keyPressed;
 										accessButtonPressed++;
 										if (accessButtonPressed == 4) {
-											sign.Get<CMeshRenderer>().SetMaterial(*signFrames[15]);
+											sign.Get<CMeshRenderer>().SetMaterial(*signFrames[16]);
 										}
 									}
 								}
@@ -2306,14 +2356,16 @@ int main()
 						//accessButtonPressed = 0; 
 					}
 				}
-				else if (selectedOption != 5) {
+				else if (selectedOption != 6) {
 					if (isClickingUp || isClickingRight) {
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(1);
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
+						currentConfusion = 0;
 					}
 					else if (isClickingDown || isClickingLeft) {
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(-1);
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
+						currentConfusion = 0;
 
 					}
 				}
@@ -2342,7 +2394,8 @@ int main()
 				}
 
 			}
-
+			confusionPlane.transform.RecomputeGlobal();
+			confusionPlane.Get<CMeshRenderer>().Draw();
 			App::SwapBuffers();
 			continue;
 		}
@@ -2352,6 +2405,9 @@ int main()
 				cameraEntity.transform.m_pos = menuCameraPos;
 
 				cameraEntity.transform.m_rotation = menuCameraQuat;
+				
+				confusionPlane.Remove<CMeshRenderer>();
+				confusionPlane.Add<CMeshRenderer>(confusionPlane, *tutorialConfusion.getMesh(), *tutorialConfusion.getMaterial());
 
 				cameraEntity.Get<CCamera>().Update();
 				int mainMenuChosen = getSignSelection(3, false);
@@ -2360,14 +2416,18 @@ int main()
 
 				if (mainMenuChosen >= 0) {
 					//nextStepTutorialIfNeeded(1);
+					modifiedConfusionThreshold = confusionThreshold;
 					if (mainMenuChosen == 0) {//PLAY	 
 
 						isInTutorialMenu = true;
 						isInMainMenu = false;
 						tray.transform.SetParent(&cameraEntity.transform);
+						tutorialPlane->transform.SetParent(&cameraEntity.transform);
 						normalTrayPos.SetParent(&cameraEntity.transform);
 						lowTrayPos.SetParent(&cameraEntity.transform);
-						tutorialPlane->transform.SetParent(&cameraEntity.transform);
+						tutorialPlane->Remove<CMeshRenderer>();
+						tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialSteps[0].getMaterialCreator()->getMesh(), *tutorialSteps[0].getMaterialCreator()->getMaterial());
+
 						
 
 					}
@@ -2380,7 +2440,7 @@ int main()
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						
 						//renderingEntities.push_back(accessEntities[0]); 
-						for (int i = 0; i < 4; i++) {
+						for (int i = 0; i < 5; i++) {
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
 							}
@@ -2389,7 +2449,7 @@ int main()
 							accessEntities[i]->Remove<CMeshRenderer>();
 							accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *coffeeTile.getMesh(), *coffeeTile.getMaterial());
 							
-							accessEntities[i]->transform.m_pos = accessTray[i + 4].m_pos;
+							accessEntities[i]->transform.m_pos = accessTray[i + 5].m_pos;
 							if (i < 3) {
 								accessEntities[i]->transform.m_scale = accessScale * ((UIScale + 0.05f) * 2);
 							}
@@ -2411,7 +2471,7 @@ int main()
 					if (mainMenuChosen == 2) {
 						break;
 					}
-
+					tutorialPlane->transform.m_scale = glm::vec3(0);
 				}
 			}
 			else
@@ -2560,7 +2620,9 @@ int main()
 				}
 
 			}
-
+			confusionPlane.transform.RecomputeGlobal();
+			confusionPlane.Get<CMeshRenderer>().Draw();
+			
 			App::SwapBuffers();
 			continue;
 
@@ -5089,6 +5151,7 @@ int getSignSelection(int max, bool reset) {
 			subtractor = 0;
 		}
 		if (isClickingUp) {
+			currentConfusion = 0;
 			selectedOption += (max - subtractor);
 			selectedOption = selectedOption % max;
 
@@ -5096,6 +5159,7 @@ int getSignSelection(int max, bool reset) {
 			playSound(&tick, "Tick");
 		}
 		if (isClickingDown) {
+			currentConfusion = 0;
 			selectedOption++;
 			selectedOption = selectedOption % max;
 			playSound(&tick, "Tick");
@@ -5109,6 +5173,7 @@ int getSignSelection(int max, bool reset) {
 
 		
 		playSound(&click, "TickTick");
+		currentConfusion = 0;
 		return selectedOption;
 
 
@@ -5675,7 +5740,7 @@ void saveSettings() {
 	scoreKeeper.close();
 	scoreKeeper.open("settings.txt");
 	if (scoreKeeper.is_open()) {
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 9; i++) {
 			scoreKeeper << std::to_string(accessSettings[index]) << std::endl;
 			index++;
 		}
@@ -5683,7 +5748,7 @@ void saveSettings() {
 	}
 	else
 	{
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 9; i++) {
 			scoreKeeper << std::to_string(accessSettings[index]) << std::endl;
 			index++;
 		}
@@ -5712,12 +5777,15 @@ void loadSettings() {
 
 	for (int i = 4; i < 7; i++) {
 		if (accessSettings[i] > 4 || accessSettings[i] < 0) {
-			accessSettings[i] = 3;
+			accessSettings[i] = 2;
 		}
 
 	}
 	if (accessSettings[7] > 1 || accessSettings[7] < 0) {
 		accessSettings[7] = 0;
+	}
+	if (accessSettings[8] > 1 || accessSettings[8] < 0) {
+		accessSettings[8] = 0;
 	}
 
 }
@@ -5753,6 +5821,20 @@ void applySettings() {
 	else
 	{
 		UIScale = 0.95;
+	}
+
+	if (accessSettings[8] == 1) {
+		glm::vec2 newSize = App::setFullscreen();
+		globalCameraEntity->Get<CCamera>().Perspective(60.0f, (float)newSize.x / newSize.y, 0.001f, 100.0f);
+		globalCameraEntity->transform.RecomputeGlobal();
+		globalCameraEntity->Get<CCamera>().Update();
+	}
+	else
+	{
+		glm::vec2 newSize = App::setWindowed(1600,900);
+		globalCameraEntity->Get<CCamera>().Perspective(60.0f, (float)newSize.x / newSize.y, 0.001f, 100.0f);
+		globalCameraEntity->transform.RecomputeGlobal();
+		globalCameraEntity->Get<CCamera>().Update();
 	}
 
 }
