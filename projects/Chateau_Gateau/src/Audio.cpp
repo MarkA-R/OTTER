@@ -48,6 +48,7 @@ void Audio::unloadSound(const std::string& soundName)
 void Audio::playSound(const std::string& soundName)
 {
 	outputErrors(system->playSound(sounds[soundName], nullptr, false, nullptr));
+	
 }
 
 int Audio::outputErrors(FMOD_RESULT result)

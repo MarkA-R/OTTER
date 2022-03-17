@@ -189,6 +189,19 @@ public:
    static float getDrinkFillAmount() {
        return drinkFillAmount;
    }
+
+   static void setMusicVolume(float x) {
+       musicVol = x;
+   }
+   static void setSoundVolume(float x) {
+       soundVol = x;
+   }
+   static float getMusicVolume() {
+       return musicVol;
+   }
+   static float getSoundVolume() {
+       return soundVol;
+   }
 protected:
     inline static float timeToCroissant = 10;
     inline static float timeToCookie = 20;
@@ -201,6 +214,8 @@ protected:
     inline static int roundsLasted = 0;
     inline static int ordersFailed = 0;
     //declare SFX and music volume here once you know how
+    inline static float musicVol = 0.f;
+    inline static float soundVol = 0.f;
      
     
 

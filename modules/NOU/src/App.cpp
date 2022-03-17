@@ -225,7 +225,11 @@ namespace nou
 		const GLFWvidmode* mode = glfwGetVideoMode(primary);
 		int xpos, ypos;
 		glfwGetWindowPos(m_window, &xpos, &ypos);
-		glfwSetWindowMonitor(m_window, nullptr, xpos, ypos, width, height, mode->refreshRate);
+		int monitorW = mode->width;
+		int monitorH = mode->height;
+		int centeredW = (monitorW / 2) - (width / 2);
+		int centeredH = (monitorH / 2) - (height / 2);
+		glfwSetWindowMonitor(m_window, nullptr, centeredW, centeredH, width, height, mode->refreshRate);
 		glViewport(0, 0, (GLint)width, (GLint)height);
 		return glm::vec2(width,height);
 	}
