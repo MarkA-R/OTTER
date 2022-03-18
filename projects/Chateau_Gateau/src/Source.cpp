@@ -55,6 +55,7 @@
 #include "TutorialStep.h"
 
 #include "ToneFire.h"
+#include "Music.h"
 
 using namespace nou;
 
@@ -199,6 +200,8 @@ bool isClickingRight = false;
 bool isClickingEnter = false;
 bool isClickingSpace = false;
 bool isClickingEscape = false;
+bool isScrollingUp = false;
+bool isScrollingDown = false;
 
 //Mouse State 
 bool firstMouse = true;
@@ -532,7 +535,9 @@ int main()
 	studio.LoadBank("Master.bank");
 	studio.LoadBank("Master.strings.bank");
 	ToneFire::StudioSound menuBGM;
-	menuBGM.LoadEvent("event:/BackgroundMusic");
+	menuBGM.LoadEvent("event:/TitleMusic");
+	ToneFire::StudioSound pauseBGM;
+	pauseBGM.LoadEvent("event:/PauseMusic");
 	ToneFire::StudioSound pop;
 	pop.LoadEvent("event:/DoughTray");
 	ToneFire::StudioSound ding;
@@ -541,6 +546,10 @@ int main()
 	tick.LoadEvent("event:/Tick");
 	
 	click.LoadEvent("event:/TickTick");
+	Music titleMusic = Music(menuBGM, "TitleMusic", 38.f);
+	Music pauseMusic = Music(pauseBGM, "PauseMusic", 41.f);
+
+	
 	
 	// Create and set up camera 
 	Entity cameraEntity = Entity::Create();
@@ -1903,7 +1912,7 @@ int main()
 	//shouldShowTutorial = false;
 	float fridgeMultiplier = 4;
 	//renderingEntities.push_back(&tester);
-	menuBGM.PlayEvent("event:/BackgroundMusic");
+	//menuBGM.PlayEvent("event:/BackgroundMusic");
 	
 	float traySpeed = 8;
 	
@@ -1911,12 +1920,17 @@ int main()
 		modifiedConfusionThreshold = confusionThreshold / 5;
 	}
 	int selected = 0;
+	titleMusic.fadeIn(3);
+	titleMusic.setLoop(true);
+	pauseMusic.setLoop(true);
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
+		
 		//audioEngine.Update();
 		studio.Update();
+		
 		//playMusic(&menuBGM, "BackgroundMusic");
-		menuBGM.SetEventParameter("event:/BackgroundMusic", "parameter:/musicVolume", musicVolume);//an exception for the music, if we cant tell if an event is playing or not
+		//menuBGM.SetEventParameter("event:/BackgroundMusic", "parameter:/musicVolume", musicVolume);//an exception for the music, if we cant tell if an event is playing or not
 		
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f)); 
 		
@@ -1981,6 +1995,9 @@ int main()
 		raycastHit = false;
 		App::FrameStart();
 		float deltaTime = App::GetDeltaTime();
+		titleMusic.update(deltaTime);
+		pauseMusic.update(deltaTime);
+		
 		getKeyInput();
 
 		
@@ -2163,7 +2180,8 @@ int main()
 					//bakeryUtils::setDifficulty(4);
 
 				}
-				menuBGM.StopEvent("event:/BackgroundMusic");
+				titleMusic.fadeOut(3);
+				//menuBGM.StopEvent("event:/BackgroundMusic");
 				orderBubbles[0]->updateScale(UIScale);
 				tray.transform.m_scale = trayScale;
 				tray.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -2182,6 +2200,7 @@ int main()
 				cameraY = 0.f;
 				xPos = 0;
 				yPos = 0;
+				
 			}
 
 			for each (Entity * e in renderingEntities) {
@@ -2199,14 +2218,15 @@ int main()
 				}
 
 			}
-
+			isScrollingDown = false;
+			isScrollingUp = false;
 			App::SwapBuffers();
 			continue;
 		}
 		if (isInOptionsMenu) {
 			
 			
-			if (isClickingSpace) {
+			if (isClickingSpace || isClickingEnter) {
 				modifiedConfusionThreshold = confusionThreshold;
 				currentConfusion = 0;
 				isInOption = !isInOption;
@@ -2411,12 +2431,12 @@ int main()
 					}
 				}
 				else if (selectedOption != 6) {
-					if (isClickingUp || isClickingRight) {
+					if (isClickingUp || isClickingRight || isScrollingUp) {
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(1);
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
 						currentConfusion = 0;
 					}
-					else if (isClickingDown || isClickingLeft) {
+					else if (isClickingDown || isClickingLeft || isScrollingDown) {
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().addToIndex(-1);
 						accessEntities[selectedOption - 1]->Get<PictureSelector>().updatePicture();
 						currentConfusion = 0;
@@ -2451,6 +2471,8 @@ int main()
 			}
 			confusionPlane.transform.RecomputeGlobal();
 			confusionPlane.Get<CMeshRenderer>().Draw();
+			isScrollingDown = false;
+			isScrollingUp = false;
 			App::SwapBuffers();
 			continue;
 		}
@@ -2685,7 +2707,8 @@ int main()
 			}
 			confusionPlane.transform.RecomputeGlobal();
 			confusionPlane.Get<CMeshRenderer>().Draw();
-			
+			isScrollingDown = false;
+			isScrollingUp = false;
 			App::SwapBuffers();
 			continue;
 
@@ -2702,6 +2725,7 @@ int main()
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
 				//std::cout << selectedOption << std::endl; 
 				if (mainMenuChosen >= 0) {
+					pauseMusic.fadeOut(3);
 					for each (Entity * cust in customers) {
 						if (isInRendering(cust)) {
 							removeFromRendering(cust);
@@ -2831,6 +2855,7 @@ int main()
 						isInMainMenu = true;
 					}
 					else if (mainMenuChosen == 2) {
+					titleMusic.fadeIn(3);
 						//std::cout << "ONE" << std::endl; 
 						restartGame();
 
@@ -2934,7 +2959,8 @@ int main()
 				}
 
 			}
-
+			isScrollingDown = false;
+			isScrollingUp = false;
 			App::SwapBuffers();
 			continue;
 		}
@@ -3080,7 +3106,8 @@ int main()
 				}
 
 			}
-
+			isScrollingDown = false;
+			isScrollingUp = false;
 			App::SwapBuffers();
 			continue;
 		}
@@ -3091,6 +3118,7 @@ int main()
 			isPaused = !isPaused;
 
 			if (isPaused) {
+				pauseMusic.fadeIn(3);
 				removeFromRendering(&tray);
 				removeFromRendering(tutorialPlane.get());
 				//tutorialPlane->transform.m_pos = glm::vec3(-20);
@@ -4457,6 +4485,8 @@ int main()
 		lastPoint = currentPoint;
 		scrollX = 0;
 		scrollY = 0;
+		isScrollingDown = false;
+		isScrollingUp = false;
 		// Draw everything we queued up to the screen 
 		App::SwapBuffers();
 	}
@@ -5040,6 +5070,20 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	scrollX = xoffset;
 	scrollY = yoffset;
+	if (yoffset < 0.f) {
+		isScrollingDown = true;
+	}
+	else
+	{
+		isScrollingDown = false;
+	}
+	if (yoffset > 0.f) {
+		isScrollingUp = true;
+	}
+	else
+	{
+		isScrollingUp = false;
+	}
 	//std::cout << scrollX << " " << scrollY << std::endl; 
 }
 
@@ -5215,7 +5259,7 @@ int getSignSelection(int max, bool reset) {
 		if (max == 1) {
 			subtractor = 0;
 		}
-		if (isClickingUp) {
+		if (isClickingUp || isScrollingUp) {
 			currentConfusion = 0;
 			selectedOption += (max - subtractor);
 			selectedOption = selectedOption % max;
@@ -5223,7 +5267,7 @@ int getSignSelection(int max, bool reset) {
 			
 			playSound(&tick, "Tick");
 		}
-		if (isClickingDown) {
+		if (isClickingDown || isScrollingDown) {
 			currentConfusion = 0;
 			selectedOption++;
 			selectedOption = selectedOption % max;
@@ -5234,7 +5278,7 @@ int getSignSelection(int max, bool reset) {
 
 
 
-	if (isClickingSpace) {
+	if (isClickingSpace || isClickingEnter) {
 
 		
 		playSound(&click, "TickTick");
@@ -5878,6 +5922,8 @@ void applySettings() {
 	//int musicVol = accessSettings[6];
 	musicVolume = accessSettings[5] * 0.25;
 	soundVolume = accessSettings[6] * 0.25;
+	bakeryUtils::setMusicVolume(musicVolume);
+	bakeryUtils::setSoundVolume(soundVolume);
 
 	if (accessSettings[7] == 1) {
 		UIScale = 1.35;
