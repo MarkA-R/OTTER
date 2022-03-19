@@ -1,11 +1,12 @@
 #include "Music.h"
 #include "bakeryUtils.h"
 
-Music::Music(ToneFire::StudioSound& tfFile, std::string n, float sec)
+Music::Music(ToneFire::StudioSound& tfFile, std::string n, float sec, bool isSound)
 {
 	seconds = sec;
 	song = &tfFile;
 	name = n;
+	isUsingSound = isSound;
 }
 
 void Music::update(float dt)
@@ -23,19 +24,26 @@ void Music::update(float dt)
 	if (volumeT < 0.f) {
 		volumeT = 0.f;
 	}
-	if (bakeryUtils::getMusicVolume() < 0.05f) {
+	float usingVol = bakeryUtils::getMusicVolume();
+	if (isUsingSound) {
+		usingVol = bakeryUtils::getSoundVolume();
+	}
+	if (usingVol < 0.05f) {
 		volumeT = 0;
 	}
 	if (volChangeTime != 0.f) {
-		float newVol = bakeryUtils::getMusicVolume() * (volumeT);
-		
-		song->SetEventParameter("event:/" + name, "parameter:/musicVolume", newVol);
-		if (bakeryUtils::getMusicVolume() < 0.01f && isPlaying) {
+		float newVol = usingVol * (volumeT);
+		std::string soundType = "parameter:/musicVolume";
+		if (isUsingSound) {
+			 soundType = "parameter:/soundVolume";
+		}
+		song->SetEventParameter("event:/" + name, soundType, newVol);
+		if (usingVol < 0.01f && isPlaying) {
 			song->StopEvent("event:/" + name);
 			isPlaying = false;
 			
 		}
-		else if(bakeryUtils::getMusicVolume() > 0.01f && !isPlaying)
+		else if(usingVol > 0.01f && !isPlaying)
 		{
 			song->PlayEvent("event:/" + name);
 			isPlaying = true;
@@ -73,9 +81,12 @@ void Music::update(float dt)
 
 void Music::fadeIn(float time)
 {
-	volumeMulti = 1;
-	volChangeTime = time;
-	song->PlayEvent("event:/" + name);
+	
+		volumeMulti = 1;
+		volChangeTime = time;
+		song->PlayEvent("event:/" + name);
+	
+	
 }
 
 void Music::fadeOut(float time)

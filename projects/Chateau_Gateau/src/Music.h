@@ -3,7 +3,7 @@
 class Music
 {
 public:
-	Music(ToneFire::StudioSound& tfFile, std::string n, float sec);
+	Music(ToneFire::StudioSound& tfFile, std::string n, float sec, bool useSoundVolume = false);
 	void update(float dt);//for fades
 	void fadeIn(float time);
 	void fadeOut(float time);
@@ -18,5 +18,6 @@ protected:
 	float volumeT = 0.f;
 	std::string name;
 	float secondsCounter = 0.f;
+	bool isUsingSound = false;
 };
 

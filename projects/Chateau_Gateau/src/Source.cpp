@@ -538,16 +538,29 @@ int main()
 	menuBGM.LoadEvent("event:/TitleMusic");
 	ToneFire::StudioSound pauseBGM;
 	pauseBGM.LoadEvent("event:/PauseMusic");
+	ToneFire::StudioSound toppingS;
+	toppingS.LoadEvent("event:/Topping");
 	ToneFire::StudioSound pop;
 	pop.LoadEvent("event:/DoughTray");
 	ToneFire::StudioSound ding;
 	ding.LoadEvent("event:/CashRegister");
+	ToneFire::StudioSound printShortS;
+	printShortS.LoadEvent("event:/printTick");
+	ToneFire::StudioSound printLongS;
+	printLongS.LoadEvent("event:/printLong");
+	ToneFire::StudioSound machineS;
+	machineS.LoadEvent("event:/machineOn");
 	
 	tick.LoadEvent("event:/Tick");
 	
 	click.LoadEvent("event:/TickTick");
 	Music titleMusic = Music(menuBGM, "TitleMusic", 38.f);
 	Music pauseMusic = Music(pauseBGM, "PauseMusic", 41.f);
+	Music toppingSound = Music(toppingS, "Topping", 20.f, true);
+	Music machineSound = Music(machineS, "machineOn", 13.f, true);
+	Music printShort = Music(printShortS, "printTick", 0.25, true);
+	Music printLong = Music(printLongS, "printLong", 0.39, true);
+
 
 	
 	
@@ -1741,35 +1754,8 @@ int main()
 	car.transform.m_pos = glm::vec3(-10, -10, 10);
 	//REMOVE WHEN YOU WANT TO TEST MENUS OR SHIP THE FINAL GAME OR DO A DEMO! ################################# 
 	bool canCheat = false;
-	bool skipMenu = false;
-	if (skipMenu)
-	{
-		cameraEntity.transform.m_pos = cameraPos;
-		globalCameraEntity->transform.m_pos = cameraPos;
-		cameraX = lastCameraX;
-		cameraY = lastCameraY;
-		isCameraMoving = false;
-		isInMainMenu = false;
-		isPaused = false;
-		tray.transform.SetParent(&cameraEntity.transform);
 
-
-		if (!isInRendering(&tray)) {
-			renderingEntities.push_back(&tray);
-		}
-		if (!isInRendering(&cursor)) {
-			renderingEntities.push_back(&cursor);
-		}
-
-		for (int i = 0; i < currentOrders.size(); i++) {
-			OrderBubble* ob = orderBubbles[i];
-			for each (Entity * ent in ob->returnRenderingEntities()) {
-				renderingEntities.push_back(ent);
-			}
-		}
-
-		currentOrders.back().startOrder();
-	}
+	
 
 	//up to here 
 
@@ -1923,6 +1909,10 @@ int main()
 	titleMusic.fadeIn(3);
 	titleMusic.setLoop(true);
 	pauseMusic.setLoop(true);
+	toppingSound.setLoop(true);
+	machineSound.setLoop(true);
+	//toppingSound.fadeIn(0.4);
+	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		
@@ -1997,7 +1987,9 @@ int main()
 		float deltaTime = App::GetDeltaTime();
 		titleMusic.update(deltaTime);
 		pauseMusic.update(deltaTime);
-		
+		printLong.update(deltaTime);
+		toppingSound.update(deltaTime);
+		machineSound.update(deltaTime);
 		getKeyInput();
 
 		
@@ -2047,30 +2039,37 @@ int main()
 			//std::cout << "GGGG" << std::endl; 
 			
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot 
-				bakeryUtils::addToFailed(3);
-				//createNewOrder(i, false, false); 
-				bakeryUtils::addToFailed(1);
-				if (bakeryUtils::getOrdersFailed() == 3) {
-					receipt.transform.m_pos = cursor.transform.m_pos;
-					receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-						glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
-						* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
-					removeFromRendering(&cursor);
-					removeFromRendering(&tray);
-					for each (Entity * trayEntity in trayPastry) {
-						removeFromRendering(trayEntity);
-					}
-					renderingEntities.push_back(&receipt);
-					for (int i = 0; i < 6; i++)
-					{
-						renderingEntities.push_back(numberEntities[i]);
-
-					}
-					int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
-					setScores(bakeryUtils::getRoundsLasted(), highScore);
-					receiptT = 0;
-					isInContinueMenu = true;
+				int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
+				setScores(bakeryUtils::getRoundsLasted(), highScore);
+				if (cameraX == 0 && cameraY == 0) {
+					cameraX = 1;
+					cameraY = 1;
 				}
+				receipt.transform.m_pos = cursor.transform.m_pos;
+				receipt.transform.m_rotation = cursor.transform.m_rotation * glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+					glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
+					* glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f));
+				removeFromRendering(&cursor);
+				removeFromRendering(&tray);
+				tray.transform.SetParent(nullptr);
+				for each (Entity * trayEntity in trayPastry) {
+					removeFromRendering(trayEntity);
+				}
+				renderingEntities.push_back(&receipt);
+				for (int i = 0; i < 6; i++)
+				{
+					renderingEntities.push_back(numberEntities[i]);
+
+				}
+				for (int i = 0; i < 4; i++) {
+					accessEntities[i]->transform.SetParent(nullptr);
+					removeFromRendering(accessEntities[i]);
+				}
+
+				receiptT = 0;
+				isInContinueMenu = true;
+				continue;
+				
 			}
 			if (Input::GetKeyDown(GLFW_KEY_G)) {//put this in the lose spot 
 				std::cout << "------------------" << std::endl;
@@ -2297,6 +2296,11 @@ int main()
 						}
 						saveSettings();
 						applySettings();
+						for (int i = 0; i < 5; i++) {
+							if (isInRendering(accessEntities[i])) {
+								removeFromRendering(accessEntities[i]);
+							}
+						}
 						for (int i = 4; i >= 0; i--) {
 							if (!isInRendering(accessEntities[i])) {
 								renderingEntities.push_back(accessEntities[i]);
@@ -2967,6 +2971,9 @@ int main()
 
 		if (isInContinueMenu) {
 			//tutorialPlane->transform.m_pos = glm::vec3(-20);
+			
+			printShort.update(deltaTime);
+			
 			if (isInRendering(tutorialPlane.get())) {
 				removeFromRendering(tutorialPlane.get());
 			}
@@ -2979,11 +2986,19 @@ int main()
 			{
 				receiptT += deltaTime;
 				receiptStopT = 0;
+				
+				printShort.fadeIn(0.001);
+				
 			}
-
-
+			
+			if (static_cast<int>(floor(static_cast<float>(receiptT * 100.f))) > 97 && static_cast<int>(floor(static_cast<float>(receiptT * 100.f))) < 100) {
+				printLong.fadeIn(0.001);
+				//std::cout << "A" << std::endl;
+			}
 			if (receiptT > 1) {
 				receiptT = 1;
+				
+				
 			}
 
 			receipt.transform.m_pos = Lerp(receptBeginPos, receptEndPos, receiptT);
@@ -2991,7 +3006,10 @@ int main()
 			{
 				numberEntities[i]->transform.m_pos = Lerp(beginingNumberPos[i], endNumberPos[i], receiptT);
 			}
-			if (isClickingSpace) {
+			if (isClickingSpace || isClickingEscape || isClickingEnter) {
+				
+				receiptT = 0;
+				receiptStopT = 0;
 				if (isInRendering(&receipt)) {
 					removeFromRendering(&receipt);
 				}
@@ -3637,13 +3655,23 @@ int main()
 			}
 		}
 
+		
 
-
+		
+		if (lastActionTime > deltaTime) {
+			lookingAtDrink = false;
+			lookingAtFilling = false;
+			lookingAtFridge = false;
+			lookingAtOven = false;
+			lookingAtTopping = false;
+		}
 		if (raycastHit && hitEntity != nullptr && lastActionTime > deltaTime) {
 			Entity* e = hitEntity;
+			
 			if (e->Has<Machine>()) {//check for fridge tomorrow 
-
+				
 				if (e->Has<Fridge>()) {
+					lookingAtFridge = true;
 					//log("B"); 
 					//std::cout << "A" << std::endl; 
 					//fridge.Get<CMorphAnimator>().setT(0);
@@ -3694,7 +3722,7 @@ int main()
 
 				}
 				else if (e->Has<Oven>()) {
-
+					lookingAtOven = true;
 					currentOvenPos = selectedOvenPosition(currentPoint.y);
 					lastOvenPos = selectedOvenPosition(lastPoint.y);
 					if (currentOvenPos >= 0 && currentOvenPos != lastOvenPos) {
@@ -3842,12 +3870,15 @@ int main()
 					}
 				}
 				else if (e->Has<FillingMachine>() && roundsLasted > 0) {
-
+				lookingAtFilling = true;
 					FillingMachine& fillingScript = e->Get<FillingMachine>();
 					//std::cout << "FILLING" << std::endl; 
 					if (isLeftButtonHeld) {
 
 						if (fillingScript.isFillingFull()) {
+							if (fillingScript.getT() == 0.f) {
+								machineSound.fadeIn(0.1);
+							}
 							float yChange = (currentPoint.y - lastPoint.y) * -1.25;//the 1.25 is the shortness scale 
 							fillingScript.setT(abs(fillingScript.getT() + yChange));
 							filling.Get<CMorphAnimator>().setFrameAndTime(0, 1, fillingScript.getT());
@@ -3951,7 +3982,7 @@ int main()
 
 								fillingScript.putInFilling(trayPastry[wantedSlot]);
 
-
+								machineSound.fadeOut(0.1);
 
 
 								trayPastry[wantedSlot]->Get<Pastry>().setInFilling(true);
@@ -3997,7 +4028,7 @@ int main()
 
 									fillingScript.removeFromFilling();
 									//dont set texture here cause they just removed it 
-
+									machineSound.fadeOut(0.1);
 
 								}
 							}
@@ -4016,11 +4047,14 @@ int main()
 
 				}
 				else if (e->Has<ToppingMachine>() && roundsLasted > 1) {
+				lookingAtTopping = true;
 					ToppingMachine& toppingScript = e->Get<ToppingMachine>();
 
 					if (isLeftButtonHeld) {
 						if (toppingScript.isToppingFull()) {
-
+							if (toppingScript.getDistance() == 0.f) {
+								toppingSound.fadeIn(0.1);
+							}
 							float xChange = (currentPoint.x - lastPoint.x) * 1.5;//the 1.25 is the shortness scale 
 							toppingScript.setT(abs(toppingScript.getT() + xChange));
 							toppingScript.moveTopping(toppingScript.getT());
@@ -4116,7 +4150,7 @@ int main()
 								//setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType()); 
 
 								trayPastry[wantedSlot] = nullptr;
-
+								toppingSound.fadeOut(0.1);
 							}
 							else
 							{
@@ -4147,7 +4181,7 @@ int main()
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
 									toppingScript.removeFromTopping();
 									//dont set texture here cause they just removed it 
-
+									toppingSound.fadeOut(0.1);
 
 								}
 							}
@@ -4165,8 +4199,10 @@ int main()
 
 				}
 				else if (e->Has<DrinkMachine>() && roundsLasted > 2) {
+				lookingAtDrink = true;
 					if (!drinkScript.isOpening && !drinkScript.isClosing && !drinkScript.isDrinkFull()) {
 						if (isLeftButtonHeld) {
+							
 							lastActionTime = 0;
 							drinkScript.addFill((deltaTime / bakeryUtils::getDrinkFillAmount()) * 2);//*2 because it only goes every other frame cause of the last action time check up top 
 							drinkScript.getFillBar()->setT(drinkScript.getFill());
@@ -4182,7 +4218,7 @@ int main()
 						{
 							if (drinkScript.getFill() > 0.80f && drinkScript.getFill() < 1.05f
 								&& (!drinkScript.isOpening || !drinkScript.isClosing)) {
-
+								machineSound.fadeIn(0.3);
 								drinkScript.isOpening = true;
 								drinkScript.isClosing = false;
 								if (!drinkScript.isDrinkFull()) {
@@ -4201,7 +4237,7 @@ int main()
 							}
 							else
 							{
-
+								machineSound.fadeOut(0.3);
 								drinkScript.setFill(0.f);
 								drinkScript.getFillBar()->setT(drinkScript.getFill());
 								drinkScript.getFillBar()->updateArrow();
@@ -4393,7 +4429,7 @@ int main()
 				}
 			}
 			
-
+			
 			
 
 		}
