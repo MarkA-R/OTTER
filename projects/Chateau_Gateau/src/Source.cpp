@@ -1919,7 +1919,7 @@ int main()
 	machineSound2.setLoop(true);
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
-	bool canCheat = true;
+	bool canCheat = false;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		
