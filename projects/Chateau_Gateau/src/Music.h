@@ -8,6 +8,7 @@ public:
 	void fadeIn(float time);
 	void fadeOut(float time);
 	void setLoop(bool toLoop);
+	bool isCurrentlyPlaying();
 protected:
 	bool isPlaying = false;
 	bool shouldLoop = false;

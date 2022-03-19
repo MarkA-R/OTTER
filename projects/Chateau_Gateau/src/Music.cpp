@@ -100,3 +100,8 @@ void Music::setLoop(bool toLoop)
 	shouldLoop = toLoop;
 }
 
+bool Music::isCurrentlyPlaying()
+{
+	return isPlaying;
+}
+
