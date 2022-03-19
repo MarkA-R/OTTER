@@ -1690,9 +1690,9 @@ int main()
 	slot1.getArrow()->transform.m_pos.z += 0.03;
 	slot1.getTile()->transform.m_pos.y = slot1.getTransform().m_pos.y + 0.586;
 
-	ovenHeights[0] = slot1Transform.m_pos.y - 0.15;
-	ovenHeights[1] = slot2Transform.m_pos.y - 0.15;
-	ovenHeights[2] = slot3Transform.m_pos.y - 0.15;
+	ovenHeights[0] = slot1Transform.m_pos.y - 0.25;
+	ovenHeights[1] = slot2Transform.m_pos.y - 0.20;
+	ovenHeights[2] = slot3Transform.m_pos.y - 0.20;
 	ovenHeights[3] = slot4Transform.m_pos.y - 0.15;
 
 	std::vector<MaterialCreator*> tiles = std::vector<MaterialCreator*>();
@@ -3029,6 +3029,7 @@ int main()
 			}
 			if (isClickingSpace || isClickingEscape || isClickingEnter) {
 				printShort.fadeIn(0.001);
+				titleMusic.fadeIn(3);
 				receiptT = 0;
 				receiptStopT = 0;
 				if (isInRendering(&receipt)) {
@@ -4527,7 +4528,7 @@ int main()
 				) {//|| currentOrders.size() == 2 
 				tablet->Remove<CMeshRenderer>();
 				tablet->Add<CMeshRenderer>(*tablet, *tabletMats[2]->getMesh(), *tabletMats[2]->getMaterial());
-				setTutorialChange(19);
+				setTutorialChange(20);
 				UpdateTutorial();
 				//std::cout << "JJJ" << std::endl; 
 				createNewOrder(2, false, false);
@@ -5664,7 +5665,7 @@ int selectedOvenPosition(float x) {
 		return 0;
 	}
 	if (x < ovenHeights[0]) {
-		return -1;
+		return 0;
 	}
 }
 
