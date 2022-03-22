@@ -236,8 +236,7 @@ GLuint trayKeys[4] = { GLFW_KEY_1 ,GLFW_KEY_2 ,GLFW_KEY_3 ,GLFW_KEY_4 };
 float soundVolume = 50;
 float musicVolume = 50;
 float UIScale = 0.95;//1.35 
-//float sensitivity = 1; 
-bool largeFont = false;
+
 std::unordered_map<GLuint, int> alphanumeric;
 std::vector<MaterialCreator> alphanumericMat;
 std::vector<MaterialCreator> sliderMat;
@@ -3668,14 +3667,14 @@ int main()
 			if (drinkScript.getT() >= 1.f) {
 				drinkScript.setT(1.f);
 				drinkScript.isOpening = false;
-				machineSound.fadeOut(0.1);
+				machineSound.fadeOut(0.3);
 			}
 			if (drinkScript.getT() <= 0.f) {
 				drinkScript.setT(0.f);
 
 				drinkScript.isClosing = false;
 				drinkScript.isOpening = false;
-				machineSound.fadeOut(0.1);
+				machineSound.fadeOut(0.3);
 			}
 		}
 
@@ -3938,7 +3937,7 @@ int main()
 									//UPDATE FILLING HERE 
 									setPastryFilling(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling());
 									//std::cout << bakeryUtils::getFillingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling()) << std::endl; 
-									machineSound2.fadeOut(0.1);
+									machineSound2.fadeOut(0.3);
 								}
 
 							}
@@ -3983,7 +3982,7 @@ int main()
 								}
 							}
 							if (putinFill) {
-								machineSound2.fadeIn(0.1);
+								machineSound2.fadeIn(0.3);
 								trayMultiplier = 1;
 								lastActionTime = 0;
 								//std::cout << "B" << std::endl; 
@@ -4053,7 +4052,7 @@ int main()
 
 									fillingScript.removeFromFilling();
 									//dont set texture here cause they just removed it 
-									machineSound2.fadeOut(0.1);
+									machineSound2.fadeOut(0.3);
 
 								}
 							}
@@ -4115,7 +4114,7 @@ int main()
 									trayPastry[wantedSlot]->transform.m_pos = toppingScript.getToppingPosition();
 
 									//std::cout << bakeryUtils::getToppingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping()) << std::endl; 
-									toppingSound.fadeOut(0.1);
+									toppingSound.fadeOut(0.3);
 								}
 
 							}
@@ -4155,7 +4154,7 @@ int main()
 							}
 							if (putinTop) {
 								trayMultiplier = 1;
-								toppingSound.fadeIn(0.1);
+								toppingSound.fadeIn(0.3);
 								//std::cout << "B" << std::endl; 
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot); 
 								toppingScript.putInTopping(trayPastry[wantedSlot]);
@@ -4208,7 +4207,7 @@ int main()
 									toppingScript.removeFromTopping();
 									trayPastry[wantedSlot]->transform.m_pos = toppingScript.getToppingPosition();
 									//dont set texture here cause they just removed it 
-									toppingSound.fadeOut(0.1);
+									toppingSound.fadeOut(0.3);
 
 								}
 							}
@@ -4308,7 +4307,7 @@ int main()
 
 								drinkScript.isClosing = true;
 								drinkScript.isOpening = false;
-								machineSound.fadeIn(0.1);
+								machineSound.fadeIn(0.3);
 							}
 
 
