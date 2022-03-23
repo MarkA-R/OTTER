@@ -140,7 +140,7 @@ float tempD = 0.f; //(-0.5, -1.22, -2.29f
 
 float lineY = -1.89;//-1.1f; 
 std::unique_ptr<ShaderProgram> prog_texLit, prog_lit, prog_unlit, prog_morph, prog_particles, prog_transparent, prog_UI,
-prog_allLights;
+prog_allLights, prog_RB;
 std::unique_ptr<Material>  mat_unselected, mat_selected, mat_line;
 glm::vec3 cameraPos = glm::vec3(-1.f, -0.5f, -0.0f);
 glm::vec3 menuCameraPos = glm::vec3(-0.7f, -1.2f, -10.7f);
@@ -260,6 +260,7 @@ float getTrayRaise(bakeryUtils::pastryType type);
 void moveCamera(int);
 int getSignSelection(int max, bool reset);
 bool isInRendering(Entity* e);
+bool isInUI(Entity* e);
 void setDrinkMesh(Entity* e, bakeryUtils::drinkType type);
 void loadAnimationData(std::vector<Mesh*>& toModify, std::string prefix, int count);
 int placeInLineToIndex(int linePlace);
@@ -389,6 +390,7 @@ MaterialCreator* getDrinkTile(bakeryUtils::drinkType x);
 Mesh& createPastryMat(Entity* e);
 Texture2D& createItemTex(Entity* e);
 void removeFromRendering(Entity* e);
+void removeFromUI(Entity* e);
 void resetBubble(int i, bool create = true);
 glm::vec3 trayScale;
 glm::vec3 cursorScale;
@@ -461,6 +463,10 @@ void playMusic(ToneFire::StudioSound* music, std::string name);
 float currentConfusion = 0.f;
 float confusionThreshold = 7.f;
 float modifiedConfusionThreshold = 7.f;
+
+unsigned int textureColorbuffer;
+unsigned int framebuffer;
+unsigned int rbo;
 
 int main()
 {
@@ -706,7 +712,7 @@ int main()
 	for (int i = 0; i < 10; i++) {
 		numberTiles.push_back(MaterialCreator());
 		std::string newNum = "UI/textures/Number_" + std::to_string(i) + ".png";
-		numberTiles.back().createMaterial(tileMesh, newNum, *prog_texLit);
+		numberTiles.back().createMaterial(tileMesh, newNum, *prog_UI);
 	}
 	std::string orderToCheck = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	for (char& c : orderToCheck) {
@@ -793,7 +799,7 @@ int main()
 	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
 
 	MaterialCreator receiptMat = MaterialCreator();
-	receiptMat.createMaterial(tileMesh, "UI/textures/Receipt.png", *prog_texLit);
+	receiptMat.createMaterial(tileMesh, "UI/textures/Receipt.png", *prog_UI);
 
 	MaterialCreator plexiMat = MaterialCreator();
 	plexiMat.createMaterial("bakery/models/plexiGlass.gltf", "bakery/textures/plexiGlass.png", *prog_texLit);
@@ -1919,8 +1925,79 @@ int main()
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
 	bool canCheat = false;
+	GLuint albedoUniform = prog_RB->GetUniformLoc("albedo");
+	GLuint quadVAO;
+	{
+	glm::vec2 res = resoloutions[accessSettings[8]];
+
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// generate texture
+	
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, res.x, res.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach it to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, res.x, res.y);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	float quadVertices[] = {
+		// positions  
+		-1.0f,  1.0f,0.f,
+		-1.0f, -1.0f,0.f,
+		 1.0f, -1.0f ,0.f,
+
+		-1.0f,  1.0f,0.f,
+		 1.0f, -1.0f,0.f,
+		 1.0f,  1.0f,0.f
+	};
+	float quadUV[] = { 0,  1.0f ,0, 0, 1.0f, 0,
+	0,  1.0f, 1.0f, 0,1.0f,  1.0f };
+	
+	glGenVertexArrays(1, &quadVAO);
+	glBindVertexArray(quadVAO);
+	GLuint pos;
+	GLuint uv;
+	glGenBuffers(1, &pos);
+	glBindBuffer(GL_ARRAY_BUFFER, pos);
+	glBufferData(GL_ARRAY_BUFFER, std::size(quadVertices) * sizeof(float), &quadVertices[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);//uv
+
+	//std::cout << std::size(quadUV) << std::endl;
+	glGenBuffers(1, &uv);
+	glBindBuffer(GL_ARRAY_BUFFER, uv);
+	glBufferData(GL_ARRAY_BUFFER, std::size(quadUV) * sizeof(float), &quadUV[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(1);//uv
+	
+	}//RB stuff
+	float totalGameSeconds = 0;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
+		
+
+		
+			
 		
 		//audioEngine.Update();
 		studio.Update();
@@ -1930,6 +2007,10 @@ int main()
 		
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f)); 
 		
+		prog_RB->Bind();
+		prog_RB.get()->SetUniform("shouldBuffer", (int) true);
+		prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
+		prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightDir2", carLight.pos);
 		prog_texLit.get()->SetUniform("lightColor2", carLight.colour);
@@ -1954,19 +2035,18 @@ int main()
 		//prog_UI.get()->SetUniform("brightness", tempA);
 
 		/*
-	
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		//ImGui::DragFloat("X", &(tempA), 0.01f);
+		ImGui::DragFloat("X", &(tempA), 0.001f);
 		//ImGui::DragFloat("Y", &(tempB), 0.01f);
 		//ImGui::DragFloat("Z", &(tempC), 0.01f);
 		//ImGui::DragFloat("R", &(tempA), 0.01f);
-		ImGui::SliderInt("T", &selected, 0, 4);
+		//ImGui::SliderInt("T", &tempA, 0, 4);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
 
-		ImGui::DragFloat("A", &(accessEntities[selected]->transform.m_pos.x), 0.001f);
-		ImGui::DragFloat("B", &(accessEntities[selected]->transform.m_pos.y), 0.001f);
-		ImGui::DragFloat("C", &(accessEntities[selected]->transform.m_pos.z), 0.001f);
+		//ImGui::DragFloat("A", &(accessEntities[selected]->transform.m_pos.x), 0.001f);
+		//ImGui::DragFloat("B", &(accessEntities[selected]->transform.m_pos.y), 0.001f);
+		//ImGui::DragFloat("C", &(accessEntities[selected]->transform.m_pos.z), 0.001f);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
 
 
@@ -1998,6 +2078,7 @@ int main()
 		machineSound.update(deltaTime);
 		machineSound2.update(deltaTime);
 		printShort.update(deltaTime);
+		totalGameSeconds += deltaTime;
 		getKeyInput();
 
 		
@@ -2063,10 +2144,10 @@ int main()
 				for each (Entity * trayEntity in trayPastry) {
 					removeFromRendering(trayEntity);
 				}
-				renderingEntities.push_back(&receipt);
+				UIEntities.push_back(&receipt);
 				for (int i = 0; i < 6; i++)
 				{
-					renderingEntities.push_back(numberEntities[i]);
+					UIEntities.push_back(numberEntities[i]);
 
 				}
 				for (int i = 0; i < 4; i++) {
@@ -2216,6 +2297,11 @@ int main()
 				
 			}
 
+			// first pass
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+			//glEnable(GL_DEPTH_TEST);
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -2231,9 +2317,41 @@ int main()
 				}
 
 			}
+			confusionPlane.transform.RecomputeGlobal();
+			confusionPlane.Get<CMeshRenderer>().Draw();
 			isScrollingDown = false;
 			isScrollingUp = false;
+
+
+
+			// second pass
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			glCullFace(GL_CW);
+			prog_RB->Bind();
+
+
+
+			glDisable(GL_DEPTH_TEST);
+			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glUniform1i(albedoUniform, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindVertexArray(quadVAO);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			App::SwapBuffers();
+			//glDeleteFramebuffers(1, &framebuffer);
+			glEnable(GL_DEPTH_TEST);
+			//glDeleteTextures(1, &textureColorbuffer);
 			continue;
 		}
 		if (isInOptionsMenu) {
@@ -2472,12 +2590,19 @@ int main()
 
 
 
+			
+		
+			// first pass
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+			//glEnable(GL_DEPTH_TEST);
 			for each (Entity * e in renderingEntities) {
-
-				e->transform.RecomputeGlobal();
-
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
+				e->transform.RecomputeGlobal();
+
+
 				if (e->Has<CMeshRenderer>()) {
 					e->Get<CMeshRenderer>().Draw();
 				}
@@ -2491,7 +2616,37 @@ int main()
 			confusionPlane.Get<CMeshRenderer>().Draw();
 			isScrollingDown = false;
 			isScrollingUp = false;
+
+
+
+			// second pass
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			glCullFace(GL_CW);
+			prog_RB->Bind();
+
+
+
+			glDisable(GL_DEPTH_TEST);
+			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glUniform1i(albedoUniform, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindVertexArray(quadVAO);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			App::SwapBuffers();
+			//glDeleteFramebuffers(1, &framebuffer);
+			glEnable(GL_DEPTH_TEST);
+			//glDeleteTextures(1, &textureColorbuffer);
 			continue;
 		}
 		if (isInMainMenu) {
@@ -2520,11 +2675,12 @@ int main()
 						lowTrayPos.SetParent(&cameraEntity.transform);
 						tutorialPlane->Remove<CMeshRenderer>();
 						tutorialPlane->Add<CMeshRenderer>(*tutorialPlane, *tutorialSteps[0].getMaterialCreator()->getMesh(), *tutorialSteps[0].getMaterialCreator()->getMaterial());
-
+						
 						
 
 					}
 					if (mainMenuChosen == 1) {
+						
 						confusionPlane.Remove<CMeshRenderer>();
 						confusionPlane.Add<CMeshRenderer>(confusionPlane, *optionConfusion.getMesh(), *optionConfusion.getMaterial());
 
@@ -2568,7 +2724,7 @@ int main()
 						accessButtonPressed = 0;
 						selectedOption = 0;
 						isInOption = false;
-
+						
 					}
 					if (mainMenuChosen == 2) {
 						break;
@@ -2708,6 +2864,12 @@ int main()
 				
 			}
 
+
+			// first pass
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+			//glEnable(GL_DEPTH_TEST);
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -2727,7 +2889,37 @@ int main()
 			confusionPlane.Get<CMeshRenderer>().Draw();
 			isScrollingDown = false;
 			isScrollingUp = false;
+			
+			
+
+			// second pass
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			glCullFace(GL_CW);
+			prog_RB->Bind();
+			
+
+			
+			glDisable(GL_DEPTH_TEST);
+			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glUniform1i(albedoUniform, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindVertexArray(quadVAO);
+			
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			App::SwapBuffers();
+			//glDeleteFramebuffers(1, &framebuffer);
+			glEnable(GL_DEPTH_TEST);
+			//glDeleteTextures(1, &textureColorbuffer);
 			continue;
 
 		}
@@ -2962,6 +3154,11 @@ int main()
 
 				}
 			}
+			// first pass
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+			//glEnable(GL_DEPTH_TEST);
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -2977,16 +3174,50 @@ int main()
 				}
 
 			}
+			
 			isScrollingDown = false;
 			isScrollingUp = false;
+
+
+
+			// second pass
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			glCullFace(GL_CW);
+			prog_RB->Bind();
+
+
+
+			glDisable(GL_DEPTH_TEST);
+			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glUniform1i(albedoUniform, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindVertexArray(quadVAO);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			App::SwapBuffers();
+			//glDeleteFramebuffers(1, &framebuffer);
+			glEnable(GL_DEPTH_TEST);
 			continue;
 		}
 
 		if (isInContinueMenu) {
 			//tutorialPlane->transform.m_pos = glm::vec3(-20);
-			
-			
+			tutorialMultiplier = 0;
+		
+
+		//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
+		tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05)) * tutorialMultiplier);
+		
 			
 			if (isInRendering(tutorialPlane.get())) {
 				removeFromRendering(tutorialPlane.get());
@@ -3031,13 +3262,13 @@ int main()
 				titleMusic.fadeIn(3);
 				receiptT = 0;
 				receiptStopT = 0;
-				if (isInRendering(&receipt)) {
-					removeFromRendering(&receipt);
+				if (isInUI(&receipt)) {
+					removeFromUI(&receipt);
 				}
 				for (int i = 0; i < 6; i++)
 				{
-					if (isInRendering(numberEntities[i])) {
-						removeFromRendering(numberEntities[i]);
+					if (isInUI(numberEntities[i])) {
+						removeFromUI(numberEntities[i]);
 					}
 				}
 				for each (Entity * cust in customers) {
@@ -3129,6 +3360,14 @@ int main()
 					//renderingEntities.push_back(ent); 
 				}
 			}
+			tutorialMultiplier = 0;
+
+			tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05)) * tutorialMultiplier);
+			// first pass
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+			//glEnable(GL_DEPTH_TEST);
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -3147,15 +3386,76 @@ int main()
 			}
 			isScrollingDown = false;
 			isScrollingUp = false;
+
+			// second pass
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			glCullFace(GL_CW);
+			prog_RB->Bind();
+
+
+
+			glDisable(GL_DEPTH_TEST);
+			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glUniform1i(albedoUniform, 0);
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+			glBindVertexArray(quadVAO);
+
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glEnable(GL_DEPTH_TEST);
+			for each (Entity * e in UIEntities) {
+				if (e->Has<Transparency>()) {
+					if (e->Get<Transparency>().getWantedTransparency() > -1) {
+
+						e->Get<Transparency>().updateTransparency(deltaTime);
+					}
+					e->transform.RecomputeGlobal();
+					prog_transparent->Bind();
+					prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
+					//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
+
+					if (e->Has<CMeshRenderer>()) {
+						e->Get<CMeshRenderer>().Draw();
+					}
+
+				}
+				else
+				{
+					e->transform.RecomputeGlobal();
+					if (e->Has<CMeshRenderer>()) {
+						prog_transparent->Bind();
+						prog_transparent.get()->SetUniform("transparency", 0.f);
+						e->Get<CMeshRenderer>().Draw();
+					}
+
+
+				}
+			}
+			glDisable(GL_DEPTH_TEST);
+		//	glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			App::SwapBuffers();
+			//glDeleteFramebuffers(1, &framebuffer);
+			glEnable(GL_DEPTH_TEST);
+			//glDeleteTextures(1, &textureColorbuffer);
+			
 			continue;
 		}
 
 
 
 		if (isClickingEscape && !isCameraMoving && !isInContinueMenu) {
+			
 			isPaused = !isPaused;
-
+			
 			if (isPaused) {
 				pauseMusic.fadeIn(3);
 				removeFromRendering(&tray);
@@ -3374,10 +3674,10 @@ int main()
 						for each (Entity * trayEntity in trayPastry) {
 							removeFromRendering(trayEntity);
 						}
-						renderingEntities.push_back(&receipt);
+						UIEntities.push_back(&receipt);
 						for (int i = 0; i < 6; i++)
 						{
-							renderingEntities.push_back(numberEntities[i]);
+							UIEntities.push_back(numberEntities[i]);
 
 						}
 						for (int i = 0; i < 4; i++) {
@@ -3547,6 +3847,13 @@ int main()
 
 		lastActionTime += deltaTime;
 		hitEntity = nullptr;
+
+
+		// first pass
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+		//glEnable(GL_DEPTH_TEST);
 		for each (Entity * e in renderingEntities) {
 
 
@@ -3616,38 +3923,15 @@ int main()
 
 		}
 
+		
+
 		//sneaking this here since its important to only do it when the game is running
 		tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05))*tutorialMultiplier);
 
 		
-		for each (Entity * e in UIEntities) {
-			if (e->Has<Transparency>()) {
-				if (e->Get<Transparency>().getWantedTransparency() > -1) {
+		
 
-					e->Get<Transparency>().updateTransparency(deltaTime);
-				}
-				e->transform.RecomputeGlobal();
-				prog_transparent->Bind();
-				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
-				//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
 
-				if (e->Has<CMeshRenderer>()) {
-					e->Get<CMeshRenderer>().Draw();
-				}
-
-			}
-			else
-			{
-				e->transform.RecomputeGlobal();
-				if (e->Has<CMeshRenderer>()) {
-					prog_transparent->Bind();
-					prog_transparent.get()->SetUniform("transparency", 0.f);
-					e->Get<CMeshRenderer>().Draw();
-				}
-
-				
-			}
-		}
 		if ((drinkScript.isOpening || drinkScript.isClosing) && !isPaused) {
 			float multiplier = 1;
 			if (drinkScript.isClosing) {
@@ -3971,6 +4255,7 @@ int main()
 								if (!fillingScript.isFillingFull()) {
 									if (trayPastry[wantedSlot]->Has<Pastry>()) {
 										if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
+											&& trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::BURNT
 											&& trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling() == bakeryUtils::fillType::NONE)
 										{
 											if (!trayPastry[wantedSlot]->Get<Pastry>().isInFilling()) {
@@ -4142,6 +4427,7 @@ int main()
 								if (!toppingScript.isToppingFull()) {
 									if (trayPastry[wantedSlot]->Has<Pastry>()) {
 										if (trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::DOUGH
+											&& trayPastry[wantedSlot]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::BURNT
 											&& trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping() == bakeryUtils::toppingType::NONE)
 										{
 											if (!trayPastry[wantedSlot]->Get<Pastry>().isInTopping()) {
@@ -4477,8 +4763,59 @@ int main()
 		
 		}
 
+		// second pass
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_CW);
+		prog_RB->Bind();
 
-		//std::cout << bakeryUtils::returnBakeTime(bakeryUtils::pastryType::CROISSANT) << std::endl; 
+
+
+		glDisable(GL_DEPTH_TEST);
+		//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glUniform1i(albedoUniform, 0);
+		glActiveTexture(GL_TEXTURE0 + 0);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+		glBindVertexArray(quadVAO);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glEnable(GL_DEPTH_TEST);
+
+		for each (Entity * e in UIEntities) {
+			if (e->Has<Transparency>()) {
+				if (e->Get<Transparency>().getWantedTransparency() > -1) {
+
+					e->Get<Transparency>().updateTransparency(deltaTime);
+				}
+				e->transform.RecomputeGlobal();
+				prog_transparent->Bind();
+				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
+				//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
+
+				if (e->Has<CMeshRenderer>()) {
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+			}
+			else
+			{
+				e->transform.RecomputeGlobal();
+				if (e->Has<CMeshRenderer>()) {
+					prog_transparent->Bind();
+					prog_transparent.get()->SetUniform("transparency", 0.f);
+					e->Get<CMeshRenderer>().Draw();
+				}
+
+
+			}
+		}
 
 		if (addedSlot >= 0) {
 			renderingEntities.push_back(trayPastry[addedSlot]);
@@ -4566,10 +4903,7 @@ int main()
 	return 0;
 }
 
-void removeFromRendering(Entity* e) {
-	renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), e), renderingEntities.end());
 
-}
 
 void LoadDefaultResources()
 {
@@ -4580,6 +4914,12 @@ void LoadDefaultResources()
 	std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
 	std::vector<Shader*> texLit = { vs_texLitShader.get(), fs_texLitShader.get() };
 	prog_texLit = std::make_unique<ShaderProgram>(texLit);
+
+	std::unique_ptr vs_RB = std::make_unique<Shader>("shaders/RB.vert", GL_VERTEX_SHADER);
+	//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+	std::unique_ptr fs_RB = std::make_unique<Shader>("shaders/RB.frag", GL_FRAGMENT_SHADER);
+	std::vector<Shader*> RB = { vs_RB.get(), fs_RB.get() };
+	prog_RB = std::make_unique<ShaderProgram>(RB);
 
 
 	std::unique_ptr vs_UIShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
@@ -5219,6 +5559,25 @@ bool isInRendering(Entity* e) {
 		return true;
 	}
 	return false;
+}
+
+void removeFromRendering(Entity* e) {
+	renderingEntities.erase(std::remove(renderingEntities.begin(), renderingEntities.end(), e), renderingEntities.end());
+
+}
+
+void removeFromUI(Entity* e) {
+	UIEntities.erase(std::remove(UIEntities.begin(), UIEntities.end(), e), UIEntities.end());
+
+}
+
+
+bool isInUI(Entity* e){
+	if (std::find(UIEntities.begin(), UIEntities.end(), e) != UIEntities.end()) {
+		return true;
+	}
+	return false;
+
 }
 
 void createNewOrder(int i, bool addDifficulty, bool remove) {
@@ -6003,10 +6362,31 @@ void applySettings() {
 
 void applyResolution() {
 	if (accessSettings[8] == 3) {
+		//glm::vec2 res = resoloutions[accessSettings[8]];
 		glm::vec2 newSize = App::setFullscreen();
 		globalCameraEntity->Get<CCamera>().Perspective(60.0f, (float)newSize.x / newSize.y, 0.001f, 100.0f);
 		globalCameraEntity->transform.RecomputeGlobal();
 		globalCameraEntity->Get<CCamera>().Update();
+		//glDeleteTextures(1, &textureColorbuffer);
+		//glGenTextures(1, &textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// attach it to currently bound framebuffer object
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, newSize.x, newSize.y);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, newSize.x, newSize.y);
+
 	}
 	else
 	{
@@ -6015,6 +6395,26 @@ void applyResolution() {
 		globalCameraEntity->Get<CCamera>().Perspective(60.0f, (float)newSize.x / newSize.y, 0.001f, 100.0f);
 		globalCameraEntity->transform.RecomputeGlobal();
 		globalCameraEntity->Get<CCamera>().Update();
+		//glDeleteTextures(1, &textureColorbuffer);
+		//glGenTextures(1, &textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// attach it to currently bound framebuffer object
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, newSize.x, newSize.y);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, res.x, res.y);
+
 	}
 }
 
@@ -6034,4 +6434,5 @@ void playMusic(ToneFire::StudioSound* music, std::string name) {
 		music->StopEvent("event:/" + name);
 	}
 }
+
 
