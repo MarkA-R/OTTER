@@ -208,7 +208,11 @@ namespace nou
 		}
 		
 	}
-
+	glm::vec2 App::getScreenSize() {
+		GLFWmonitor* primary = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(primary);
+		return glm::vec2(mode->width, mode->height);
+	}
 	glm::vec2 App::setFullscreen() {
 		GLFWmonitor* primary = glfwGetPrimaryMonitor();
 		

@@ -48,6 +48,8 @@ namespace nou
 
 		static void setCursorVisible(bool v);
 
+		static glm::vec2 getScreenSize();
+
 		static glm::vec2 setFullscreen();
 
 		static glm::vec2 setWindowed(int width, int height);

@@ -1929,6 +1929,9 @@ int main()
 	GLuint quadVAO;
 	{
 	glm::vec2 res = resoloutions[accessSettings[8]];
+	if (accessSettings[8] == 3) {
+		res = App::getScreenSize();
+	}
 
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -2011,6 +2014,7 @@ int main()
 		prog_RB.get()->SetUniform("shouldBuffer", (int) true);
 		prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
 		prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
+		prog_RB.get()->SetUniform("shouldBlur", (int) 0);
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightDir2", carLight.pos);
 		prog_texLit.get()->SetUniform("lightColor2", carLight.colour);
@@ -3010,7 +3014,8 @@ int main()
 							removeFromRendering(topping.Get<ToppingMachine>().getFromTopping());
 						}
 						topping.Get<ToppingMachine>().removeFromTopping();
-
+						drink.Get<DrinkMachine>().setDrinkNum(0);
+						drink.Get<DrinkMachine>().updatePlane();
 						filling.Get<Transparency>().setTransparency(0.5);
 						fillingPlane.Get<Transparency>().setTransparency(0.5);
 						topping.Get<Transparency>().setTransparency(0.5);
@@ -3110,7 +3115,8 @@ int main()
 							removeFromRendering(topping.Get<ToppingMachine>().getFromTopping());
 						}
 						topping.Get<ToppingMachine>().removeFromTopping();
-
+						drink.Get<DrinkMachine>().setDrinkNum(0);
+						drink.Get<DrinkMachine>().updatePlane();
 						filling.Get<Transparency>().setTransparency(0.5);
 						fillingPlane.Get<Transparency>().setTransparency(0.5);
 						topping.Get<Transparency>().setTransparency(0.5);
@@ -3839,7 +3845,12 @@ int main()
 		tray.transform.m_pos = Lerp(normalTrayPos.m_pos, lowTrayPos.m_pos, trayT);//tray movement here
 		for (int i = 0; i < 4; i++) {
 			if (trayPastry[i] != nullptr) {
-				trayPastry[i]->transform.m_pos.y = Lerp(normalTrayPos.m_pos.y, lowTrayPos.m_pos.y, trayT);	
+				if (trayPastry[i]->Has<Transparency>()) {
+					if (trayPastry[i]->Get<Transparency>().isFadingIn()) {
+						trayPastry[i]->transform.m_pos.y = Lerp(normalTrayPos.m_pos.y, lowTrayPos.m_pos.y, trayT);
+					}
+				}
+					
 			}
 			accessEntities[i]->transform.m_pos.y = Lerp(normalTrayPos.m_pos.y, lowTrayPos.m_pos.y, trayT);
 			traySlot[i].m_pos.y = Lerp(normalTrayPos.m_pos.y, lowTrayPos.m_pos.y, trayT);
@@ -4390,13 +4401,13 @@ int main()
 									trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
 									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
 									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
-									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 0.1f);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(getTrayScale(trayPastry[wantedSlot]->Get<Pastry>().getPastryType()));
 
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
 									toppingScript.removeFromTopping();
 									//UPDATE FILLING HERE 
 									setPastryTopping(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping());
-									trayPastry[wantedSlot]->transform.m_pos = toppingScript.getToppingPosition();
+									//trayPastry[wantedSlot]->transform.m_pos = toppingScript.getToppingPosition();
 
 									//std::cout << bakeryUtils::getToppingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping()) << std::endl; 
 									toppingSound.fadeOut(0.3);
@@ -4455,7 +4466,7 @@ int main()
 								trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
 								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
 								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
-								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 10.f);
+								trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(getTrayScale(trayPastry[wantedSlot]->Get<Pastry>().getPastryType()) * 10.f);
 
 								trayPastry[wantedSlot]->Get<Pastry>().setInTopping(true);
 								//setMachinePastryMesh(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryType()); 
@@ -4471,6 +4482,7 @@ int main()
 								//std::cout << newSlot << std::endl; 
 								if (toppingScript.isToppingFull() && wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
 									//std::cout << newSlot << std::endl; 
+									
 									trayMultiplier = 1;
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
 									float currentT, wantedT, time;
@@ -4479,21 +4491,26 @@ int main()
 									wantedT = 1.f;
 									glm::vec3 finalPos = traySlot[wantedSlot].m_pos;
 									finalPos.y += getTrayRaise(trayPastry[wantedSlot]->Get<Pastry>().getPastryType());
-
+								
 									trayPastry[wantedSlot]->Get<Transparency>().setTransparency(currentT);
+								//	trayPastry[wantedSlot]->Get<Transparency>().setOutput(true);
 									//trayPastry[wantedSlot]->Get<Transparency>().setNextPosition(finalPos, &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
 									trayPastry[wantedSlot]->Get<Transparency>().setNextTransformPos(&traySlot[wantedSlot], &globalCameraEntity->transform, trayPastry[wantedSlot]->transform.m_scale);
 									trayPastry[wantedSlot]->Get<Transparency>().setWantedTransparency(wantedT);
 									trayPastry[wantedSlot]->Get<Transparency>().setTime(time);
 									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTransparency(currentT);
 									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedTime(time);
-									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(trayPastry[wantedSlot]->transform.m_scale * 0.1f);
+									trayPastry[wantedSlot]->Get<Transparency>().setNextWantedScale(getTrayScale(trayPastry[wantedSlot]->Get<Pastry>().getPastryType()));
 
 									trayPastry[wantedSlot]->Get<Pastry>().setInTopping(false);
 									toppingScript.removeFromTopping();
-									trayPastry[wantedSlot]->transform.m_pos = toppingScript.getToppingPosition();
+									//trayPastry[wantedSlot]->transform.m_pos = toppingScript.getToppingPosition();
 									//dont set texture here cause they just removed it 
+									std::cout << "BEFORE ->" <<trayPastry[wantedSlot]->transform.m_pos.x << " "
+										<< trayPastry[wantedSlot]->transform.m_pos.y << " "
+										<< trayPastry[wantedSlot]->transform.m_pos.z << " " << std::endl;
 									toppingSound.fadeOut(0.3);
+									
 
 								}
 							}

@@ -22,6 +22,11 @@ void Transparency::updateTransparency(float deltaTime)
 	if (transparencyT >= 0.f) {
 		transparencyT += deltaTime / timeToLERP;
 	}
+	if (output) {
+		std::cout << "T: " << transparencyT << " P:" << owner->transform.m_pos.x << " "
+			<< owner->transform.m_pos.y << " "
+			<< owner->transform.m_pos.z << " " << std::endl;
+	}
 	
 	if (transparencyT > 1) {
 	
@@ -37,11 +42,13 @@ void Transparency::updateTransparency(float deltaTime)
 				
 			}
 		if (goingPos.x > -999) {
+			owner->transform.m_pos = (goingPos);
 			if (newParent != &owner->transform) {
 				owner->transform.SetParent(newParent);
+				owner->transform.m_pos = (goingPos);
 				newParent = nullptr;
 			}
-			owner->transform.m_pos = (goingPos);
+			
 			goingPos = glm::vec3(-999);
 			nextPosition = glm::vec3(-999);
 			newTransPos = nullptr;
@@ -146,5 +153,18 @@ void Transparency::setNextWantedTime(float x)
 void Transparency::setNextWantedScale(glm::vec3 x)
 {
 	nextScale = x;
+}
+
+void Transparency::setOutput(bool x)
+{
+	output = x;
+}
+
+bool Transparency::isFadingIn()
+{
+	if (wantedTransparency < currentTransparency && transparencyT != 0.f) {
+		return true;
+	}
+	return false;
 }
 

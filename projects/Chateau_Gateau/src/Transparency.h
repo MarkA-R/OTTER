@@ -22,7 +22,7 @@ protected:
 	Transform* posToCopy = nullptr;
 	glm::vec3 copiedScale = glm::vec3(-1);
 	glm::vec3 nextScale = glm::vec3(-1);
-	
+	bool output = false;
 public:
 	Transparency(Entity&);
 	void setTransparency(float);
@@ -37,6 +37,7 @@ public:
 	void setNextWantedTransparency(float);
 	void setNextWantedTime(float);
 	void setNextWantedScale(glm::vec3);
-
+	void setOutput(bool);
+	bool isFadingIn();
 };
 
