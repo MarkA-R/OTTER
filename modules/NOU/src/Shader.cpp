@@ -231,6 +231,12 @@ namespace nou
 	}
 
 	template<>
+	void ShaderProgram::SetUniform<glm::vec2>(const std::string& name, const glm::vec2& value) const
+	{
+		glUniform2fv(GetUniformLoc(name), 1, &(value.x));
+	}
+
+	template<>
 	void ShaderProgram::SetUniformArray<glm::mat4>(const std::string& name, glm::mat4* data, int len) const
 	{
 		glUniformMatrix4fv(GetUniformLoc(name), len, GL_FALSE, (GLfloat*)data);

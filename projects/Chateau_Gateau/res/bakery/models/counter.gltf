@@ -15,7 +15,7 @@
     ],
     "nodes" : [
         {
-            "name" : "Camera",
+            "name" : "Camera.001",
             "rotation" : [
                 0.19433586299419403,
                 0.7900887727737427,
@@ -36,7 +36,7 @@
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Material",
+            "name" : "Material.001",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 0
@@ -71,66 +71,66 @@
     "images" : [
         {
             "mimeType" : "image/png",
-            "name" : "counter",
-            "uri" : "textures/counter.png"
+            "name" : "counterTex",
+            "uri" : "counterTex.png"
         }
     ],
     "accessors" : [
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 156,
+            "count" : 114,
             "max" : [
+                4.5,
                 1.5,
-                3,
-                1.25
+                1.0999999046325684
             ],
             "min" : [
-                -1.5,
+                -4.5,
                 1.1920928955078125e-07,
-                -1.25
+                -1.0999999046325684
             ],
             "type" : "VEC3"
         },
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 156,
+            "count" : 114,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 156,
+            "count" : 114,
             "type" : "VEC2"
         },
         {
             "bufferView" : 3,
             "componentType" : 5123,
-            "count" : 300,
+            "count" : 156,
             "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 1872,
+            "byteLength" : 1368,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 1872,
-            "byteOffset" : 1872
+            "byteLength" : 1368,
+            "byteOffset" : 1368
         },
         {
             "buffer" : 0,
-            "byteLength" : 1248,
-            "byteOffset" : 3744
+            "byteLength" : 912,
+            "byteOffset" : 2736
         },
         {
             "buffer" : 0,
-            "byteLength" : 600,
-            "byteOffset" : 4992
+            "byteLength" : 312,
+            "byteOffset" : 3648
         }
     ],
     "samplers" : [
@@ -141,7 +141,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 5592,
+            "byteLength" : 3960,
             "uri" : "counter.bin"
         }
     ]

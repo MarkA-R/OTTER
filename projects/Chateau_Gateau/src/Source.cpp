@@ -467,6 +467,11 @@ float modifiedConfusionThreshold = 7.f;
 unsigned int textureColorbuffer;
 unsigned int framebuffer;
 unsigned int rbo;
+glm::vec2 screenRes;
+float blurT = 0.f;
+float blurTime = 1.f;
+float blurMulti = 0;
+glm::vec2 blurBounds = glm::vec2(0, 10);
 
 int main()
 {
@@ -646,12 +651,12 @@ int main()
 	MaterialCreator paintingMat = MaterialCreator();
 	paintingMat.createMaterial("bakery/models/Painting.gltf", "bakery/textures/Painting.png", *prog_texLit);
 
-	MaterialCreator chairsMat = MaterialCreator();
-	chairsMat.createMaterial("bakery/models/chairTable.gltf", "bakery/textures/texTable.png", *prog_texLit);
-
+	MaterialCreator furnitureMat = MaterialCreator();
+	furnitureMat.createMaterial("bakery/models/interiorFurniture.gltf", "bakery/textures/furnitureTex.png", *prog_texLit);
+/*
 	MaterialCreator boothMat = MaterialCreator();
 	boothMat.createMaterial("bakery/models/booth.gltf", "bakery/textures/boothTableTex.png", *prog_texLit);
-
+	*/
 	MaterialCreator tabletMat0 = MaterialCreator();
 	tabletMat0.createMaterial("bakery/models/tablet.gltf", "bakery/textures/tablet0.png", *prog_texLit);
 	MaterialCreator tabletMat1 = MaterialCreator();
@@ -796,7 +801,7 @@ int main()
 
 
 	MaterialCreator bakeryMat = MaterialCreator();
-	bakeryMat.createMaterial("bakery/models/bakeryFull.gltf", "bakery/textures/bakeryFull.png", *prog_texLit);
+	bakeryMat.createMaterial("bakery/models/interiorJoined.gltf", "bakery/textures/bakeryTexture.png", *prog_texLit);
 
 	MaterialCreator receiptMat = MaterialCreator();
 	receiptMat.createMaterial(tileMesh, "UI/textures/Receipt.png", *prog_UI);
@@ -1059,20 +1064,18 @@ int main()
 
 
 	Entity chairs = Entity::Create();
-	chairs.Add<CMeshRenderer>(chairs, *chairsMat.getMesh(), *chairsMat.getMaterial());
-	chairs.transform.m_scale = glm::vec3(1.000);
-	chairs.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	chairs.transform.m_pos = glm::vec3(-4.510, -1.900, -5.830);
+	chairs.Add<CMeshRenderer>(chairs, *furnitureMat.getMesh(), *furnitureMat.getMaterial());
+	chairs.transform = bakery.transform;
 	renderingEntities.push_back(&chairs);
-
+	/*
 	Entity booth = Entity::Create();
 	booth.Add<CMeshRenderer>(booth, *boothMat.getMesh(), *boothMat.getMaterial());
 	booth.transform.m_scale = glm::vec3(0.750);
 	booth.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	booth.transform.m_pos = glm::vec3(-0.020, -1.900, -7.370);
 
-	renderingEntities.push_back(&booth);
-
+	//renderingEntities.push_back(&booth);
+	*/
 	tablet = Entity::Allocate().release();
 	tablet->Add<CMeshRenderer>(*tablet, *tabletMat0.getMesh(), *tabletMat0.getMaterial());
 	tablet->transform.m_scale = glm::vec3(0.630);
@@ -1083,9 +1086,9 @@ int main()
 
 	Entity counter = Entity::Create();
 	counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
-	counter.transform.m_scale = glm::vec3(1.6f, 0.4f, 0.4f);
+	counter.transform.m_scale = glm::vec3(0.492);
 	counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	counter.transform.m_pos = glm::vec3(-1.f, -2.5, -2.29f);
+	counter.transform.m_pos = glm::vec3(-1.000, -2.032, -2.388);
 	renderingEntities.push_back(&counter);
 
 
@@ -1942,6 +1945,7 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, res.x, res.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1995,6 +1999,7 @@ int main()
 	
 	}//RB stuff
 	float totalGameSeconds = 0;
+	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		
@@ -2014,7 +2019,9 @@ int main()
 		prog_RB.get()->SetUniform("shouldBuffer", (int) true);
 		prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
 		prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
-		prog_RB.get()->SetUniform("shouldBlur", (int) 0);
+		prog_RB.get()->SetUniform("blurStr",(int) floor(Lerp(blurBounds.x,blurBounds.y,blurT)));
+		prog_RB.get()->SetUniform("screenRes", screenRes);
+		//std::cout << screenRes.x << " " << screenRes.y << std::endl;
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightDir2", carLight.pos);
 		prog_texLit.get()->SetUniform("lightColor2", carLight.colour);
@@ -2041,16 +2048,17 @@ int main()
 		/*
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragFloat("X", &(tempA), 0.001f);
+		ImGui::DragInt("X", &(intA), 0.1f);
 		//ImGui::DragFloat("Y", &(tempB), 0.01f);
 		//ImGui::DragFloat("Z", &(tempC), 0.01f);
+		//ImGui::DragFloat("R", &(tempA), 0.01f);
 		//ImGui::DragFloat("R", &(tempA), 0.01f);
 		//ImGui::SliderInt("T", &tempA, 0, 4);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
 
-		//ImGui::DragFloat("A", &(accessEntities[selected]->transform.m_pos.x), 0.001f);
-		//ImGui::DragFloat("B", &(accessEntities[selected]->transform.m_pos.y), 0.001f);
-		//ImGui::DragFloat("C", &(accessEntities[selected]->transform.m_pos.z), 0.001f);
+		//ImGui::DragFloat("A", &(counter.transform.m_pos.x), 0.001f);
+		//ImGui::DragFloat("B", &(counter.transform.m_pos.y), 0.001f);
+		//ImGui::DragFloat("C", &(counter.transform.m_pos.z), 0.001f);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
 
 
@@ -2062,7 +2070,7 @@ int main()
 		//painting.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		//	glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));//0
-		//painting.transform.m_scale = glm::vec3(tempD);
+		//counter.transform.m_scale = glm::vec3(tempA);
 		//topping.transform.m_rotation = glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 1.0f, 0.0f));
 		
 		
@@ -2085,7 +2093,17 @@ int main()
 		totalGameSeconds += deltaTime;
 		getKeyInput();
 
-		
+		if (blurMulti != 0.f) {
+			blurT += (deltaTime / blurTime) * blurMulti;
+			if (blurT > 1) {
+				blurT = 1;
+				blurMulti = 0;
+			}
+			if (blurT <0) {
+				blurT = 0;
+				blurMulti = 0;
+			}
+		}
 
 		//UpdateTutorial(deltaTime);
 		if (isInMainMenu || isInOptionsMenu) {
@@ -2132,6 +2150,7 @@ int main()
 			//std::cout << "GGGG" << std::endl; 
 			
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot 
+				blurMulti = 1;
 				int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
 				setScores(bakeryUtils::getRoundsLasted(), highScore);
 				if (cameraX == 0 && cameraY == 0) {
@@ -3219,7 +3238,7 @@ int main()
 		if (isInContinueMenu) {
 			//tutorialPlane->transform.m_pos = glm::vec3(-20);
 			tutorialMultiplier = 0;
-		
+			//other blurmulti is in !ispaused place when isincontinue gets set to true
 
 		//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
 		tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05)) * tutorialMultiplier);
@@ -3264,6 +3283,7 @@ int main()
 				numberEntities[i]->transform.m_pos = Lerp(beginingNumberPos[i], endNumberPos[i], receiptT);
 			}
 			if (isClickingSpace || isClickingEscape || isClickingEnter) {
+				blurMulti = -1;
 				printShort.fadeIn(0.001);
 				titleMusic.fadeIn(3);
 				receiptT = 0;
@@ -3277,6 +3297,7 @@ int main()
 						removeFromUI(numberEntities[i]);
 					}
 				}
+
 				for each (Entity * cust in customers) {
 					if (isInRendering(cust)) {
 						removeFromRendering(cust);
@@ -3330,6 +3351,7 @@ int main()
 				drinkScript.removeFromDrink();
 				drinkScript.setDrinkNum(0);
 				drinkScript.setFill(0);
+				drinkScript.updatePlane();
 
 				filling.Get<FillingMachine>().setFillNum(0);
 				filling.Get<FillingMachine>().updatePlane();
@@ -3344,7 +3366,13 @@ int main()
 					removeFromRendering(topping.Get<ToppingMachine>().getFromTopping());
 				}
 				topping.Get<ToppingMachine>().removeFromTopping();
-
+				filling.Get<Transparency>().setTransparency(0.5);
+				fillingPlane.Get<Transparency>().setTransparency(0.5);
+				topping.Get<Transparency>().setTransparency(0.5);
+				toppingPlane.Get<Transparency>().setTransparency(0.5);
+				drink.Get<Transparency>().setTransparency(0.5);
+				drinkPlane.Get<Transparency>().setTransparency(0.5);
+				drinkFill.getEntity()->Get<Transparency>().setTransparency(0.5);
 
 				receipt.transform.m_pos = beginingNumberPos[0];
 				for (int i = 0; i < 6; i++) {
@@ -3664,6 +3692,7 @@ int main()
 					ent_register->Get<CMeshRenderer>().SetMaterial(*registerImages[failed]->getMaterial());
 
 					if (bakeryUtils::getOrdersFailed() == 3) {
+						blurMulti = 1;
 						int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
 						setScores(bakeryUtils::getRoundsLasted(), highScore);
 						if (cameraX == 0 && cameraY == 0) {
@@ -5858,6 +5887,7 @@ int getHighscore() {
 				scoreKeeper << "0";
 				scoreKeeper.close();
 				lastHs = 0;
+				std::cout << "RESET - " << e.what() << std::endl;
 			}
 
 		}
@@ -6389,6 +6419,7 @@ void applyResolution() {
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -6403,7 +6434,7 @@ void applyResolution() {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, newSize.x, newSize.y);
-
+		screenRes = newSize;
 	}
 	else
 	{
@@ -6417,6 +6448,7 @@ void applyResolution() {
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -6431,6 +6463,7 @@ void applyResolution() {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, res.x, res.y);
+		screenRes = res;
 
 	}
 }
