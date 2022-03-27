@@ -110,6 +110,17 @@ int Oven::getFirstEmpty() {
 	return -1;
 }
 
+int Oven::getActivePastries()
+{
+	int returner = 0;
+	for (int i = 0; i < std::size(inOven); i++) {
+		if (inOven[i] != nullptr) {
+			returner++;
+		}
+	}
+	return returner;
+}
+
 Transform* Oven::getInsideOven()
 {
 	return &insideOven;

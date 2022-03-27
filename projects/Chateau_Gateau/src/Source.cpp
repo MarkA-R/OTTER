@@ -566,6 +566,10 @@ int main()
 	fridgeDS.LoadEvent("event:/FridgeDoor");
 	ToneFire::StudioSound fridgeS;
 	fridgeS.LoadEvent("event:/fridgeHum");
+	ToneFire::StudioSound ovenS;
+	ovenS.LoadEvent("event:/oven");
+	ToneFire::StudioSound drinkUpS;
+	drinkUpS.LoadEvent("event:/DrinkMachine");
 
 
 
@@ -581,6 +585,8 @@ int main()
 	Music printLong = Music(printLongS, "printLong", 0.39, true);
 	Music fridgeOpenSound = Music(fridgeS, "FridgeDoor", 0.4, true);
 	Music fridgeHumSound = Music(fridgeDS, "fridgeHum", 9.2, true);
+	Music ovenSound = Music(ovenS, "oven", 21.1, true);
+	Music drinkUpSound = Music(drinkUpS, "DrinkMachine", 10.6, true);
 
 
 	
@@ -1934,6 +1940,8 @@ int main()
 	machineSound.setLoop(true);
 	machineSound2.setLoop(true);
 	fridgeHumSound.setLoop(true);
+	ovenSound.setLoop(true);
+	drinkUpSound.setLoop(true);
 	
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
@@ -2103,6 +2111,8 @@ int main()
 		printShort.update(deltaTime);
 		fridgeHumSound.update(deltaTime);
 		fridgeOpenSound.update(deltaTime);
+		ovenSound.update(deltaTime);
+		drinkUpSound.update(deltaTime);
 		totalGameSeconds += deltaTime;
 		getKeyInput();
 
@@ -4182,6 +4192,10 @@ int main()
 
 
 						if (putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0) {
+							playSound(&pop, "DoughTray");
+							if (ovenScript->getActivePastries() == 0) {
+								ovenSound.fadeIn(0.3);
+							}
 							trayMultiplier = 1;
 							setTutorialChange(7);
 							UpdateTutorial();
@@ -4198,6 +4212,10 @@ int main()
 						}
 						else if (!putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0)
 						{
+							playSound(&pop, "DoughTray");
+							if (ovenScript->getActivePastries() == 1) {
+								ovenSound.fadeOut(0.3);
+							}
 							trayMultiplier = 1;
 							lastActionTime = 0;
 							//std::cout << "C" << std::endl; 
@@ -4295,6 +4313,7 @@ int main()
 									setPastryFilling(trayPastry[wantedSlot], trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling());
 									//std::cout << bakeryUtils::getFillingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryFilling()) << std::endl; 
 									machineSound2.fadeOut(0.3);
+									playSound(&pop, "DoughTray");
 								}
 
 							}
@@ -4340,6 +4359,7 @@ int main()
 								}
 							}
 							if (putinFill) {
+								playSound(&pop, "DoughTray");
 								machineSound2.fadeIn(0.3);
 								trayMultiplier = 1;
 								lastActionTime = 0;
@@ -4383,6 +4403,7 @@ int main()
 								//std::cout << newSlot << std::endl; 
 								if (fillingScript.isFillingFull() && wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
 									//std::cout << newSlot << std::endl; 
+									playSound(&pop, "DoughTray");
 									trayMultiplier = 1;
 									trayPastry[wantedSlot] = fillingScript.getFromFilling();
 									float currentT, wantedT, time;
@@ -4473,6 +4494,7 @@ int main()
 
 									//std::cout << bakeryUtils::getToppingName(trayPastry[wantedSlot]->Get<Pastry>().getPastryTopping()) << std::endl; 
 									toppingSound.fadeOut(0.3);
+									playSound(&pop, "DoughTray");
 								}
 
 							}
@@ -4514,6 +4536,7 @@ int main()
 							if (putinTop) {
 								trayMultiplier = 1;
 								toppingSound.fadeIn(0.3);
+								playSound(&pop, "DoughTray");
 								//std::cout << "B" << std::endl; 
 								//ovenScript->canAdd(trayPastry[wantedSlot], wantedSlot); 
 								toppingScript.putInTopping(trayPastry[wantedSlot]);
@@ -4544,7 +4567,7 @@ int main()
 								//std::cout << newSlot << std::endl; 
 								if (toppingScript.isToppingFull() && wantedSlot >= 0 && trayPastry[wantedSlot] == nullptr) {
 									//std::cout << newSlot << std::endl; 
-									
+									playSound(&pop, "DoughTray");
 									trayMultiplier = 1;
 									trayPastry[wantedSlot] = toppingScript.getFromTopping();
 									float currentT, wantedT, time;
@@ -4593,6 +4616,9 @@ int main()
 				lookingAtDrink = true;
 					if (!drinkScript.isOpening && !drinkScript.isClosing && !drinkScript.isDrinkFull()) {
 						if (isLeftButtonHeld) {
+							if (drinkScript.getFill() <= deltaTime) {
+								drinkUpSound.fadeIn(0.001);
+							}
 							
 							lastActionTime = 0;
 							drinkScript.addFill((deltaTime / bakeryUtils::getDrinkFillAmount()) * 2);//*2 because it only goes every other frame cause of the last action time check up top 
@@ -4607,6 +4633,7 @@ int main()
 						}
 						else
 						{
+							drinkUpSound.fadeOut(0.3);
 							if (drinkScript.getFill() > 0.80f && drinkScript.getFill() < 1.05f
 								&& (!drinkScript.isOpening || !drinkScript.isClosing)) {
 								machineSound.fadeIn(0.3);
@@ -4673,6 +4700,7 @@ int main()
 								drinkScript.isClosing = true;
 								drinkScript.isOpening = false;
 								machineSound.fadeIn(0.3);
+								playSound(&pop, "DoughTray");
 							}
 
 
@@ -4687,6 +4715,7 @@ int main()
 					int wantedSlot = getWantedSlot();
 					if (wantedSlot >= 0) {
 						if (trayPastry[wantedSlot] != nullptr) {
+							playSound(&pop, "DoughTray");
 							trayMultiplier = 1;
 							setTutorialChange(3);
 							UpdateTutorial();
