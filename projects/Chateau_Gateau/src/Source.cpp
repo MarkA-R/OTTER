@@ -562,7 +562,13 @@ int main()
 	machineS.LoadEvent("event:/machineOn");
 	ToneFire::StudioSound machineST;
 	machineST.LoadEvent("event:/machineOn2");
-	
+	ToneFire::StudioSound fridgeDS;
+	fridgeDS.LoadEvent("event:/FridgeDoor");
+	ToneFire::StudioSound fridgeS;
+	fridgeS.LoadEvent("event:/fridgeHum");
+
+
+
 	tick.LoadEvent("event:/Tick");
 	
 	click.LoadEvent("event:/TickTick");
@@ -573,6 +579,8 @@ int main()
 	Music machineSound2 = Music(machineST, "machineOn2", 13.f, true);
 	Music printShort = Music(printShortS, "printTick", 0.25, true);
 	Music printLong = Music(printLongS, "printLong", 0.39, true);
+	Music fridgeOpenSound = Music(fridgeS, "FridgeDoor", 0.4, true);
+	Music fridgeHumSound = Music(fridgeDS, "fridgeHum", 9.2, true);
 
 
 	
@@ -1925,8 +1933,11 @@ int main()
 	toppingSound.setLoop(true);
 	machineSound.setLoop(true);
 	machineSound2.setLoop(true);
+	fridgeHumSound.setLoop(true);
+	
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
+	float fridgeLookTime = 0.f;
 	bool canCheat = false;
 	GLuint albedoUniform = prog_RB->GetUniformLoc("albedo");
 	GLuint quadVAO;
@@ -2090,6 +2101,8 @@ int main()
 		machineSound.update(deltaTime);
 		machineSound2.update(deltaTime);
 		printShort.update(deltaTime);
+		fridgeHumSound.update(deltaTime);
+		fridgeOpenSound.update(deltaTime);
 		totalGameSeconds += deltaTime;
 		getKeyInput();
 
@@ -3663,9 +3676,13 @@ int main()
 				oven.Get<CMorphAnimator>().setMeshAndTime(allOvenFrames[1 + currentOvenPos], allOvenFrames[1 + lastOvenPos], 1);
 				//std::cout << "T1" << std::endl; 
 			}
-			fridge.Get<CMorphAnimator>().addToTLessThanOne(deltaTime * fridgeMultiplier);
+			
+			fridge.Get<CMorphAnimator>().addToTLessThanOne(deltaTime* fridgeMultiplier);
 			fridge.Get<CMorphAnimator>().setMeshAndTime(fridgeClosedMat.getMesh().get(), fridgeOpenMat.getMesh().get(), fridge.Get<CMorphAnimator>().getT());
 
+			
+
+			
 			
 
 			bakeryUtils::addToGameTime(deltaTime);
@@ -4003,8 +4020,24 @@ int main()
 		}
 
 		
-
 		
+		if (lookingAtFridge) {
+			fridgeLookTime += deltaTime;
+		}
+		else
+		{
+			fridgeLookTime = 0;
+		}
+		if (fridgeLookTime == deltaTime && lookingAtFridge) {
+			fridgeHumSound.fadeIn(0.2);
+			fridgeOpenSound.fadeIn(0.001);
+			//std::cout << "OPEN" << std::endl;
+		}
+		if (fridgeLookTime == 0 && !lookingAtFridge) {
+			fridgeHumSound.fadeOut(0.2);
+			//std::cout << "CLOSED" << std::endl;
+
+		}
 		if (lastActionTime > deltaTime) {
 			lookingAtDrink = false;
 			lookingAtFilling = false;
