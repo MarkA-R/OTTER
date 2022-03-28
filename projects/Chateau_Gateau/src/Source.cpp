@@ -57,6 +57,8 @@
 #include "ToneFire.h"
 #include "Music.h"
 
+#include <windows.h> 
+
 using namespace nou;
 
 // Templated LERP function 
@@ -472,7 +474,7 @@ float blurT = 0.f;
 float blurTime = 1.f;
 float blurMulti = 0;
 glm::vec2 blurBounds = glm::vec2(0, 10);
-
+bool shouldUseGraphics = true;
 int main()
 {
 	
@@ -514,7 +516,24 @@ int main()
 	// Initialize ImGui 
 	App::InitImgui();
 
+	const GLubyte* vend = glGetString(GL_VENDOR); // Returns the vendor
+	const GLubyte* rend = glGetString(GL_RENDERER); // Returns a hint to the model
 	
+	std::string render = std::string((char*) rend);
+	
+	//render = "Intel (R) Epic Graphics";
+	std::cout << render << std::endl;
+	if (render.find("Intel") != std::string::npos) {
+		shouldUseGraphics = false;
+	}
+	if (render.find("Integrated") != std::string::npos) {
+		shouldUseGraphics = false;
+	}
+	if (render.find("APU") != std::string::npos) {
+		shouldUseGraphics = false;
+	}
+
+
 	// Load in our model/texture resources 
 	LoadDefaultResources();
 
@@ -1917,7 +1936,6 @@ int main()
 	
 	auto endTime = std::chrono::high_resolution_clock::now();//measure end time 
 	auto timeTook = endTime - startTime;//calculate elapsed time 
-	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
 	float tutorialOneSecondTick = 0.f;
 	bool tutorialIsKeyUp = true;
 	float timeSinceClickedSpace = 0.f;
@@ -1946,10 +1964,13 @@ int main()
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
 	float fridgeLookTime = 0.f;
-	bool canCheat = false;
+	bool canCheat = true;
 	GLuint albedoUniform = prog_RB->GetUniformLoc("albedo");
 	GLuint quadVAO;
-	{
+	
+
+	if (shouldUseGraphics) {
+	
 	glm::vec2 res = resoloutions[accessSettings[8]];
 	if (accessSettings[8] == 3) {
 		res = App::getScreenSize();
@@ -2017,8 +2038,14 @@ int main()
 	glEnableVertexAttribArray(1);//uv
 	
 	}//RB stuff
-	float totalGameSeconds = 0;
 	
+	float totalGameSeconds = 0;
+	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
+	if (!shouldUseGraphics) {
+		system("Color 6");
+		std::cout << "NOTICE: You are using integrated graphics. As such, the game has turned off all post-processing effects. Change your graphics settings to use a dedicated graphics card in order to enable post-processing." << std::endl;
+		//system("Color 7");
+	}
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		
@@ -2211,18 +2238,7 @@ int main()
 			}
 			
 
-			if (Input::GetKey(GLFW_KEY_Z)) {//put this in the lose spot 
-				seeThrough += deltaTime;
-				if (seeThrough > 1) {
-					seeThrough = 1;
-				}
-			}
-			if (Input::GetKey(GLFW_KEY_X)) {//put this in the lose spot 
-				seeThrough -= deltaTime;
-				if (seeThrough < 0) {
-					seeThrough = 0;
-				}
-			}
+			
 
 			if (Input::GetKey(GLFW_KEY_V)) {//put this in the lose spot 
 				dayT += deltaTime;
@@ -2343,11 +2359,14 @@ int main()
 				
 			}
 
-			// first pass
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-			//glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				// first pass
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+				//glEnable(GL_DEPTH_TEST);
+			}
+			
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -2369,7 +2388,9 @@ int main()
 			isScrollingUp = false;
 
 
+			if (shouldUseGraphics) {
 
+			
 			// second pass
 			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -2394,10 +2415,15 @@ int main()
 
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+			}
 			App::SwapBuffers();
 			//glDeleteFramebuffers(1, &framebuffer);
-			glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			
 			//glDeleteTextures(1, &textureColorbuffer);
+			
 			continue;
 		}
 		if (isInOptionsMenu) {
@@ -2638,11 +2664,14 @@ int main()
 
 			
 		
-			// first pass
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-			//glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				// first pass
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+				//glEnable(GL_DEPTH_TEST);
+			}
+
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -2664,35 +2693,39 @@ int main()
 			isScrollingUp = false;
 
 
-
-			// second pass
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-			glCullFace(GL_CW);
-			prog_RB->Bind();
+			if (shouldUseGraphics) {
 
 
+				// second pass
+				glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glEnable(GL_DEPTH_TEST);
+				glCullFace(GL_CW);
+				prog_RB->Bind();
 
-			glDisable(GL_DEPTH_TEST);
-			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
 
-			glUniform1i(albedoUniform, 0);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+				glDisable(GL_DEPTH_TEST);
+				//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindVertexArray(quadVAO);
+				glBindTexture(GL_TEXTURE_2D, 0);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+				glUniform1i(albedoUniform, 0);
+				glActiveTexture(GL_TEXTURE0 + 0);
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+				glBindVertexArray(quadVAO);
+
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+			}
 			App::SwapBuffers();
 			//glDeleteFramebuffers(1, &framebuffer);
-			glEnable(GL_DEPTH_TEST);
-			//glDeleteTextures(1, &textureColorbuffer);
+			if (shouldUseGraphics) {
+				glEnable(GL_DEPTH_TEST);
+			}
 			continue;
 		}
 		if (isInMainMenu) {
@@ -2911,11 +2944,13 @@ int main()
 			}
 
 
-			// first pass
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-			//glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				// first pass
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+				//glEnable(GL_DEPTH_TEST);
+			}
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -2938,34 +2973,39 @@ int main()
 			
 			
 
-			// second pass
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-			glCullFace(GL_CW);
-			prog_RB->Bind();
-			
+			if (shouldUseGraphics) {
 
-			
-			glDisable(GL_DEPTH_TEST);
-			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+				// second pass
+				glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glEnable(GL_DEPTH_TEST);
+				glCullFace(GL_CW);
+				prog_RB->Bind();
 
-			glUniform1i(albedoUniform, 0);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindVertexArray(quadVAO);
-			
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+
+				glDisable(GL_DEPTH_TEST);
+				//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				glUniform1i(albedoUniform, 0);
+				glActiveTexture(GL_TEXTURE0 + 0);
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+				glBindVertexArray(quadVAO);
+
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+			}
 			App::SwapBuffers();
 			//glDeleteFramebuffers(1, &framebuffer);
-			glEnable(GL_DEPTH_TEST);
-			//glDeleteTextures(1, &textureColorbuffer);
+			if (shouldUseGraphics) {
+				glEnable(GL_DEPTH_TEST);
+			}
 			continue;
 
 		}
@@ -3202,11 +3242,14 @@ int main()
 
 				}
 			}
-			// first pass
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-			//glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				// first pass
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+				//glEnable(GL_DEPTH_TEST);
+			}
+
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -3228,33 +3271,39 @@ int main()
 
 
 
-			// second pass
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-			glCullFace(GL_CW);
-			prog_RB->Bind();
+			if (shouldUseGraphics) {
+
+
+				// second pass
+				glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glEnable(GL_DEPTH_TEST);
+				glCullFace(GL_CW);
+				prog_RB->Bind();
 
 
 
-			glDisable(GL_DEPTH_TEST);
-			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+				glDisable(GL_DEPTH_TEST);
+				//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
 
-			glUniform1i(albedoUniform, 0);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+				glUniform1i(albedoUniform, 0);
+				glActiveTexture(GL_TEXTURE0 + 0);
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindVertexArray(quadVAO);
+				glBindVertexArray(quadVAO);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+			}
 			App::SwapBuffers();
 			//glDeleteFramebuffers(1, &framebuffer);
-			glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				glEnable(GL_DEPTH_TEST);
+			}
 			continue;
 		}
 
@@ -3420,11 +3469,13 @@ int main()
 			tutorialMultiplier = 0;
 
 			tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05)) * tutorialMultiplier);
-			// first pass
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-			//glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				// first pass
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+				//glEnable(GL_DEPTH_TEST);
+			}
 			for each (Entity * e in renderingEntities) {
 				prog_texLit->Bind();
 				prog_texLit.get()->SetUniform("transparency", 0.f);
@@ -3444,31 +3495,39 @@ int main()
 			isScrollingDown = false;
 			isScrollingUp = false;
 
-			// second pass
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-			glCullFace(GL_CW);
-			prog_RB->Bind();
+			if (shouldUseGraphics) {
+
+
+				// second pass
+				glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glEnable(GL_DEPTH_TEST);
+				glCullFace(GL_CW);
+				prog_RB->Bind();
 
 
 
-			glDisable(GL_DEPTH_TEST);
-			//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+				glDisable(GL_DEPTH_TEST);
+				//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
 
-			glUniform1i(albedoUniform, 0);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+				glUniform1i(albedoUniform, 0);
+				glActiveTexture(GL_TEXTURE0 + 0);
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-			glBindVertexArray(quadVAO);
+				glBindVertexArray(quadVAO);
 
-
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glEnable(GL_DEPTH_TEST);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
+			}
+			//App::SwapBuffers();
+			//glDeleteFramebuffers(1, &framebuffer);
+			if (shouldUseGraphics) {
+				glEnable(GL_DEPTH_TEST);
+			}
 			for each (Entity * e in UIEntities) {
 				if (e->Has<Transparency>()) {
 					if (e->Get<Transparency>().getWantedTransparency() > -1) {
@@ -3497,12 +3556,19 @@ int main()
 
 				}
 			}
-			glDisable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				glDisable(GL_DEPTH_TEST);
+			}
+			
 		//	glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			App::SwapBuffers();
 			//glDeleteFramebuffers(1, &framebuffer);
-			glEnable(GL_DEPTH_TEST);
+			if (shouldUseGraphics) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			
 			//glDeleteTextures(1, &textureColorbuffer);
+			//glViewport(0, 0, resoloutions[accessSettings[8]].x, resoloutions[accessSettings[8]].y);
 			
 			continue;
 		}
@@ -3916,11 +3982,14 @@ int main()
 		hitEntity = nullptr;
 
 
-		// first pass
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-		//glEnable(GL_DEPTH_TEST);
+		if (shouldUseGraphics) {
+			// first pass
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+			//glEnable(GL_DEPTH_TEST);
+		}
+
 		for each (Entity * e in renderingEntities) {
 
 
@@ -4871,6 +4940,9 @@ int main()
 		
 		}
 
+		if (shouldUseGraphics) {
+
+		
 		// second pass
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -4895,7 +4967,7 @@ int main()
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glEnable(GL_DEPTH_TEST);
-
+		}
 		for each (Entity * e in UIEntities) {
 			if (e->Has<Transparency>()) {
 				if (e->Get<Transparency>().getWantedTransparency() > -1) {
@@ -6478,6 +6550,9 @@ void applyResolution() {
 		globalCameraEntity->Get<CCamera>().Update();
 		//glDeleteTextures(1, &textureColorbuffer);
 		//glGenTextures(1, &textureColorbuffer);
+		if (shouldUseGraphics) {
+
+		
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -6496,6 +6571,7 @@ void applyResolution() {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, newSize.x, newSize.y);
+		}
 		screenRes = newSize;
 	}
 	else
@@ -6507,6 +6583,9 @@ void applyResolution() {
 		globalCameraEntity->Get<CCamera>().Update();
 		//glDeleteTextures(1, &textureColorbuffer);
 		//glGenTextures(1, &textureColorbuffer);
+		if (shouldUseGraphics) {
+
+		
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, res.x, res.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -6525,6 +6604,7 @@ void applyResolution() {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, res.x, res.y);
+		}
 		screenRes = res;
 
 	}
