@@ -475,6 +475,14 @@ float blurTime = 1.f;
 float blurMulti = 0;
 glm::vec2 blurBounds = glm::vec2(0, 10);
 bool shouldUseGraphics = true;
+
+
+MaterialCreator tableRamp;
+MaterialCreator LUTone;
+MaterialCreator LUTtwo;
+MaterialCreator LUTthree;
+
+void addToRendering(Entity*);
 int main()
 {
 	
@@ -516,7 +524,7 @@ int main()
 	// Initialize ImGui 
 	App::InitImgui();
 
-	const GLubyte* vend = glGetString(GL_VENDOR); // Returns the vendor
+	//const GLubyte* vend = glGetString(GL_VENDOR); // Returns the vendor
 	const GLubyte* rend = glGetString(GL_RENDERER); // Returns a hint to the model
 	
 	std::string render = std::string((char*) rend);
@@ -533,11 +541,29 @@ int main()
 		shouldUseGraphics = false;
 	}
 
+	try
+	{
+		// Load in our model/texture resources 
+		LoadDefaultResources();
+	}
+	catch (const std::exception& e) {
+		system("Colour 6");
+		std::cout << "ERROR LOADING SHADERS: " << e.what() << std::endl;
+		return 1;
+	}
+	if (prog_UI == nullptr || prog_RB == nullptr || prog_morph == nullptr || prog_texLit == nullptr) {
+		system("Colour 6");
+		std::cout << "One or more shaders could not load. Check that your computer can run OpenGL version 430 core or later." << std::endl;
+		return 1;
+	}
+	shouldUseGraphics = true;
+	tableRamp.createMaterial(tileMesh, "bakery/textures/table.png", *prog_UI);
 
-	// Load in our model/texture resources 
-	LoadDefaultResources();
+	LUTone.createMaterial(tileMesh, "bakery/textures/LUT1.png", *prog_UI);
 
-	
+	LUTtwo.createMaterial(tileMesh, "bakery/textures/LUT2.png", *prog_UI);
+
+	LUTthree.createMaterial(tileMesh, "bakery/textures/LUT3.png", *prog_UI);
 
 	//this is to save loading time, not memory!
 	//cant really save memory without reworking OTTER itself lol
@@ -608,7 +634,8 @@ int main()
 	Music drinkUpSound = Music(drinkUpS, "DrinkMachine", 10.6, true);
 
 
-	
+	//drinkUpSound.fadeIn(0.3);
+	//drinkUpSound.update(0);
 	
 	// Create and set up camera 
 	Entity cameraEntity = Entity::Create();
@@ -649,7 +676,7 @@ int main()
 	App::SwapBuffers();
 	loadingEntity.Get<CMeshRenderer>().Draw();
 	App::SwapBuffers();
-	//renderingEntities.push_back(&loadingEntity); 
+	//addToRendering(&loadingEntity); 
 	//loadingEntity.Get<CMeshRenderer>().Draw(); 
 
 
@@ -978,21 +1005,21 @@ int main()
 	bakery.transform.m_scale = glm::vec3(0.7, 0.7, 0.7);
 	bakery.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	bakery.transform.m_pos = glm::vec3(-2.4, -1.9, -4.3);
-	renderingEntities.push_back(&bakery);
+	addToRendering(&bakery);
 
 	Entity city = Entity::Create();
 	city.Add<CMeshRenderer>(city, *cityMat.getMesh(), *cityMat.getMaterial());
 	city.transform.m_scale = glm::vec3(0.560);
 	city.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	city.transform.m_pos = glm::vec3(-2.060, -1.710, -5.240);
-	renderingEntities.push_back(&city);
+	addToRendering(&city);
 
 	Entity bakeryTop = Entity::Create();
 	bakeryTop.Add<CMeshRenderer>(bakeryTop, *bakeryTopMat.getMesh(), *bakeryTopMat.getMaterial());
 	bakeryTop.transform.m_scale = glm::vec3(0.8, 0.8, 0.8);
 	bakeryTop.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	bakeryTop.transform.m_pos = glm::vec3(-3.1, 1.4, -9.1);
-	renderingEntities.push_back(&bakeryTop);
+	addToRendering(&bakeryTop);
 
 	Entity car = Entity::Create();
 	car.Add<CMeshRenderer>(car, *carMat.getMesh(), *carMat.getMaterial());
@@ -1001,7 +1028,7 @@ int main()
 	glm::vec3 carPos = menuCameraPos;
 	car.transform.m_pos = glm::vec3(carPos.x + 0.5, -1.0f, carPos.z - 2.2);
 
-	renderingEntities.push_back(&car);
+	addToRendering(&car);
 
 
 	Entity sign = Entity::Create();
@@ -1011,7 +1038,7 @@ int main()
 	glm::vec3 signPos = menuCameraPos;
 	sign.transform.m_pos = glm::vec3(signPos.x - 0.5, -1.55f, signPos.z + 0.2);
 
-	renderingEntities.push_back(&sign);
+	addToRendering(&sign);
 
 
 	Entity cursor = Entity::Create();
@@ -1020,7 +1047,7 @@ int main()
 	cursor.transform.m_scale = cursorScale;
 	cursor.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	cursor.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
-	renderingEntities.push_back(&cursor);
+	addToRendering(&cursor);
 
 
 
@@ -1040,7 +1067,7 @@ int main()
 	fridgePoster.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
-	renderingEntities.push_back(&fridgePoster);
+	addToRendering(&fridgePoster);
 
 	Entity ovenPoster = Entity::Create();
 	ovenPoster.Add<CMeshRenderer>(ovenPoster, *ovenPosterMat.getMesh(), *ovenPosterMat.getMaterial());
@@ -1049,7 +1076,7 @@ int main()
 	ovenPoster.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
-	renderingEntities.push_back(&ovenPoster);
+	addToRendering(&ovenPoster);
 
 
 	Entity painting = Entity::Create();
@@ -1059,7 +1086,7 @@ int main()
 	painting.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(00.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
-	renderingEntities.push_back(&painting);
+	addToRendering(&painting);
 
 	
 
@@ -1072,7 +1099,7 @@ int main()
 	ent_register->transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ent_register->transform.m_pos = glm::vec3(-1.6, -2.59, -2.29f);
 	ent_register->Add<BoundingBox>(glm::vec3(2.3, 3.3, 0.06), *ent_register);
-	renderingEntities.push_back(ent_register);
+	addToRendering(ent_register);
 
 	customerBubbleLocation = ent_register->transform;
 	customerBubbleLocation.m_scale = glm::vec3(0.4f);
@@ -1099,7 +1126,7 @@ int main()
 	Entity chairs = Entity::Create();
 	chairs.Add<CMeshRenderer>(chairs, *furnitureMat.getMesh(), *furnitureMat.getMaterial());
 	chairs.transform = bakery.transform;
-	renderingEntities.push_back(&chairs);
+	addToRendering(&chairs);
 	/*
 	Entity booth = Entity::Create();
 	booth.Add<CMeshRenderer>(booth, *boothMat.getMesh(), *boothMat.getMaterial());
@@ -1107,7 +1134,7 @@ int main()
 	booth.transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	booth.transform.m_pos = glm::vec3(-0.020, -1.900, -7.370);
 
-	//renderingEntities.push_back(&booth);
+	//addToRendering(&booth);
 	*/
 	tablet = Entity::Allocate().release();
 	tablet->Add<CMeshRenderer>(*tablet, *tabletMat0.getMesh(), *tabletMat0.getMaterial());
@@ -1115,14 +1142,14 @@ int main()
 	tablet->transform.m_rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tablet->transform.m_pos = glm::vec3(-0.750, -1.180, -2.190);
 
-	renderingEntities.push_back(tablet);
+	addToRendering(tablet);
 
 	Entity counter = Entity::Create();
 	counter.Add<CMeshRenderer>(counter, *counterMat.getMesh(), *counterMat.getMaterial());
 	counter.transform.m_scale = glm::vec3(0.492);
 	counter.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	counter.transform.m_pos = glm::vec3(-1.000, -2.032, -2.388);
-	renderingEntities.push_back(&counter);
+	addToRendering(&counter);
 
 
 
@@ -1136,7 +1163,7 @@ int main()
 	bin.Add<BoundingBox>(glm::vec3(0.5, 1, 0.5), bin);
 	glm::vec3 binOrigin = bin.transform.m_pos;
 	bin.Get<BoundingBox>().setOrigin(glm::vec3(binOrigin.x, binOrigin.y, binOrigin.z-0.4));
-	renderingEntities.push_back(&bin);
+	addToRendering(&bin);
 	//	std::cout << bin.Get<BoundingBox>().getOrigin().x << " " << bin.Get<BoundingBox>().getOrigin().y << 
 		//	" " << bin.Get<BoundingBox>().getOrigin().z << std::endl; 
 
@@ -1149,7 +1176,7 @@ int main()
 	fridge.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	fridge.transform.m_pos = glm::vec3(-3.020, -1.870, 0.270);
 	fridge.Add<BoundingBox>(glm::vec3(0.67, 4, 0.5), fridge);
-	renderingEntities.push_back(&fridge);
+	addToRendering(&fridge);
 	auto& animatorFridge = fridge.Add<CMorphAnimator>(fridge);
 	animatorFridge.SetFrameTime(1.0f);
 	animatorFridge.SetFrames(fridgeFrames);
@@ -1163,7 +1190,7 @@ int main()
 	oven.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	oven.transform.m_pos = glm::vec3(0.5f, -1.91f, 0.100f);
 	oven.Add<BoundingBox>(glm::vec3(0.51, 2, 0.35), oven);
-	renderingEntities.push_back(&oven);
+	addToRendering(&oven);
 	auto& animatorOven = oven.Add<CMorphAnimator>(oven);
 	animatorOven.SetFrameTime(1.0f);
 	animatorOven.SetFrames(allOvenFrames);
@@ -1181,7 +1208,7 @@ int main()
 
 		ovenEntites[i]->Add<CMorphMeshRenderer>(*ovenEntites[i], *ovenClosedMat.getMesh(), *ovenClosedMat.getMaterial());
 		ovenEntites[i]->Add<MorphAnimation>(closingFrames,0.3f,0);
-		renderingEntities.push_back(ovenEntites[i]);
+		addToRendering(ovenEntites[i]);
 
 		auto& animatordrink = ovenEntites[i]->Add<CMorphAnimator>(*ovenEntites[i]);
 		animatordrink.SetFrameTime(1.0f);
@@ -1201,7 +1228,7 @@ int main()
 	filling.Add<BoundingBox>(glm::vec3(0.72, 2, 0.35), filling);
 	glm::vec3 fillingPos = filling.transform.m_pos;
 	filling.Get<BoundingBox>().setOrigin(glm::vec3(fillingPos.x + 0.4, fillingPos.y, fillingPos.z));
-	renderingEntities.push_back(&filling);
+	addToRendering(&filling);
 
 	auto& animator = filling.Add<CMorphAnimator>(filling);
 	animator.SetFrameTime(1.0f);
@@ -1220,7 +1247,7 @@ int main()
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
 	glm::vec3 fillPos = filling.transform.m_pos;
 	fillingPlane.transform.m_pos = glm::vec3(0.308, 0.077, 1.663);
-	renderingEntities.push_back(&fillingPlane);
+	addToRendering(&fillingPlane);
 	filling.Get<FillingMachine>().setFillingPlane(&fillingPlane);
 
 	Transform fillTransform = filling.transform;
@@ -1236,7 +1263,7 @@ int main()
 	tester.transform.m_scale = glm::vec3(0.1f, 0.1f, 0.1f);
 	tester.transform.m_rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
 	tester.transform.m_pos = glm::vec3(-1.f, -3.f, -3.0f);
-	//renderingEntities.push_back(&tester);
+	//addToRendering(&tester);
 
 	Entity drink = Entity::Create();
 	drink.Add<CMorphMeshRenderer>(drink, *drinkMat1.getMesh(), *drinkMat1.getMaterial());
@@ -1250,7 +1277,7 @@ int main()
 	drink.Add<BoundingBox>(glm::vec3(0.32, 2, 0.35), drink);//filling????
 	glm::vec3 drinkPos = drink.transform.m_pos;
 	drink.Get<BoundingBox>().setOrigin(glm::vec3(drinkPos.x - 0.0, drinkPos.y, drinkPos.z));
-	renderingEntities.push_back(&drink);
+	addToRendering(&drink);
 
 	auto& animatordrink = drink.Add<CMorphAnimator>(drink);
 	animatordrink.SetFrameTime(1.0f);
@@ -1276,7 +1303,7 @@ int main()
 	drink.Get<DrinkMachine>().setTransform(inDrinkTrans, outDrinkTrans);
 	drink.Get<DrinkMachine>().setup(&coffeeTile, &milkshakeTile, &teaTile, &drinkFill);
 	drinkFill.getEntity()->Add<Transparency>(*drinkFill.getEntity());
-	renderingEntities.push_back(drinkFill.getEntity());
+	addToRendering(drinkFill.getEntity());
 
 
 	//filling.Get<FillingMachine>().setup(&custardFilling, &nutellaFilling, &strawberryFilling); 
@@ -1289,7 +1316,7 @@ int main()
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
 	glm::vec3 drinkTilePos = drink.transform.m_pos;
 	drinkPlane.transform.m_pos = glm::vec3(-1.010, -0.010, 1.500);
-	renderingEntities.push_back(&drinkPlane);
+	addToRendering(&drinkPlane);
 	drink.Get<DrinkMachine>().setDrinkPlane(&drinkPlane);
 
 
@@ -1319,7 +1346,7 @@ int main()
 	//tempTopPos.x += 0.0; 
 	//topping.Get<BoundingBox>().setOrigin(tempTopPos); 
 
-	renderingEntities.push_back(&topping);
+	addToRendering(&topping);
 
 	Transform topParticleTransform = topping.transform;
 	//topParticleTransform.m_pos.y += 0.38;
@@ -1356,7 +1383,7 @@ int main()
 	Entity particleEntity = Entity::Create();
 	particleEntity.transform.m_pos = topParticleTransform.m_pos;
 	particleEntity.Add<CParticleSystem>(particleEntity, *topping.Get<ToppingMachine>().getParticleMaterial(selectedt), particleData);
-	renderingEntities.push_back(&particleEntity);
+	addToRendering(&particleEntity);
 
 
 	Entity toppingPlane = Entity::Create();
@@ -1367,7 +1394,7 @@ int main()
 		glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f));;
 	//glm::vec3 topPos = topping.transform.m_pos;
 	toppingPlane.transform.m_pos = glm::vec3(-2.070, 0.160, 1.650);
-	renderingEntities.push_back(&toppingPlane);
+	addToRendering(&toppingPlane);
 	topping.Get<ToppingMachine>().setTopPlane(&toppingPlane);
 
 
@@ -1416,7 +1443,7 @@ int main()
 		mithunanAnimator.SetFrames(mithunanWalkFrames);
 	}
 
-	renderingEntities.push_back(&mithunan);
+	addToRendering(&mithunan);
 
 	std::unique_ptr<Texture2D> kainatTex = std::make_unique<Texture2D>("characters/mithunan/kainat.png");
 	std::unique_ptr<Material> kainatMat = std::make_unique<Material>(*prog_morph);
@@ -1454,7 +1481,7 @@ int main()
 		kainatAnimator.SetFrameTime(kainatWalk.getFrameTime());
 		kainatAnimator.SetFrames(mithunanWalkFrames);
 	}
-	renderingEntities.push_back(&kainat);
+	addToRendering(&kainat);
 
 	std::vector<MorphAnimation*> allmarkFrames;
 	//std::vector<Mesh*> markWalkFrames;
@@ -1488,7 +1515,7 @@ int main()
 		markAnimator.SetFrameTime(markWalk.getFrameTime());
 		markAnimator.SetFrames(mithunanWalkFrames);
 	}
-	renderingEntities.push_back(&mark);
+	addToRendering(&mark);
 
 	std::vector<MorphAnimation*> allkyraFrames;
 	//std::vector<Mesh*> kyraWalkFrames;
@@ -1522,7 +1549,7 @@ int main()
 		kyraAnimator.SetFrameTime(kyraWalk.getFrameTime());
 		kyraAnimator.SetFrames(mithunanWalkFrames);
 	}
-	renderingEntities.push_back(&kyra);
+	addToRendering(&kyra);
 
 	std::vector<MorphAnimation*> allnathanFrames;
 	//std::vector<Mesh*> nathanWalkFrames;
@@ -1556,7 +1583,7 @@ int main()
 		nathanAnimator.SetFrameTime(nathanWalk.getFrameTime());
 		nathanAnimator.SetFrames(mithunanWalkFrames);
 	}
-	renderingEntities.push_back(&nathan);
+	addToRendering(&nathan);
 
 	customerLine[0] = &mithunan;
 	customerLine[1] = &kainat;
@@ -1616,7 +1643,7 @@ int main()
 
 
 	
-																											  //renderingEntities.push_back(&tray); 
+																											  //addToRendering(&tray); 
 	traySlot[0] = Transform();
 	traySlot[0].m_pos = tray.transform.m_pos;
 	traySlot[0].m_pos.x = tray.transform.m_pos.x - 0.0173;
@@ -1652,9 +1679,9 @@ int main()
 
 	slot1Transform.m_scale = glm::vec3(0.25);
 	OvenTimer slot4 = OvenTimer(nothingTile, ovenDial, timerMat, slot1Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot4.getArrow());
-	//renderingEntities.push_back(slot1.getCircle()); 
-	renderingEntities.push_back(slot4.getTile());
+	addToRendering(slot4.getArrow());
+	//addToRendering(slot1.getCircle()); 
+	addToRendering(slot4.getTile());
 	slot4.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot1.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)); 
 	slot4.getArrow()->transform.m_pos.x += 0.01;
@@ -1676,9 +1703,9 @@ int main()
 
 	slot2Transform.m_scale = glm::vec3(0.25);
 	OvenTimer slot3 = OvenTimer(nothingTile, ovenDial, timerMat, slot2Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot3.getArrow());
-	//renderingEntities.push_back(slot2.getCircle()); 
-	renderingEntities.push_back(slot3.getTile());
+	addToRendering(slot3.getArrow());
+	//addToRendering(slot2.getCircle()); 
+	addToRendering(slot3.getTile());
 	//slot2.getTile()->transform.m_pos = slot2Transform.m_pos; 
 	slot3.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot2.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)); 
@@ -1699,9 +1726,9 @@ int main()
 	slot3Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	OvenTimer slot2 = OvenTimer(nothingTile, ovenDial, timerMat, slot3Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot2.getArrow());
-	//renderingEntities.push_back(slot3.getCircle()); 
-	renderingEntities.push_back(slot2.getTile());
+	addToRendering(slot2.getArrow());
+	//addToRendering(slot3.getCircle()); 
+	addToRendering(slot2.getTile());
 	//slot3.getTile()->transform.m_pos = slot3Transform.m_pos ; 
 	slot2.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot3.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)); 
@@ -1721,9 +1748,9 @@ int main()
 	slot4Transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	OvenTimer slot1 = OvenTimer(nothingTile, ovenDial, timerMat, slot4Transform, 0.3, glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)));
-	renderingEntities.push_back(slot1.getArrow());
-	//renderingEntities.push_back(slot4.getCircle()); 
-	renderingEntities.push_back(slot1.getTile());
+	addToRendering(slot1.getArrow());
+	//addToRendering(slot4.getCircle()); 
+	addToRendering(slot1.getTile());
 	//slot4.getTile()->transform.m_pos = slot4Transform.m_pos; 
 	slot1.getArrow()->transform.m_scale = glm::vec3(1.4);
 	//slot4.getArrow()->transform.m_rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0, 1, 0)); 
@@ -1806,13 +1833,13 @@ int main()
 	//up to here 
 
 	DrinkMachine& drinkScript = drink.Get<DrinkMachine>();
-	//renderingEntities.push_back(&receipt); 
+	//addToRendering(&receipt); 
 	GLfloat seeThrough = 0.5f;
 
 
 
 
-	//renderingEntities.push_back(&receipt); 
+	//addToRendering(&receipt); 
 	for (int i = 0; i < 6; i++) {
 		numberEntities.push_back(Entity::Allocate().release());
 		//numberEntities.back()->transform.SetParent(&receipt.transform); 
@@ -1842,7 +1869,7 @@ int main()
 			numberEntities.back()->transform.m_pos.y -= 0.1;
 
 		}
-		//renderingEntities.push_back(numberEntities.back()); 
+		//addToRendering(numberEntities.back()); 
 	}
 
 	std::vector<MaterialCreator*> alphanumericPointer;
@@ -1931,7 +1958,7 @@ int main()
 
 	//confusionPlane.transform.SetParent(&cameraEntity.transform);
 	//UIEntities.push_back(tutorialPlane.get());
-	renderingEntities.push_back(&confusionPlane);
+	addToRendering(&confusionPlane);
 
 	
 	auto endTime = std::chrono::high_resolution_clock::now();//measure end time 
@@ -1942,7 +1969,7 @@ int main()
 	//audioEngine.playSound("ambient1");
 	//shouldShowTutorial = false;
 	float fridgeMultiplier = 4;
-	//renderingEntities.push_back(&tester);
+	//addToRendering(&tester);
 	//menuBGM.PlayEvent("event:/BackgroundMusic");
 	
 	float traySpeed = 8;
@@ -1964,7 +1991,7 @@ int main()
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
 	float fridgeLookTime = 0.f;
-	bool canCheat = true;
+	bool canCheat = false;
 	GLuint albedoUniform = prog_RB->GetUniformLoc("albedo");
 	GLuint quadVAO;
 	
@@ -2043,9 +2070,53 @@ int main()
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
 	if (!shouldUseGraphics) {
 		system("Color 6");
-		std::cout << "NOTICE: You are using integrated graphics. As such, the game has turned off all post-processing effects. Change your graphics settings to use a dedicated graphics card in order to enable post-processing." << std::endl;
+		std::cout << "NOTICE: You are using integrated graphics. As such, the game has turned off all post-processing effects. Change your settings in order to render with a dedicated graphics card and restart the game to turn on post-processing." << std::endl;
 		//system("Color 7");
 	}
+
+	int tempIntA = 0;
+	bool rampDiffuse = false, rampSpecular = false, LUT1 = false, LUT2 = false, LUT3 = false;
+	std::string modeName[6] = {"Normal","No lighting","Ambient only","Specular only","Ambient + Specular","Toon shading"};
+	
+	
+	
+	
+	 for each (Entity* e in renderingEntities) {
+		if (e->Has<CMeshRenderer>()) {
+			e->Get<CMeshRenderer>().getMaterial().AddTexture("table",*tableRamp.getTexture());
+			e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT1",*LUTone.getTexture());
+			e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT2",*LUTtwo.getTexture());
+			e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT3",*LUTthree.getTexture());
+		}
+		
+	}
+	
+	 for each (Material * m in signFrames) {
+		
+			 m->AddTexture("table", *tableRamp.getTexture());
+			 m->AddTexture("LUT1", *LUTone.getTexture());
+			 m->AddTexture("LUT2", *LUTtwo.getTexture());
+			 m->AddTexture("LUT3", *LUTthree.getTexture());
+		 
+	 }
+
+	 for each (std::vector<MaterialCreator*> n in pastryMats) {
+		 for each (MaterialCreator * m in n) {
+			 m->getMaterial()->AddTexture("table", *tableRamp.getTexture());
+			 m->getMaterial()->AddTexture("LUT1", *LUTone.getTexture());
+			 m->getMaterial()->AddTexture("LUT2", *LUTtwo.getTexture());
+			 m->getMaterial()->AddTexture("LUT3", *LUTthree.getTexture());
+		 }
+		
+
+	 }
+
+	 burntMat.getMaterial()->AddTexture("table", *tableRamp.getTexture());
+	 burntMat.getMaterial()->AddTexture("LUT1", *LUTone.getTexture());
+	 burntMat.getMaterial()->AddTexture("LUT2", *LUTtwo.getTexture());
+	 burntMat.getMaterial()->AddTexture("LUT3", *LUTthree.getTexture());
+	
+	float filmGrainStrength = 16.5;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		
@@ -2064,7 +2135,7 @@ int main()
 		prog_RB->Bind();
 		prog_RB.get()->SetUniform("shouldBuffer", (int) true);
 		prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
-		prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
+		prog_RB.get()->SetUniform("filmGrainStrength", filmGrainStrength);
 		prog_RB.get()->SetUniform("blurStr",(int) floor(Lerp(blurBounds.x,blurBounds.y,blurT)));
 		prog_RB.get()->SetUniform("screenRes", screenRes);
 		//std::cout << screenRes.x << " " << screenRes.y << std::endl;
@@ -2072,6 +2143,18 @@ int main()
 		prog_texLit.get()->SetUniform("lightDir2", carLight.pos);
 		prog_texLit.get()->SetUniform("lightColor2", carLight.colour);
 		prog_texLit.get()->SetUniform("strength", carLight.strength);
+		prog_texLit.get()->SetUniform("camPos", globalCameraEntity->transform.m_pos);
+
+		prog_texLit.get()->SetUniform("mode", tempIntA);
+		prog_texLit.get()->SetUniform("diffuseRamp", (int)rampDiffuse);
+		prog_texLit.get()->SetUniform("specularRamp", (int)rampSpecular);
+		prog_texLit.get()->SetUniform("usingLUT1", (int)LUT1);
+		prog_texLit.get()->SetUniform("usingLUT2", (int)LUT2);
+		prog_texLit.get()->SetUniform("usingLUT3", (int)LUT3);
+
+		
+
+		
 		//prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightColor", glm::vec3(Lerp(dayBright, dayDark, dayT)));
 		prog_texLit.get()->SetUniform("ambientPower", 0.4f);
@@ -2091,10 +2174,19 @@ int main()
 		//prog_UI->Bind();
 		//prog_UI.get()->SetUniform("brightness", tempA);
 
-		/*
+		
 		App::StartImgui();
 		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::DragInt("X", &(intA), 0.1f);
+		ImGui::SliderInt("Mode: ",&tempIntA,0,5);
+		ImGui::Text(modeName[tempIntA].c_str());
+		ImGui::Checkbox("Ramp diffuse: ", &rampDiffuse);
+		ImGui::Checkbox("Ramp specular: ", &rampSpecular);
+		ImGui::Checkbox("Warm colour grading: ", &LUT1);
+		ImGui::Checkbox("Cool colour grading: ", &LUT2);
+		ImGui::Checkbox("Custom colour grading: ", &LUT3);
+		ImGui::DragFloat("Film grain strength: ", &filmGrainStrength,0.5,0,30);
+		ImGui::DragFloat("Box blur strength: ", &blurT,0.1,0,1);
+		//ImGui::DragInt("X", &(intA), 0.1f);
 		//ImGui::DragFloat("Y", &(tempB), 0.01f);
 		//ImGui::DragFloat("Z", &(tempC), 0.01f);
 		//ImGui::DragFloat("R", &(tempA), 0.01f);
@@ -2112,7 +2204,7 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		*/
+		
 		//painting.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		//	glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));//0
@@ -2155,6 +2247,7 @@ int main()
 			}
 		}
 
+		
 		//UpdateTutorial(deltaTime);
 		if (isInMainMenu || isInOptionsMenu) {
 			currentConfusion += deltaTime;
@@ -2444,7 +2537,7 @@ int main()
 						if (selectedOption == 0) {
 							sign.Get<CMeshRenderer>().SetMaterial(*signFrames[15]);
 							if (!isInRendering(&tray)) {
-								renderingEntities.push_back(&tray);
+								addToRendering(&tray);
 								
 							}
 							tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
@@ -2507,7 +2600,7 @@ int main()
 						}
 						for (int i = 4; i >= 0; i--) {
 							if (!isInRendering(accessEntities[i])) {
-								renderingEntities.push_back(accessEntities[i]);
+								addToRendering(accessEntities[i]);
 							}
 						}
 						for (int i = 0; i < 5; i++) {
@@ -2551,7 +2644,7 @@ int main()
 						if (accessButtonPressed < 4) {
 							for (int i = 0; i < accessButtonPressed + 1; i++) {
 								if (!isInRendering(accessEntities[i])) {
-									renderingEntities.push_back(accessEntities[i]);
+									addToRendering(accessEntities[i]);
 								}
 							}
 						}
@@ -2580,7 +2673,7 @@ int main()
 								}
 								for (int i = 4; i >= 0; i--) {
 									if (!isInRendering(accessEntities[i])) {
-										renderingEntities.push_back(accessEntities[i]);
+										addToRendering(accessEntities[i]);
 									}
 								}
 								for (int i = 0; i < 5; i++) {
@@ -2604,7 +2697,7 @@ int main()
 							else
 							{
 								if (getWhichKeyPressed() >= 0) {
-									renderingEntities.push_back(accessEntities[accessButtonPressed]);
+									addToRendering(accessEntities[accessButtonPressed]);
 									int keyPressed = getWhichKeyPressed();
 									bool alreadyUsed = false;
 									for (int i = 0; i < accessButtonPressed; i++) {
@@ -2769,10 +2862,10 @@ int main()
 						tray.transform.m_pos = glm::vec3(menuCameraPos.x - 0.1, menuCameraPos.y - 0.040, menuCameraPos.z);// 0.552 
 						tray.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
 						
-						//renderingEntities.push_back(accessEntities[0]); 
+						//addToRendering(accessEntities[0]); 
 						for (int i = 4; i >= 0; i--) {
 							if (!isInRendering(accessEntities[i])) {
-								renderingEntities.push_back(accessEntities[i]);
+								addToRendering(accessEntities[i]);
 							}
 						}
 						
@@ -2828,7 +2921,7 @@ int main()
 					isPaused = false;
 					
 					if (!isInRendering(&car)) {
-						renderingEntities.push_back(&car);
+						addToRendering(&car);
 					}
 					carLight.strength = 0;
 					carLight.pos = Lerp(firstCarPos, lastCarPos, 0);
@@ -2837,7 +2930,7 @@ int main()
 					
 					
 					if (!isInRendering(&cursor)) {
-					//	renderingEntities.push_back(&cursor);
+					//	addToRendering(&cursor);
 						renderingEntities.insert(renderingEntities.begin() + 1, &cursor);
 					}
 					if (!isInContinueMenu) {
@@ -2845,12 +2938,12 @@ int main()
 						//tutorialPlane->transform.SetParent(&cameraEntity.transform);
 						for each (Entity * cust in customers) {
 							if (!isInRendering(cust)) {
-								renderingEntities.push_back(cust);
+								addToRendering(cust);
 							}
 						}
 
 						if (!isInRendering(&tray)) {
-							renderingEntities.push_back(&tray);
+							addToRendering(&tray);
 						}
 						if (shouldShowTutorial) {
 
@@ -2871,7 +2964,7 @@ int main()
 							accessEntities[i]->Remove<CMeshRenderer>();
 							accessEntities[i]->Add<CMeshRenderer>(*accessEntities[i], *keyUpMat.getMesh(), *alphanumericPointer[accessSettings[i]]->getMaterial());
 
-							renderingEntities.push_back(accessEntities[i]);
+							addToRendering(accessEntities[i]);
 						}
 						
 						}
@@ -2890,7 +2983,7 @@ int main()
 							OrderBubble* ob = orderBubbles[i];
 							for each (Entity * ent in ob->returnRenderingEntities()) {
 								if (!isInRendering(ent)) {
-									renderingEntities.push_back(ent);
+									addToRendering(ent);
 								}
 
 							}
@@ -2899,7 +2992,7 @@ int main()
 
 						for each (Entity * en in trayPastry) {
 							if (en != nullptr) {
-								renderingEntities.push_back(en);
+								addToRendering(en);
 							}
 
 						}
@@ -3021,6 +3114,9 @@ int main()
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
 				//std::cout << selectedOption << std::endl; 
 				if (mainMenuChosen >= 0) {
+					if (ovenScript->getActivePastries() > 0) {
+						ovenSound.fadeIn(0.3);
+					}
 					pauseMusic.fadeOut(3);
 					for each (Entity * cust in customers) {
 						if (isInRendering(cust)) {
@@ -3311,7 +3407,7 @@ int main()
 			//tutorialPlane->transform.m_pos = glm::vec3(-20);
 			tutorialMultiplier = 0;
 			//other blurmulti is in !ispaused place when isincontinue gets set to true
-
+			ovenSound.fadeOut(0.3);
 		//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
 		tutorialPlane->transform.m_scale = glm::vec3((0.003 * (UIScale + 0.05)) * tutorialMultiplier);
 		
@@ -3455,7 +3551,7 @@ int main()
 						removeFromRendering(ent);
 					}
 
-					//renderingEntities.push_back(ent); 
+					//addToRendering(ent); 
 				}
 				orderBubbles[1]->getOrder()->setStarted(false);
 				orderBubbles[2]->getOrder()->setStarted(false);
@@ -3463,7 +3559,7 @@ int main()
 					if (isInRendering(ent)) {
 						removeFromRendering(ent);
 					}
-					//renderingEntities.push_back(ent); 
+					//addToRendering(ent); 
 				}
 			}
 			tutorialMultiplier = 0;
@@ -3535,8 +3631,8 @@ int main()
 						e->Get<Transparency>().updateTransparency(deltaTime);
 					}
 					e->transform.RecomputeGlobal();
-					prog_transparent->Bind();
-					prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
+					//prog_transparent->Bind();
+					//prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
 					//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
 
 					if (e->Has<CMeshRenderer>()) {
@@ -3548,8 +3644,8 @@ int main()
 				{
 					e->transform.RecomputeGlobal();
 					if (e->Has<CMeshRenderer>()) {
-						prog_transparent->Bind();
-						prog_transparent.get()->SetUniform("transparency", 0.f);
+						//prog_transparent->Bind();
+						//prog_transparent.get()->SetUniform("transparency", 0.f);
 						e->Get<CMeshRenderer>().Draw();
 					}
 
@@ -3580,6 +3676,7 @@ int main()
 			isPaused = !isPaused;
 			
 			if (isPaused) {
+				ovenSound.fadeOut(0.3);
 				pauseMusic.fadeIn(3);
 				removeFromRendering(&tray);
 				removeFromRendering(tutorialPlane.get());
@@ -3838,7 +3935,7 @@ int main()
 					resetBubble(i);
 
 					for each (Entity * foe in orderBubbles[i]->returnRenderingEntities()) {
-						renderingEntities.push_back(foe);
+						addToRendering(foe);
 						//std::cout << "d" << std::endl; 
 					}
 
@@ -3940,7 +4037,7 @@ int main()
 				else
 				{
 					if (!isInRendering(accessEntities[i])) {
-						renderingEntities.push_back(accessEntities[i]);
+						addToRendering(accessEntities[i]);
 						//accessEntities[i]->transform.SetParent(nullptr);
 					}
 				}
@@ -4282,9 +4379,7 @@ int main()
 						else if (!putInOven && affectedTraySlot >= 0 && affectedOvenSlot >= 0)
 						{
 							playSound(&pop, "DoughTray");
-							if (ovenScript->getActivePastries() == 1) {
-								ovenSound.fadeOut(0.3);
-							}
+							
 							trayMultiplier = 1;
 							lastActionTime = 0;
 							//std::cout << "C" << std::endl; 
@@ -4293,6 +4388,9 @@ int main()
 
 							if (ovenScript->canRemove(affectedOvenSlot) && newSlot >= 0) {
 								//std::cout << newSlot << std::endl; 
+								if (ovenScript->getActivePastries() == 1) {
+									ovenSound.fadeOut(0.3);
+								}
 								trayPastry[newSlot] = &ovenScript->getEntity(affectedOvenSlot);
 
 								glm::vec3 finalPos = traySlot[newSlot].m_pos;
@@ -4310,7 +4408,7 @@ int main()
 								trayPastry[newSlot]->Get<Transparency>().setTime(0.15);
 
 								if (!isInRendering(trayPastry[newSlot])) {
-									renderingEntities.push_back(trayPastry[newSlot]);
+									addToRendering(trayPastry[newSlot]);
 								}
 								/*
 								if (trayPastry[newSlot]->Get<Pastry>().getPastryType() == bakeryUtils::pastryType::DOUGH)
@@ -4715,7 +4813,7 @@ int main()
 									//drinkScript.getFromDrink()->transform.m_scale = glm::vec3(0.002); 
 									drinkScript.getFromDrink()->Add<Drink>();
 									drinkScript.getFromDrink()->Get<Drink>().setDrinkType(drinkScript.getDrink());
-									renderingEntities.push_back(drinkScript.getFromDrink());
+									addToRendering(drinkScript.getFromDrink());
 
 								}
 
@@ -4898,7 +4996,7 @@ int main()
 							
 							playSound(&ding, "CashRegister");
 							for each (Entity * foe in orderBubbles[u]->returnRenderingEntities()) {
-								renderingEntities.push_back(foe);
+								addToRendering(foe);
 							}
 
 							for (int f = 0; f < 3; f++) {
@@ -4975,8 +5073,8 @@ int main()
 					e->Get<Transparency>().updateTransparency(deltaTime);
 				}
 				e->transform.RecomputeGlobal();
-				prog_transparent->Bind();
-				prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
+				//prog_transparent->Bind();
+				//prog_transparent.get()->SetUniform("transparency", e->Get<Transparency>().getTransparency());
 				//std::cout << e->Get<Transparency>().getTransparency() << std::endl; 
 
 				if (e->Has<CMeshRenderer>()) {
@@ -4988,8 +5086,8 @@ int main()
 			{
 				e->transform.RecomputeGlobal();
 				if (e->Has<CMeshRenderer>()) {
-					prog_transparent->Bind();
-					prog_transparent.get()->SetUniform("transparency", 0.f);
+					//prog_transparent->Bind();
+				//	prog_transparent.get()->SetUniform("transparency", 0.f);
 					e->Get<CMeshRenderer>().Draw();
 				}
 
@@ -4998,7 +5096,7 @@ int main()
 		}
 
 		if (addedSlot >= 0) {
-			renderingEntities.push_back(trayPastry[addedSlot]);
+			addToRendering(trayPastry[addedSlot]);
 		}
 		
 		if (orderBubblesToRemove.size() > 0) {
@@ -5014,7 +5112,7 @@ int main()
 				resetBubble(orderBubblesToRemove[i]);
 
 				for each (Entity * foe in orderBubbles[orderBubblesToRemove[i]]->returnRenderingEntities()) {
-					renderingEntities.push_back(foe);
+					addToRendering(foe);
 				}
 			}
 
@@ -5033,7 +5131,7 @@ int main()
 
 
 				for each (Entity * foe in orderBubbles[1]->returnRenderingEntities()) {
-					renderingEntities.push_back(foe);
+					addToRendering(foe);
 				}
 			}
 
@@ -5054,7 +5152,7 @@ int main()
 
 
 				for each (Entity * foe in orderBubbles[2]->returnRenderingEntities()) {
-					renderingEntities.push_back(foe);
+					addToRendering(foe);
 				}
 			}
 			
@@ -5087,57 +5185,55 @@ int main()
 
 void LoadDefaultResources()
 {
-	// Load in the shaders we will need and activate them 
+	try
+	{
+		// Load in the shaders we will need and activate them 
 	// Textured lit shader 
-	std::unique_ptr vs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
-	//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
-	std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> texLit = { vs_texLitShader.get(), fs_texLitShader.get() };
-	prog_texLit = std::make_unique<ShaderProgram>(texLit);
+		std::unique_ptr vs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
+		//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+		std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
+		std::vector<Shader*> texLit = { vs_texLitShader.get(), fs_texLitShader.get() };
+		prog_texLit = std::make_unique<ShaderProgram>(texLit);
+	}
+	catch (const std::exception& e) {
+		std::cout << "TEXLIT SHADER ERROR: " << e.what() << std::endl;
+	}
+	
 
-	std::unique_ptr vs_RB = std::make_unique<Shader>("shaders/RB.vert", GL_VERTEX_SHADER);
-	//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
-	std::unique_ptr fs_RB = std::make_unique<Shader>("shaders/RB.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> RB = { vs_RB.get(), fs_RB.get() };
-	prog_RB = std::make_unique<ShaderProgram>(RB);
+	if (shouldUseGraphics) {
+		try
+		{
+			std::unique_ptr vs_RB = std::make_unique<Shader>("shaders/RB.vert", GL_VERTEX_SHADER);
+			//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+			std::unique_ptr fs_RB = std::make_unique<Shader>("shaders/RB.frag", GL_FRAGMENT_SHADER);
+			std::vector<Shader*> RB = { vs_RB.get(), fs_RB.get() };
+			prog_RB = std::make_unique<ShaderProgram>(RB);
+		}
+		catch (const std::exception& e) {
+			std::cout << "RENDERBUFFER ERROR: " << e.what() << std::endl;
+		}
+		
+	}
+	
 
-
-	std::unique_ptr vs_UIShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
-	//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
-	std::unique_ptr fs_UIShader = std::make_unique<Shader>("shaders/UI.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> UIShader = { vs_UIShader.get(), fs_UIShader.get() };
-	prog_UI = std::make_unique<ShaderProgram>(UIShader);
+	try
+	{
+		std::unique_ptr vs_UIShader = std::make_unique<Shader>("shaders/texturedlit.vert", GL_VERTEX_SHADER);
+		//std::unique_ptr fs_texLitShader = std::make_unique<Shader>("shaders/texturedlit.frag", GL_FRAGMENT_SHADER);
+		std::unique_ptr fs_UIShader = std::make_unique<Shader>("shaders/UI.frag", GL_FRAGMENT_SHADER);
+		std::vector<Shader*> UIShader = { vs_UIShader.get(), fs_UIShader.get() };
+		prog_UI = std::make_unique<ShaderProgram>(UIShader);
+	}
+	catch (const std::exception& e) {
+		std::cout << "UI SHADER ERROR: " << e.what() << std::endl;
+	}
+	
 
 	
-	// Untextured lit shader 
-	std::unique_ptr vs_litShader = std::make_unique<Shader>("shaders/lit.vert", GL_VERTEX_SHADER);
-	std::unique_ptr fs_litShader = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> lit = { vs_litShader.get(), fs_litShader.get() };
-	prog_lit = std::make_unique<ShaderProgram>(lit);
+
 	
-	// Untextured unlit shader 
-	std::unique_ptr vs_unlitShader = std::make_unique<Shader>("shaders/unlit.vert", GL_VERTEX_SHADER);
-	std::unique_ptr fs_unlitShader = std::make_unique<Shader>("shaders/unlit.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> unlit = { vs_unlitShader.get(), vs_unlitShader.get() };
-	prog_unlit = std::make_unique<ShaderProgram>(unlit);
-
-	std::unique_ptr vs_transparentShader = std::make_unique<Shader>("shaders/stippling.vert", GL_VERTEX_SHADER);
-	std::unique_ptr fs_transparentShader = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> transparentTex = { vs_transparentShader.get(), fs_transparentShader.get() };
-	prog_transparent = std::make_unique<ShaderProgram>(transparentTex);
-	//prog_transparent.get()->Bind(); 
-
-
-
-	std::unique_ptr vs_allLightShader = std::make_unique<Shader>("shaders/texturedWithLights.vert", GL_VERTEX_SHADER);
-	std::unique_ptr fs_allLightShader = std::make_unique<Shader>("shaders/texturedWithLights.frag", GL_FRAGMENT_SHADER);
-	std::vector<Shader*> allLightTex = { vs_allLightShader.get(), fs_allLightShader.get() };
-	prog_allLights = std::make_unique<ShaderProgram>(allLightTex);
-	//prog_allLights.get()->Bind(); 
-	//prog_transparent.get()->SetUniform("transparency", 0.5f); 
-
 	auto v_morph = std::make_unique<Shader>("shaders/morph.vert", GL_VERTEX_SHADER);
-	auto f_lit = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
+	//auto f_lit = std::make_unique<Shader>("shaders/lit.frag", GL_FRAGMENT_SHADER);
 	auto f_stipple = std::make_unique<Shader>("shaders/stippling.frag", GL_FRAGMENT_SHADER);
 
 
@@ -5146,24 +5242,28 @@ void LoadDefaultResources()
 	auto g_particles = std::make_unique<Shader>("shaders/particles.geom", GL_GEOMETRY_SHADER);
 	auto f_particles = std::make_unique<Shader>("shaders/particles.frag", GL_FRAGMENT_SHADER);
 
-	std::vector<Shader*> particles = { v_particles.get(), g_particles.get(), f_particles.get() };
-	prog_particles = std::make_unique<ShaderProgram>(particles);
+	try
+	{
+		std::vector<Shader*> particles = { v_particles.get(), g_particles.get(), f_particles.get() };
+		prog_particles = std::make_unique<ShaderProgram>(particles);
+	}
+	catch (const std::exception& e) {
+		std::cout << "PARTICLE SHADER ERROR: " << e.what() << std::endl;
+	}
+	
 
+	try
+	{
+		std::vector<Shader*> morph = { v_morph.get(), f_stipple.get() };
+		prog_morph = std::make_unique<ShaderProgram>(morph);
+	}
+	catch (const std::exception& e) {
+		std::cout << "MORPH SHADER ERROR: " << e.what() << std::endl;
+	}
 
+	
 
-	std::vector<Shader*> morph = { v_morph.get(), f_stipple.get() };
-	prog_morph = std::make_unique<ShaderProgram>(morph);
-
-	// Set up point and line materials 
-	mat_unselected = std::make_unique<Material>(*prog_lit);
-	mat_unselected->m_color = glm::vec3(0.5f, 0.5f, 0.5f);
-
-	mat_selected = std::make_unique<Material>(*prog_lit);
-	mat_selected->m_color = glm::vec3(1.0f, 0.0f, 0.0f);
-
-	mat_line = std::make_unique<Material>(*prog_unlit);
-	mat_line->m_color = glm::vec3(1.0f, 1.0f, 1.0f);
-
+	
 
 
 
@@ -5506,19 +5606,19 @@ Mesh& createPastryMat(Entity* e) {
 		MaterialCreator* creator;
 		bakeryUtils::pastryType type = e->Get<Pastry>().getPastryType();
 		if (type == bakeryUtils::pastryType::CROISSANT) {
-			return *crossantMat.getMesh().get();
+			return *pastryMats[0][0]->getMesh().get();
 		}
 		if (type == bakeryUtils::pastryType::COOKIE) {
-			return *cookieMat.getMesh().get();
+			return *pastryMats[1][0]->getMesh().get();
 		}
 		if (type == bakeryUtils::pastryType::CUPCAKE) {
-			return *cupcakeMat.getMesh().get();
+			return *pastryMats[2][0]->getMesh().get();
 		}
 		if (type == bakeryUtils::pastryType::BURNT) {
 			return *burntMat.getMesh().get();
 		}
 		if (type == bakeryUtils::pastryType::CAKE) {
-			return *cakeMat.getMesh().get();
+			return *pastryMats[3][0]->getMesh().get();
 		}
 
 	}
@@ -5609,7 +5709,12 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type) {
 		}
 		e->Add<CMeshRenderer>(*e, *milkshakeMat.getMesh(), *milkshakeMat.getMaterial());
 		e->transform.m_scale = glm::vec3(0.04f, 0.04f, 0.04f);
+
 	}
+	e->Get<CMeshRenderer>().getMaterial().AddTexture("table", *tableRamp.getTexture());
+	e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT1", *LUTone.getTexture());
+	e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT2", *LUTtwo.getTexture());
+	e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT3", *LUTthree.getTexture());
 }
 
 void setMachinePastryMesh(Entity* e, bakeryUtils::pastryType type) {
@@ -6099,7 +6204,7 @@ void restartGame() {
 				removeFromRendering(ent);
 			}
 
-			//renderingEntities.push_back(ent); 
+			//addToRendering(ent); 
 		}
 		resetBubble(i, false);
 		ob->updateScale(UIScale);
@@ -6116,7 +6221,7 @@ void restartGame() {
 		if (isInRendering(ent)) {
 			removeFromRendering(ent);
 		}
-		//renderingEntities.push_back(ent); 
+		//addToRendering(ent); 
 	}
 
 	//currentOrders.push_back(Order()); 
@@ -6134,14 +6239,14 @@ void restartGame() {
 			removeFromRendering(ent);
 		}
 
-		//renderingEntities.push_back(ent); 
+		//addToRendering(ent); 
 	}
 	for each (Entity * ent in orderBubbles[1]->returnRenderingEntities()) {
 		if (isInRendering(ent)) {
 			removeFromRendering(ent);
 		}
 
-		//renderingEntities.push_back(ent); 
+		//addToRendering(ent); 
 	}
 	if (currentOrders.size() > 1) {
 		if (currentOrders.size() > 2) {
@@ -6158,7 +6263,7 @@ void restartGame() {
 		if (isInRendering(ent)) {
 			removeFromRendering(ent);
 		}
-		//renderingEntities.push_back(ent); 
+		//addToRendering(ent); 
 	}
 
 	for (int i = 0; i < 6; i++)
@@ -6283,14 +6388,14 @@ void nextStepTutorialIfNeeded() {
 }
 
 void loadNumberHashMap() {
-
+	//https://www.glfw.org/docs/3.3/group__keys.html
 	for (int i = 0; i < 10; i++) {
 		alphanumeric.insert(std::pair<GLuint, int>(48 + i, i));
 	}
 	for (int i = 10; i < 36; i++) {
 		alphanumeric.insert(std::pair<GLuint, int>(65 + (i - 10), i));
 	}
-
+	
 
 }
 
@@ -6627,4 +6732,13 @@ void playMusic(ToneFire::StudioSound* music, std::string name) {
 	}
 }
 
-
+void addToRendering(Entity* e) {
+	renderingEntities.push_back(e);
+	if (e->Has<CMeshRenderer>()) {
+		e->Get<CMeshRenderer>().getMaterial().AddTexture("table", *tableRamp.getTexture());
+		e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT1", *LUTone.getTexture());
+		e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT2", *LUTtwo.getTexture());
+		e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT3", *LUTthree.getTexture());
+	}
+	
+}
