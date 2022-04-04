@@ -477,10 +477,6 @@ glm::vec2 blurBounds = glm::vec2(0, 10);
 bool shouldUseGraphics = true;
 
 
-MaterialCreator tableRamp;
-MaterialCreator LUTone;
-MaterialCreator LUTtwo;
-MaterialCreator LUTthree;
 
 void addToRendering(Entity*);
 int main()
@@ -556,14 +552,8 @@ int main()
 		std::cout << "One or more shaders could not load. Check that your computer can run OpenGL version 430 core or later." << std::endl;
 		return 1;
 	}
-	shouldUseGraphics = true;
-	tableRamp.createMaterial(tileMesh, "bakery/textures/table.png", *prog_UI);
-
-	LUTone.createMaterial(tileMesh, "bakery/textures/LUT1.png", *prog_UI);
-
-	LUTtwo.createMaterial(tileMesh, "bakery/textures/LUT2.png", *prog_UI);
-
-	LUTthree.createMaterial(tileMesh, "bakery/textures/LUT3.png", *prog_UI);
+	
+	
 
 	//this is to save loading time, not memory!
 	//cant really save memory without reworking OTTER itself lol
@@ -2074,49 +2064,12 @@ int main()
 		//system("Color 7");
 	}
 
-	int tempIntA = 0;
-	bool rampDiffuse = false, rampSpecular = false, LUT1 = false, LUT2 = false, LUT3 = false;
-	std::string modeName[6] = {"Normal","No lighting","Ambient only","Specular only","Ambient + Specular","Toon shading"};
 	
 	
 	
 	
-	 for each (Entity* e in renderingEntities) {
-		if (e->Has<CMeshRenderer>()) {
-			e->Get<CMeshRenderer>().getMaterial().AddTexture("table",*tableRamp.getTexture());
-			e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT1",*LUTone.getTexture());
-			e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT2",*LUTtwo.getTexture());
-			e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT3",*LUTthree.getTexture());
-		}
-		
-	}
 	
-	 for each (Material * m in signFrames) {
-		
-			 m->AddTexture("table", *tableRamp.getTexture());
-			 m->AddTexture("LUT1", *LUTone.getTexture());
-			 m->AddTexture("LUT2", *LUTtwo.getTexture());
-			 m->AddTexture("LUT3", *LUTthree.getTexture());
-		 
-	 }
-
-	 for each (std::vector<MaterialCreator*> n in pastryMats) {
-		 for each (MaterialCreator * m in n) {
-			 m->getMaterial()->AddTexture("table", *tableRamp.getTexture());
-			 m->getMaterial()->AddTexture("LUT1", *LUTone.getTexture());
-			 m->getMaterial()->AddTexture("LUT2", *LUTtwo.getTexture());
-			 m->getMaterial()->AddTexture("LUT3", *LUTthree.getTexture());
-		 }
-		
-
-	 }
-
-	 burntMat.getMaterial()->AddTexture("table", *tableRamp.getTexture());
-	 burntMat.getMaterial()->AddTexture("LUT1", *LUTone.getTexture());
-	 burntMat.getMaterial()->AddTexture("LUT2", *LUTtwo.getTexture());
-	 burntMat.getMaterial()->AddTexture("LUT3", *LUTthree.getTexture());
 	
-	float filmGrainStrength = 16.5;
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
 		
@@ -2135,7 +2088,7 @@ int main()
 		prog_RB->Bind();
 		prog_RB.get()->SetUniform("shouldBuffer", (int) true);
 		prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
-		prog_RB.get()->SetUniform("filmGrainStrength", filmGrainStrength);
+		prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
 		prog_RB.get()->SetUniform("blurStr",(int) floor(Lerp(blurBounds.x,blurBounds.y,blurT)));
 		prog_RB.get()->SetUniform("screenRes", screenRes);
 		//std::cout << screenRes.x << " " << screenRes.y << std::endl;
@@ -2144,13 +2097,6 @@ int main()
 		prog_texLit.get()->SetUniform("lightColor2", carLight.colour);
 		prog_texLit.get()->SetUniform("strength", carLight.strength);
 		prog_texLit.get()->SetUniform("camPos", globalCameraEntity->transform.m_pos);
-
-		prog_texLit.get()->SetUniform("mode", tempIntA);
-		prog_texLit.get()->SetUniform("diffuseRamp", (int)rampDiffuse);
-		prog_texLit.get()->SetUniform("specularRamp", (int)rampSpecular);
-		prog_texLit.get()->SetUniform("usingLUT1", (int)LUT1);
-		prog_texLit.get()->SetUniform("usingLUT2", (int)LUT2);
-		prog_texLit.get()->SetUniform("usingLUT3", (int)LUT3);
 
 		
 
@@ -2176,16 +2122,7 @@ int main()
 
 		
 		App::StartImgui();
-		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
-		ImGui::SliderInt("Mode: ",&tempIntA,0,5);
-		ImGui::Text(modeName[tempIntA].c_str());
-		ImGui::Checkbox("Ramp diffuse: ", &rampDiffuse);
-		ImGui::Checkbox("Ramp specular: ", &rampSpecular);
-		ImGui::Checkbox("Warm colour grading: ", &LUT1);
-		ImGui::Checkbox("Cool colour grading: ", &LUT2);
-		ImGui::Checkbox("Custom colour grading: ", &LUT3);
-		ImGui::DragFloat("Film grain strength: ", &filmGrainStrength,0.5,0,30);
-		ImGui::DragFloat("Box blur strength: ", &blurT,0.1,0,1);
+		
 		//ImGui::DragInt("X", &(intA), 0.1f);
 		//ImGui::DragFloat("Y", &(tempB), 0.01f);
 		//ImGui::DragFloat("Z", &(tempC), 0.01f);
@@ -5711,10 +5648,7 @@ void setDrinkMesh(Entity* e, bakeryUtils::drinkType type) {
 		e->transform.m_scale = glm::vec3(0.04f, 0.04f, 0.04f);
 
 	}
-	e->Get<CMeshRenderer>().getMaterial().AddTexture("table", *tableRamp.getTexture());
-	e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT1", *LUTone.getTexture());
-	e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT2", *LUTtwo.getTexture());
-	e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT3", *LUTthree.getTexture());
+	
 }
 
 void setMachinePastryMesh(Entity* e, bakeryUtils::pastryType type) {
@@ -6127,6 +6061,7 @@ int getHighscore() {
 				scoreKeeper.close();
 				lastHs = 0;
 				std::cout << "RESET - " << e.what() << std::endl;
+				system("Color 4");
 			}
 
 		}
@@ -6734,11 +6669,6 @@ void playMusic(ToneFire::StudioSound* music, std::string name) {
 
 void addToRendering(Entity* e) {
 	renderingEntities.push_back(e);
-	if (e->Has<CMeshRenderer>()) {
-		e->Get<CMeshRenderer>().getMaterial().AddTexture("table", *tableRamp.getTexture());
-		e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT1", *LUTone.getTexture());
-		e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT2", *LUTtwo.getTexture());
-		e->Get<CMeshRenderer>().getMaterial().AddTexture("LUT3", *LUTthree.getTexture());
-	}
+	
 	
 }

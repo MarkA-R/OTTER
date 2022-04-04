@@ -12,8 +12,8 @@ protected:
 	float currentT = 0.f;
 	int timesLooped = 0;
 public:
-	MorphAnimation(std::vector<Mesh*>, float, int startingFrame = 0);
-	void update(Entity*, float, bool stopAtEnd = false);
+	MorphAnimation(std::vector<Mesh*>, float timeBetweenFrames, int startingFrame = 0);
+	void update(Entity*, float deltaTime, bool stopAtEnd = false);
 	int getCurrentFrame();
 	int getNextFrame();
 	void setCurrentFrame(int);
