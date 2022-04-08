@@ -36,6 +36,9 @@ namespace ToneFire {
 
 		FMOD_VECTOR& GetPosition();
 		void SetPosition(FMOD_VECTOR pos);
+		void setForward(float x, float y, float z) {
+			_forward = {x,y,z};
+		}
 
 	private:
 		FMOD_VECTOR _position;
@@ -184,6 +187,8 @@ namespace ToneFire {
 		void Update();
 		void LoadBank(const std::string& bankName,
 			FMOD_STUDIO_LOAD_BANK_FLAGS flags = FMOD_STUDIO_LOAD_BANK_NORMAL);
+
+		FMOD::Studio::System* _fmodSystem = nullptr;
 	private:
 
 		FMOD::Studio::EventDescription* _GetEventDescription(const std::string& eventName);
@@ -198,7 +203,7 @@ namespace ToneFire {
 		Listener _listener;
 		FMOD_3D_ATTRIBUTES _atr;
 
-		FMOD::Studio::System* _fmodSystem = nullptr;
+		
 		std::string _defaultPath;
 
 	};

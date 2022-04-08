@@ -105,3 +105,8 @@ bool Music::isCurrentlyPlaying()
 	return isPlaying;
 }
 
+ToneFire::StudioSound& Music::getSound()
+{
+	return *song;
+}
+

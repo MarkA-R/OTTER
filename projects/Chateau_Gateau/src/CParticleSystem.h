@@ -97,7 +97,7 @@ namespace nou
 		CParticleSystem& operator=(CParticleSystem&&) = default;
 		
 		float ySpeed = -1;
-		void Update(float deltaTime);
+		void Update(float deltaTime, bool shouldEmit = true, bool randomColours = false);
 		void Draw();
 		void setYSpeed(float);
 		
@@ -184,7 +184,7 @@ namespace nou
 		Material* m_mat;
 		std::unique_ptr<ParticleData> m_data;
 
-		void Emit();
+		void Emit(bool randomColours = false);
 		void Sort();
 	};
 }

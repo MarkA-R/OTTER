@@ -36,6 +36,9 @@ namespace ToneFire {
 
 		FMOD_VECTOR& GetPosition();
 		void SetPosition(FMOD_VECTOR pos);
+		void setForward(float x, float y, float z) {
+			_forward = {x,y,z};
+		}
 
 	private:
 		FMOD_VECTOR _position;

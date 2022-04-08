@@ -9,6 +9,7 @@ public:
 	void fadeOut(float time);
 	void setLoop(bool toLoop);
 	bool isCurrentlyPlaying();
+	ToneFire::StudioSound& getSound();
 protected:
 	bool isPlaying = false;
 	bool shouldLoop = false;

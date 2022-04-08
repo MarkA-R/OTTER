@@ -11,6 +11,8 @@ that we intend the class for use as a component with the ENTT framework.
 
 #include "CParticleSystem.h"
 #include "NOU/CCamera.h"
+#include <iostream>
+#include <ctime>
 
 namespace nou
 {
@@ -42,6 +44,8 @@ namespace nou
 		vel = speed * glm::normalize(
 		              glm::vec3(tanTheta*x, y, tanTheta*z));
 	}
+
+	
 
 	void ParticleUtility::VerticalConeEmit(float tanTheta, float speed, glm::vec3& pos, glm::vec3& vel)
 	{
@@ -146,7 +150,7 @@ namespace nou
 		free(alive);
 	}
 
-	void CParticleSystem::Update(float deltaTime)
+	void CParticleSystem::Update(float deltaTime, bool shouldEmit, bool randomColours)
 	{
 		m_data->emissionTimer += deltaTime;
 		float emissionTime = 1.0f / m_data->param.emissionRate;
@@ -154,7 +158,10 @@ namespace nou
 		while (m_data->emissionTimer > emissionTime)
 		{
 			m_data->emissionTimer -= emissionTime;
-			Emit();
+			if (shouldEmit) {
+				Emit(randomColours);
+			}
+			
 		}
 
 		auto& camera = CCamera::current->Get<CCamera>();
@@ -188,18 +195,28 @@ namespace nou
 
 			//The particle is alive...		
 			float lifetimeT = 1.0f - (m_data->lifetime[i] / m_data->param.lifetime);
-			
+			//std::cout << lifetimeT << std::endl;
 			//Update position.
 			m_data->pos[i] += deltaTime * m_data->velocity[i];
 
 			//Compute view-space position for sorting.
 			m_data->viewPos[i] = modelview * glm::vec4(m_data->pos[i], 1.0f);
 
-			//Animate colour.
+			
+			if (randomColours) {
+				glm::vec3 currentColour = m_data->color[i];
+				m_data->color[i] = glm::mix(m_data->color[i],
+					glm::vec4(currentColour,0.f),
+					lifetimeT/ m_data->lifetime[i]);
+			}
+			else
+			{
+				//Animate colour.
 			//GLM calls LERP "mix" (for vectors, at least).
-			m_data->color[i] = glm::mix(m_data->param.startColor,
-			                            m_data->param.endColor, 
-										lifetimeT);
+				m_data->color[i] = glm::mix(m_data->param.startColor,
+					m_data->param.endColor,
+					lifetimeT);
+			}
 		}
 
 		Sort();
@@ -227,7 +244,7 @@ namespace nou
 
 	
 
-	void CParticleSystem::Emit()
+	void CParticleSystem::Emit(bool randomColours)
 	{
 		//We can only emit if we have some "dead" particles
 		//we can "respawn".
@@ -243,7 +260,20 @@ namespace nou
 										ySpeed);
 
 			m_data->size[i] = m_data->param.startSize;
-			m_data->color[i] = m_data->param.startColor;
+			
+			if (randomColours) {
+				//srand(static_cast<unsigned int>(time(0)));
+				float randR = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				float randG = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				float randB = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				//std::cout << randR << std::endl;
+				m_data->color[i] = glm::vec4(randR, randG, randB,1.f);
+			}
+			else
+			{
+				m_data->color[i] = m_data->param.startColor;
+			}
+			//m_data->color[i] = m_data->param.startColor;
 			m_data->lifetime[i] = m_data->param.lifetime;
 			m_data->alive[i] = true;
 

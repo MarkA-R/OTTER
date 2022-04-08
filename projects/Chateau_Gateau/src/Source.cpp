@@ -353,6 +353,7 @@ MaterialCreator carMat = MaterialCreator();
 std::unique_ptr<Material> pecanParticle;
 std::unique_ptr<Material> sprinkleParticle;
 std::unique_ptr<Material> strawberryParticle;
+std::unique_ptr<Material> confettiParticle;
 
 
 Transform customerBubbleLocation;
@@ -479,6 +480,14 @@ bool shouldUseGraphics = true;
 
 
 void addToRendering(Entity*);
+
+std::vector<Music*> songList = std::vector<Music*>();
+void chooseAndPlaySong();
+//std::vector<glm::vec4> confettiColours = std::vector<glm::vec4>();
+//std::vector<std::unique_ptr<Entity>> confettiEmitters = std::vector<std::unique_ptr<Entity>>();
+bool confettiEmission = false;
+float confettiEmissionTime = 2.f;
+float currentConfettiEmission = 0.f;
 int main()
 {
 	
@@ -572,8 +581,8 @@ int main()
 	//audioEngine.Init();
 	//audioEngine.loadSound("ambient1", "audio/Duel of the Fates.wav",true,true,false);
 	//ToneFire::FMODStudio::FMODStudio(512, "./audio/") ;
-	
-	ToneFire::FMODStudio studio = ToneFire::FMODStudio(512, "./audio/");
+	ToneFire::Listener listener = ToneFire::Listener();
+	ToneFire::FMODStudio studio = ToneFire::FMODStudio(512, "./audio/", listener);
 	//ToneFire::FMODStudio::FMODStudio(512, "./audio/");
 	//ToneFire::FMODStudio::FMODStudio(512,"./audio/") studio;
 	
@@ -605,7 +614,13 @@ int main()
 	ovenS.LoadEvent("event:/oven");
 	ToneFire::StudioSound drinkUpS;
 	drinkUpS.LoadEvent("event:/DrinkMachine");
-
+	ToneFire::StudioSound carS;
+	carS.LoadEvent("event:/Honk");
+	ToneFire::StudioSound closeCallS;
+	closeCallS.LoadEvent("event:/ticking");
+	ToneFire::StudioSound musicOneS;
+	musicOneS.LoadEvent("event:/Song1");
+	
 
 
 	tick.LoadEvent("event:/Tick");
@@ -622,7 +637,14 @@ int main()
 	Music fridgeHumSound = Music(fridgeDS, "fridgeHum", 9.2, true);
 	Music ovenSound = Music(ovenS, "oven", 21.1, true);
 	Music drinkUpSound = Music(drinkUpS, "DrinkMachine", 10.6, true);
+	Music closeCallSound = Music(closeCallS, "ticking", 4.32, true);
+	Music carSound = Music(carS, "Honk", 0.45, true);
+	Music musicOne = Music(musicOneS, "Song1", 46.83);
 
+
+	
+	songList.push_back(&musicOne);
+	songList.push_back(&titleMusic);
 
 	//drinkUpSound.fadeIn(0.3);
 	//drinkUpSound.update(0);
@@ -988,6 +1010,10 @@ int main()
 	sprinkleParticle = std::make_unique<Material>(*prog_particles);
 	sprinkleParticle->AddTexture("albedo", *sprinkleTex);
 
+	MaterialCreator confettiMat;
+	confettiMat.createMaterial(tileMesh, "bakery/textures/particle.png", *prog_particles);
+	
+
 
 
 	Entity bakery = Entity::Create();
@@ -1053,7 +1079,7 @@ int main()
 	Entity fridgePoster = Entity::Create();
 	fridgePoster.Add<CMeshRenderer>(fridgePoster, *fridgePosterMat.getMesh(), *fridgePosterMat.getMaterial());
 	fridgePoster.transform.m_scale = glm::vec3(1.270);
-	fridgePoster.transform.m_pos = glm::vec3(-3.700, -0.10, -1.090);
+	fridgePoster.transform.m_pos = glm::vec3(-3.700, -0.12, -1.090);
 	fridgePoster.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(-90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
@@ -1062,7 +1088,7 @@ int main()
 	Entity ovenPoster = Entity::Create();
 	ovenPoster.Add<CMeshRenderer>(ovenPoster, *ovenPosterMat.getMesh(), *ovenPosterMat.getMaterial());
 	ovenPoster.transform.m_scale = glm::vec3(1.270);
-	ovenPoster.transform.m_pos = glm::vec3(1.700, -0.090, -1.090);
+	ovenPoster.transform.m_pos = glm::vec3(1.700, -0.092, -1.090);
 	ovenPoster.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		glm::angleAxis(glm::radians(0.f), glm::vec3(0.0f, 1.0f, 0.0f))
 		* glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));//0 
@@ -1322,6 +1348,8 @@ int main()
 	particleData.emissionRate = 10.0f;
 	particleData.tanTheta = glm::tan(glm::radians(25.0f));
 
+
+
 	Entity topping = Entity::Create();
 	topping.Add<CMeshRenderer>(topping, *toppingMat.getMesh(), *toppingMat.getMaterial());
 	topping.Add<Transparency>(topping);
@@ -1357,7 +1385,7 @@ int main()
 
 	topping.Get<ToppingMachine>().setup(&pecanTopping, &sprinkleTopping, &stawberryTopping);
 	topping.Get<ToppingMachine>().setTransform(toppingTL, toppingTR);
-	glm::vec3 pecanColour = glm::vec3(0.811, 0.647, 0.235);
+	glm::vec3 pecanColour = glm::vec3(0.59,0.29,0);
 	glm::vec3 sprinkleColour = glm::vec3(0.654, 0.858, 0.078);
 	glm::vec3 strawberryColour = glm::vec3(0.945, 0.254, 0.333);
 	topping.Get<ToppingMachine>().setupParticleColours(pecanColour, sprinkleColour, strawberryColour);
@@ -1949,8 +1977,51 @@ int main()
 	//confusionPlane.transform.SetParent(&cameraEntity.transform);
 	//UIEntities.push_back(tutorialPlane.get());
 	addToRendering(&confusionPlane);
-
+	/*
+	confettiColours.push_back(glm::vec4(1.f, 0.f, 0.f, 1.f));
+	confettiColours.push_back(glm::vec4(0.f, 1.f, 0.f, 1.f));
+	confettiColours.push_back(glm::vec4(0.f, 0.f, 1.f, 1.f));
 	
+	for each (glm::vec4 c in confettiColours) {
+		
+		//Setting up our particle system. 
+		ParticleParam newParticle;
+		newParticle.lifetime = 0.8f;
+		newParticle.startColor = c;
+		newParticle.endColor = c;
+		newParticle.startSize = 0.1f;
+		newParticle.maxParticles = 10;
+		newParticle.emissionRate = 10.f;
+		newParticle.tanTheta = glm::tan(glm::radians(40.0f));
+
+		confettiEmitters.push_back(Entity::Allocate());
+		confettiEmitters.back()->transform.m_pos = ent_register->transform.m_pos;
+		confettiEmitters.back()->Add<CParticleSystem>(*confettiEmitters.back().get(), *confettiMat.getMaterial(), newParticle);
+		addToRendering(confettiEmitters.back().get());
+		
+		//particleEntity.Remove<CParticleSystem>();
+		//particleEntity.Add<CParticleSystem>(particleEntity, *toppingScript.getParticleMaterial(selected), particleData);
+	
+	}
+
+	*/
+
+	ParticleParam newParticle;
+	newParticle.lifetime = 5.f;
+	newParticle.startColor = glm::vec4(1,0,0,1.f);
+	newParticle.endColor = glm::vec4(1, 0, 0, 0.f);
+	newParticle.startSize = 0.1f;
+	newParticle.maxParticles = 100;
+	newParticle.emissionRate = 10.f;
+	newParticle.tanTheta = glm::tan(glm::radians(45.0f));
+	
+
+	Entity confettiEmitter = Entity::Create();
+	confettiEmitter.transform.m_pos = glm::vec3(-1.134, 0.644, -2.459);
+	confettiEmitter.Add<CParticleSystem>(confettiEmitter, *confettiMat.getMaterial(), newParticle);
+	//confettiEmitter.Get<CParticleSystem>().setYSpeed(1);
+	addToRendering(&confettiEmitter);
+
 	auto endTime = std::chrono::high_resolution_clock::now();//measure end time 
 	auto timeTook = endTime - startTime;//calculate elapsed time 
 	float tutorialOneSecondTick = 0.f;
@@ -1981,7 +2052,7 @@ int main()
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
 	float fridgeLookTime = 0.f;
-	bool canCheat = false;
+	bool canCheat = true;
 	GLuint albedoUniform = prog_RB->GetUniformLoc("albedo");
 	GLuint quadVAO;
 	
@@ -2057,6 +2128,7 @@ int main()
 	}//RB stuff
 	
 	float totalGameSeconds = 0;
+	
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
 	if (!shouldUseGraphics) {
 		system("Color 6");
@@ -2068,7 +2140,7 @@ int main()
 	
 	
 	
-	
+	//currentConfettiEmission = 100.f;
 	
 	while (!App::IsClosing() && !Input::GetKeyDown(GLFW_KEY_BACKSPACE))
 	{
@@ -2121,7 +2193,7 @@ int main()
 		//prog_UI.get()->SetUniform("brightness", tempA);
 
 		
-		App::StartImgui();
+		//App::StartImgui();
 		
 		//ImGui::DragInt("X", &(intA), 0.1f);
 		//ImGui::DragFloat("Y", &(tempB), 0.01f);
@@ -2130,10 +2202,12 @@ int main()
 		//ImGui::DragFloat("R", &(tempA), 0.01f);
 		//ImGui::SliderInt("T", &tempA, 0, 4);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
-
-		//ImGui::DragFloat("A", &(counter.transform.m_pos.x), 0.001f);
-		//ImGui::DragFloat("B", &(counter.transform.m_pos.y), 0.001f);
-		//ImGui::DragFloat("C", &(counter.transform.m_pos.z), 0.001f);
+		/*
+		App::StartImgui();
+		ImGui::SetNextWindowPos(ImVec2(0, 800), ImGuiCond_FirstUseEver);
+		ImGui::DragFloat("A", &(confettiEmitter.transform.m_pos.x), 0.001f);
+		ImGui::DragFloat("B", &(confettiEmitter.transform.m_pos.y), 0.001f);
+		ImGui::DragFloat("C", &(confettiEmitter.transform.m_pos.z), 0.001f);
 		//ImGui::DragFloat("S", &(tempD), 0.001f);
 
 
@@ -2141,7 +2215,7 @@ int main()
 		//ImGui::SetWindowPos(0,0);
 
 		App::EndImgui();
-		
+		*/
 		//painting.transform.m_rotation = glm::angleAxis(glm::radians(tempA), glm::vec3(1.0f, 0.0f, 0.0f)) *
 		//	glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f))
 		//	* glm::angleAxis(glm::radians(tempC), glm::vec3(0.0f, 0.0f, 1.0f));//0
@@ -2169,8 +2243,22 @@ int main()
 		fridgeOpenSound.update(deltaTime);
 		ovenSound.update(deltaTime);
 		drinkUpSound.update(deltaTime);
+		closeCallSound.update(deltaTime);
+		carSound.update(deltaTime);
+		musicOne.update(deltaTime);
 		totalGameSeconds += deltaTime;
 		getKeyInput();
+
+		currentConfettiEmission -= deltaTime;
+		if (currentConfettiEmission < 0) {
+			confettiEmission = false;
+			currentConfettiEmission = 0.f;
+		}
+		else
+		{
+			confettiEmission = true;
+
+		}
 
 		if (blurMulti != 0.f) {
 			blurT += (deltaTime / blurTime) * blurMulti;
@@ -2303,16 +2391,24 @@ int main()
 		if (isCarMoving == true && !isPaused) {
 
 
+			
+			//carSound.getSound().SetEventPosition("event:/Honk", pos);
+			if (carT == 0.f) {
+				carSound.fadeIn(0.1);
+			}
+
 			carT += deltaTime / 3;
 			if (carT > 1) {
 				carT = 0.f;
 				isCarMoving = false;
 			}
-
+			
 			carLight.pos = Lerp(lastCarPos, glm::vec3(0, -1.9, 10), carT);
 			carLight.strength = sin(carT * 3.1415926) / 2;
 			car.transform.m_pos = Lerp(firstCarPos, lastCarPos, carT);
 			car.transform.m_pos.z = -15;
+			
+			
 			//car.transform.m_pos.y = -1.7;
 		}
 		if (isCarMoving == false) {
@@ -3051,9 +3147,7 @@ int main()
 				sign.Get<CMeshRenderer>().SetMaterial(*signFrames[selectedOption + 3]);
 				//std::cout << selectedOption << std::endl; 
 				if (mainMenuChosen >= 0) {
-					if (ovenScript->getActivePastries() > 0) {
-						ovenSound.fadeIn(0.3);
-					}
+					
 					pauseMusic.fadeOut(3);
 					for each (Entity * cust in customers) {
 						if (isInRendering(cust)) {
@@ -3265,7 +3359,9 @@ int main()
 					currentCameraQuat = menuCameraQuat;
 					wantedCameraQuat = lastCameraQuat;
 					currentCameraPoint = 0;
-
+					if (ovenScript->getActivePastries() > 0) {
+						ovenSound.fadeIn(0.3);
+					}
 
 
 				}
@@ -3912,7 +4008,13 @@ int main()
 		up.z = 2 * (cameraRotEuler.y * cameraRotEuler.z + cameraRotEuler.w * cameraRotEuler.x);
 
 		cameraFacingVector = glm::cross(left, -up);
-
+		glm::vec3 normForward = glm::normalize(cameraFacingVector);
+		glm::vec3 normUp = glm::normalize(up);
+		carS.forward = { normForward.x, normForward.y, normForward.z };
+		carS.up = { normUp.x, normUp.y, normUp.z };
+		carSound.getSound().SetEventPosition("event:/Honk", { -normForward.x, normForward.y, -normForward.z });
+		//carS.up = { normForward.x, normForward.y, normForward.z };
+		//listener.setForward(cameraFacingVector.x, cameraFacingVector.y, cameraFacingVector.z);
 		//outputCameraFacing(cameraFacingVector); //DEBUG OPTION 
 		Raycast r = Raycast(cameraEntity.transform.m_pos, cameraFacingVector, 10.f);//needs to be after GetInput so cameraQuat is initialized; 
 		std::vector<glm::vec3> raycastPoints = r.crossedPoints();
@@ -4919,6 +5021,7 @@ int main()
 								UpdateTutorial();
 								
 							}
+							chooseAndPlaySong();
 							bakeryUtils::addToRounds(1);
 							//std::cout << "HERE" << std::endl; 
 							createNewOrder(u, true);
@@ -4928,7 +5031,8 @@ int main()
 							}
 
 							resetBubble(u);
-
+							currentConfettiEmission = confettiEmissionTime;
+							//confettiEmission = true;
 							
 							
 							playSound(&ding, "CashRegister");
@@ -4974,6 +5078,17 @@ int main()
 		
 		
 		}
+
+		
+		
+			confettiEmitter.transform.RecomputeGlobal();
+			
+			confettiEmitter.Get<CParticleSystem>().Update(deltaTime,confettiEmission,true);
+
+			glDisable(GL_DEPTH_TEST);
+			confettiEmitter.Get<CParticleSystem>().Draw();
+			glEnable(GL_DEPTH_TEST);
+		
 
 		if (shouldUseGraphics) {
 
@@ -5988,9 +6103,6 @@ int indexToPlaceInLine(int index) {
 	return 3 - (index - lineStart);
 }
 
-
-
-
 void setScores(int totalOrders, int highscore) {
 	if (totalOrders > 999) {
 		totalOrders = 999;
@@ -6251,7 +6363,10 @@ int selectedOvenPosition(float x) {
 void setTutorialChange(int i)
 {
 	if (i >= 0 && i < tutorialSteps.size()) {
-		tutorialSteps[i].setContinueState(true);
+		for (int u = 0; u <= i; u++) {
+			tutorialSteps[u].setContinueState(true);
+		}
+		
 	}
 }
 
@@ -6671,4 +6786,18 @@ void addToRendering(Entity* e) {
 	renderingEntities.push_back(e);
 	
 	
+}
+
+void chooseAndPlaySong() {
+	int random = rand() % (songList.size()-1);
+	bool isAnySongPlaying = false;
+	for each (Music* m in songList) {
+		if (m->isCurrentlyPlaying()) {
+			isAnySongPlaying = false;
+			break;
+		}
+	}
+	if (!isAnySongPlaying) {
+		songList[random]->fadeIn(0.5);
+	}
 }
