@@ -113,9 +113,14 @@ int Oven::getFirstEmpty() {
 int Oven::getActivePastries()
 {
 	int returner = 0;
-	for (int i = 0; i < std::size(inOven); i++) {
+	for (int i = 0; i < 4; i++) {
 		if (inOven[i] != nullptr) {
-			returner++;
+			if (inOven[i]->Has<Pastry>()) {
+				if (inOven[i]->Get<Pastry>().getPastryType() != bakeryUtils::pastryType::BURNT) {
+					returner++;
+				}
+			}
+			
 		}
 	}
 	return returner;

@@ -1,10 +1,11 @@
 #include "TutorialStep.h"
 
-TutorialStep::TutorialStep(MaterialCreator* material, bool affectedBySpace)
+TutorialStep::TutorialStep(MaterialCreator* material, bool affectedBySpace, int si)
 {
 	nextMaterial = material;
 	isAffectedBySpace = affectedBySpace;
 	canContinue = false;
+	soundIndex = si;
 }
 
 void TutorialStep::setContinueState(bool b)
@@ -20,6 +21,11 @@ bool TutorialStep::getContinueState()
 bool TutorialStep::spaceContinues()
 {
 	return isAffectedBySpace;
+}
+
+int TutorialStep::getSoundIndex()
+{
+	return soundIndex;
 }
 
 MaterialCreator* TutorialStep::getMaterialCreator()

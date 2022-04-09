@@ -10,6 +10,7 @@ public:
 	void setLoop(bool toLoop);
 	bool isCurrentlyPlaying();
 	ToneFire::StudioSound& getSound();
+	bool shouldLog = false;
 protected:
 	bool isPlaying = false;
 	bool shouldLoop = false;

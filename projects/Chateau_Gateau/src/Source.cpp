@@ -488,6 +488,8 @@ void chooseAndPlaySong();
 bool confettiEmission = false;
 float confettiEmissionTime = 2.f;
 float currentConfettiEmission = 0.f;
+std::vector<ToneFire::StudioSound*> minetteSounds = std::vector<ToneFire::StudioSound*>();
+std::vector<std::string> minetteSoundNames = std::vector<std::string>();
 int main()
 {
 	
@@ -545,21 +547,21 @@ int main()
 	if (render.find("APU") != std::string::npos) {
 		shouldUseGraphics = false;
 	}
-
+	//shouldUseGraphics = false;
 	try
 	{
 		// Load in our model/texture resources 
 		LoadDefaultResources();
 	}
 	catch (const std::exception& e) {
-		system("Colour 6");
+		system("Color 6");
 		std::cout << "ERROR LOADING SHADERS: " << e.what() << std::endl;
-		return 1;
+		return -1;
 	}
-	if (prog_UI == nullptr || prog_RB == nullptr || prog_morph == nullptr || prog_texLit == nullptr) {
-		system("Colour 6");
+	if (prog_UI == nullptr  || prog_morph == nullptr || prog_texLit == nullptr || (shouldUseGraphics && prog_RB == nullptr)) {
+		system("Color 6");
 		std::cout << "One or more shaders could not load. Check that your computer can run OpenGL version 430 core or later." << std::endl;
-		return 1;
+		return -1;
 	}
 	
 	
@@ -620,7 +622,37 @@ int main()
 	closeCallS.LoadEvent("event:/ticking");
 	ToneFire::StudioSound musicOneS;
 	musicOneS.LoadEvent("event:/Song1");
-	
+	ToneFire::StudioSound musicTwoS;
+	musicTwoS.LoadEvent("event:/Song2");
+	ToneFire::StudioSound musicThreeS;
+	musicThreeS.LoadEvent("event:/Song3");
+	ToneFire::StudioSound bearSad;
+	bearSad.LoadEvent("event:/Dialogue/ohBear");
+
+	ToneFire::StudioSound agreeOne;
+	agreeOne.LoadEvent("event:/Dialogue/agree");
+	ToneFire::StudioSound agreeTwo;
+	agreeTwo.LoadEvent("event:/Dialogue/agree2");
+	ToneFire::StudioSound sigh;
+	sigh.LoadEvent("event:/Dialogue/sigh");
+	ToneFire::StudioSound thinking;
+	thinking.LoadEvent("event:/Dialogue/thinking");
+	ToneFire::StudioSound wow;
+	wow.LoadEvent("event:/Dialogue/wow");
+	ToneFire::StudioSound yay;
+	yay.LoadEvent("event:/Dialogue/yay");
+	minetteSounds.push_back(&agreeOne);
+	minetteSounds.push_back(&agreeTwo);
+	minetteSounds.push_back(&sigh);
+	minetteSounds.push_back(&thinking);
+	minetteSounds.push_back(&wow);
+	minetteSounds.push_back(&yay);
+	minetteSoundNames.push_back("Dialogue/agree");
+	minetteSoundNames.push_back("Dialogue/agree2");
+	minetteSoundNames.push_back("Dialogue/sigh");
+	minetteSoundNames.push_back("Dialogue/thinking");
+	minetteSoundNames.push_back("Dialogue/wow");
+	minetteSoundNames.push_back("Dialogue/yay");
 
 
 	tick.LoadEvent("event:/Tick");
@@ -640,11 +672,14 @@ int main()
 	Music closeCallSound = Music(closeCallS, "ticking", 4.32, true);
 	Music carSound = Music(carS, "Honk", 0.45, true);
 	Music musicOne = Music(musicOneS, "Song1", 46.83);
+	Music musicTwo = Music(musicTwoS, "Song2", 32.57);
+	Music musicThree = Music(musicThreeS, "Song3", 48.86);
 
 
 	
 	songList.push_back(&musicOne);
-	songList.push_back(&titleMusic);
+	//songList.push_back(&musicTwo);
+	songList.push_back(&musicThree);
 
 	//drinkUpSound.fadeIn(0.3);
 	//drinkUpSound.update(0);
@@ -713,6 +748,7 @@ int main()
 
 	MaterialCreator counterMat = MaterialCreator();
 	counterMat.createMaterial("bakery/models/counter.gltf", "bakery/textures/counter.png", *prog_texLit);
+	counterMat.addTexture("Nmap", "bakery/textures/CounterNormal.png");
 
 	MaterialCreator fridgePosterMat = MaterialCreator();
 	fridgePosterMat.createMaterial("bakery/models/poster.gltf", "bakery/textures/fridge poster.png", *prog_texLit);
@@ -1027,7 +1063,7 @@ int main()
 	city.Add<CMeshRenderer>(city, *cityMat.getMesh(), *cityMat.getMaterial());
 	city.transform.m_scale = glm::vec3(0.560);
 	city.transform.m_rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	city.transform.m_pos = glm::vec3(-2.060, -1.710, -5.240);
+	city.transform.m_pos = glm::vec3(-2.060, -1.803, -5.240);
 	addToRendering(&city);
 
 	Entity bakeryTop = Entity::Create();
@@ -1626,28 +1662,28 @@ int main()
 
 	loadMaterialCreatorData(dialogueList, tileMesh, "UI/textures/dialogue/Dialogue",20);
 	
-	tutorialSteps.push_back(TutorialStep(dialogueList[0],true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[1],true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[2],false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[3],false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[4],true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[5], true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[6], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[7], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[8], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[9], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[10], true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[11], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[12], true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[13], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[14], false));
-	tutorialSteps.push_back(TutorialStep(dialogueList[15], true));
-	tutorialSteps.push_back(TutorialStep(dialogueList[16], true));
+	tutorialSteps.push_back(TutorialStep(dialogueList[0],true,0));//time to open
+	tutorialSteps.push_back(TutorialStep(dialogueList[1],true,3));//so many crumbs
+	tutorialSteps.push_back(TutorialStep(dialogueList[2],false,2));//throw out the ash
+	tutorialSteps.push_back(TutorialStep(dialogueList[3],false));//go to trash can
+	tutorialSteps.push_back(TutorialStep(dialogueList[4],true,5));//looks good
+	tutorialSteps.push_back(TutorialStep(dialogueList[5], true));//looks like they want a croissant
+	tutorialSteps.push_back(TutorialStep(dialogueList[6], false,1));//get dough from fridge
+	tutorialSteps.push_back(TutorialStep(dialogueList[7], false));//put dough in oven
+	tutorialSteps.push_back(TutorialStep(dialogueList[8], false,3));//wait until its done baking
+	tutorialSteps.push_back(TutorialStep(dialogueList[9], false));//looks so tasty, give to customer
+	tutorialSteps.push_back(TutorialStep(dialogueList[10], true,5));//looks like they want a filling
+	tutorialSteps.push_back(TutorialStep(dialogueList[11], false));//to change the filling...
+	tutorialSteps.push_back(TutorialStep(dialogueList[12], true,4));//looks like they want a topping
+	tutorialSteps.push_back(TutorialStep(dialogueList[13], false));//how to change the topping
+	tutorialSteps.push_back(TutorialStep(dialogueList[14], false,5));//looks like they want a drink
+	tutorialSteps.push_back(TutorialStep(dialogueList[15], true,0));//if you mess up 3 orders
+	tutorialSteps.push_back(TutorialStep(dialogueList[16], true,3));//looks like youve got the hang of this
 	tutorialSteps.push_back(TutorialStep(&nothingTile, false));//transparent, continues at second order
 	tutorialSteps.push_back(TutorialStep(dialogueList[17], true));//upurr1
-	tutorialSteps.push_back(TutorialStep(dialogueList[18], true));//lets get to work
+	tutorialSteps.push_back(TutorialStep(dialogueList[18], true,5));//youve got this
 	tutorialSteps.push_back(TutorialStep(&nothingTile, false));//transparent, continues at third order
-	tutorialSteps.push_back(TutorialStep(dialogueList[19], true));//last upurr eats order, which can be hidden by a spacebar
+	tutorialSteps.push_back(TutorialStep(dialogueList[19], true,4));//last upurr eats order, which can be hidden by a spacebar
 	
 	MaterialCreator tutorialConfusion;
 	tutorialConfusion.createMaterial(tileMesh, "UI/textures/Keys1.png", *prog_UI);
@@ -2052,10 +2088,13 @@ int main()
 	//toppingSound.fadeIn(0.4);
 	bool lookingAtFridge = false, lookingAtOven = false, lookingAtFilling = false, lookingAtDrink = false, lookingAtTopping = false;
 	float fridgeLookTime = 0.f;
-	bool canCheat = true;
-	GLuint albedoUniform = prog_RB->GetUniformLoc("albedo");
-	GLuint quadVAO;
+	bool canCheat = false;
 	
+	GLuint albedoUniform;
+	GLuint quadVAO;
+	if (prog_RB != nullptr && shouldUseGraphics) {
+		albedoUniform = prog_RB->GetUniformLoc("albedo");;
+	}
 
 	if (shouldUseGraphics) {
 	
@@ -2129,7 +2168,32 @@ int main()
 	
 	float totalGameSeconds = 0;
 	
+
 	std::cout << "Loaded game in: " << (timeTook / std::chrono::seconds(1)) << " seconds" << std::endl;//output elapsed time 
+	
+	std::cout << std::endl;
+	std::cout << "-*-" << std::endl;
+	std::cout << std::endl;
+	std::cout << "CREDITS:" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Sea Drive members:" << std::endl;
+	std::cout << "Mark Astilean Rist" << std::endl;
+	std::cout << "Mithunan Jayaseelan" << std::endl;
+	std::cout << "Nathaniel Moore" << std::endl;
+	std::cout << "Kainat Rashid" << std::endl;
+	std::cout << "Kyra Trinidad" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Additional music and sound credits:" << std::endl;
+	std::cout << "Winston Qi" << std::endl;
+	std::cout << "Youtube Audio Library" << std::endl;
+	std::cout << "FMOD API" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Thank you to all those who helped create the OTTER engine!" << std::endl;
+	std::cout << std::endl;
+	std::cout << "-*-" << std::endl;
+	std::cout << std::endl;
+	
+	
 	if (!shouldUseGraphics) {
 		system("Color 6");
 		std::cout << "NOTICE: You are using integrated graphics. As such, the game has turned off all post-processing effects. Change your settings in order to render with a dedicated graphics card and restart the game to turn on post-processing." << std::endl;
@@ -2156,13 +2220,15 @@ int main()
 		//menuBGM.SetEventParameter("event:/BackgroundMusic", "parameter:/musicVolume", musicVolume);//an exception for the music, if we cant tell if an event is playing or not
 		
 		//tutorialPlane.get()->transform.m_rotation = glm::angleAxis(glm::radians(tempA ), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempB), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::angleAxis(glm::radians(tempC), glm::vec3(1.0f, 0.0f, 0.0f)); 
+		if (shouldUseGraphics) {
+			prog_RB->Bind();
+			prog_RB.get()->SetUniform("shouldBuffer", (int)true);
+			prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
+			prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
+			prog_RB.get()->SetUniform("blurStr", (int)floor(Lerp(blurBounds.x, blurBounds.y, blurT)));
+			prog_RB.get()->SetUniform("screenRes", screenRes);
+		}
 		
-		prog_RB->Bind();
-		prog_RB.get()->SetUniform("shouldBuffer", (int) true);
-		prog_RB.get()->SetUniform("passedTime", totalGameSeconds);
-		prog_RB.get()->SetUniform("filmGrainStrength", 16.5f);
-		prog_RB.get()->SetUniform("blurStr",(int) floor(Lerp(blurBounds.x,blurBounds.y,blurT)));
-		prog_RB.get()->SetUniform("screenRes", screenRes);
 		//std::cout << screenRes.x << " " << screenRes.y << std::endl;
 		prog_texLit->Bind();
 		prog_texLit.get()->SetUniform("lightDir2", carLight.pos);
@@ -2245,7 +2311,9 @@ int main()
 		drinkUpSound.update(deltaTime);
 		closeCallSound.update(deltaTime);
 		carSound.update(deltaTime);
-		musicOne.update(deltaTime);
+		for each (Music * m in songList) {
+			m->update(deltaTime);
+		}
 		totalGameSeconds += deltaTime;
 		getKeyInput();
 
@@ -2318,6 +2386,9 @@ int main()
 			//std::cout << "GGGG" << std::endl; 
 			
 			if (Input::GetKeyDown(GLFW_KEY_ENTER)) {//put this in the lose spot 
+				for each (Music * m in songList) {
+					m->fadeOut(0.3);
+				}
 				blurMulti = 1;
 				int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
 				setScores(bakeryUtils::getRoundsLasted(), highScore);
@@ -2359,10 +2430,17 @@ int main()
 			
 
 			if (Input::GetKey(GLFW_KEY_V)) {//put this in the lose spot 
-				dayT += deltaTime;
-				if (dayT > 1) {
-					dayT = 1;
+				int random = rand() % (songList.size());
+				bool isAnySongPlaying = false;
+				for each (Music * m in songList) {
+					if (m->isCurrentlyPlaying()) {
+						isAnySongPlaying = true;
+						m->fadeOut(0.4);
+						break;
+					}
 				}
+
+				songList[random]->fadeIn(0.5);
 			}
 			if (Input::GetKey(GLFW_KEY_C)) {//put this in the lose spot 
 				dayT -= deltaTime;
@@ -3137,6 +3215,7 @@ int main()
 		}
 		if (isInPauseMenu) {
 			if (!isCameraMoving) {
+				ovenSound.fadeOut(0.001);
 				cameraEntity.transform.m_pos = menuCameraPos;
 
 				cameraEntity.transform.m_rotation = menuCameraQuat;
@@ -3165,7 +3244,11 @@ int main()
 
 					}
 					else if (mainMenuChosen == 1) {
-						//std::cout << "ONE" << std::endl; 
+						if (ovenScript->getActivePastries() > 0) {
+							ovenSound.fadeIn(1.0);
+						}
+						//std::cout << "ONE" << std::endl;
+						//ovenSound.fadeOut(0.001);
 						restartGame();
 
 
@@ -3279,6 +3362,10 @@ int main()
 						isInMainMenu = true;
 					}
 					else if (mainMenuChosen == 2) {
+					//ovenSound.fadeOut(0.001);
+					if (ovenScript->getActivePastries() > 0) {
+						ovenSound.fadeIn(1.0);
+					}
 					titleMusic.fadeIn(3);
 						//std::cout << "ONE" << std::endl; 
 						restartGame();
@@ -3711,6 +3798,11 @@ int main()
 			if (isPaused) {
 				ovenSound.fadeOut(0.3);
 				pauseMusic.fadeIn(3);
+				
+				closeCallSound.fadeOut(0.3);
+				for each (Music * m in songList) {
+					m->fadeOut(0.3);
+				}
 				removeFromRendering(&tray);
 				removeFromRendering(tutorialPlane.get());
 				//tutorialPlane->transform.m_pos = glm::vec3(-20);
@@ -3904,7 +3996,12 @@ int main()
 				orderBubbles[i]->getTimer().getTile()->Get<Transparency>().setTransparency(0);
 				orderBubbles[i]->getTimer().getCircle()->Get<Transparency>().setTransparency(0);
 				//std::cout << bakeryUtils::getTime() << " > " << currentOrders[i].maxEndTime << std::endl; 
+				//std::cout << currentOrders[i].maxEndTime - bakeryUtils::getTime() << std::endl;
+				if (currentOrders[i].maxEndTime - bakeryUtils::getTime() <= 5 && currentOrders[i].maxEndTime - bakeryUtils::getTime() > 4.95) {
+					closeCallSound.fadeIn(0.3);
+				}
 				if (!currentOrders[i].isOnTime()) {//HERE CHANGE HERE XXX 
+					playSound(&bearSad,"Dialogue/ohBear");
 					//std::cout << "START" << std::endl; 
 					createNewOrder(i, false, false);
 					bakeryUtils::addToFailed(1);
@@ -3916,6 +4013,9 @@ int main()
 
 					if (bakeryUtils::getOrdersFailed() == 3) {
 						blurMulti = 1;
+						for each (Music * m in songList) {
+							m->fadeOut(0.3);
+						}
 						int highScore = saveHighscore(bakeryUtils::getRoundsLasted());
 						setScores(bakeryUtils::getRoundsLasted(), highScore);
 						if (cameraX == 0 && cameraY == 0) {
@@ -4202,7 +4302,7 @@ int main()
 
 		
 		
-
+		
 
 		if ((drinkScript.isOpening || drinkScript.isClosing) && !isPaused) {
 			float multiplier = 1;
@@ -4237,6 +4337,7 @@ int main()
 		
 		
 		if (lookingAtFridge) {
+			//fridgeOpenSound.shouldLog = true;
 			fridgeLookTime += deltaTime;
 		}
 		else
@@ -4821,8 +4922,11 @@ int main()
 				else if (e->Has<DrinkMachine>() && roundsLasted > 2) {
 				lookingAtDrink = true;
 					if (!drinkScript.isOpening && !drinkScript.isClosing && !drinkScript.isDrinkFull()) {
+						if (!isLeftButtonHeld) {
+							drinkUpSound.fadeOut(0.3);
+						}
 						if (isLeftButtonHeld) {
-							if (drinkScript.getFill() <= deltaTime) {
+							if (drinkScript.getFill() == 0.f) {
 								drinkUpSound.fadeIn(0.001);
 							}
 							
@@ -6383,9 +6487,17 @@ void UpdateTutorial()
 				//tutorialPlane->transform.m_scale = glm::vec3(0.07 * (UIScale + 0.05));
 				//tutorialPlane->transform.m_scale = glm::vec3(0.003 * (UIScale + 0.05));
 				tutorialMultiplier = 1;
+				if (&tutorialPlane->Get<CMeshRenderer>().getMaterial() != tutorialSteps[i].getMaterialCreator()->getMaterial().get()) {
+					if (tutorialSteps[i].getSoundIndex() >= 0 && shouldShowTutorial) {
+						playSound(minetteSounds[tutorialSteps[i].getSoundIndex()], minetteSoundNames[tutorialSteps[i].getSoundIndex()]);
+
+					}
+				}
+				
 				tutorialPlane->Remove<CMeshRenderer>();
 				tutorialPlane->Add<CMeshRenderer>(*tutorialPlane.get(), *tutorialSteps[i].getMaterialCreator()->getMesh(), *tutorialSteps[i].getMaterialCreator()->getMaterial());
 				//std::cout << "showing: " << i << std::endl;
+				
 				break;
 			}
 			else
@@ -6789,15 +6901,21 @@ void addToRendering(Entity* e) {
 }
 
 void chooseAndPlaySong() {
-	int random = rand() % (songList.size()-1);
+	int random = rand() % (songList.size());
 	bool isAnySongPlaying = false;
 	for each (Music* m in songList) {
 		if (m->isCurrentlyPlaying()) {
-			isAnySongPlaying = false;
+			isAnySongPlaying = true;
 			break;
 		}
 	}
+	
 	if (!isAnySongPlaying) {
 		songList[random]->fadeIn(0.5);
+		//std::cout << "FREE" << std::endl;
+	}
+	else
+	{
+		//std::cout << "SPOT TAKEN" << std::endl;
 	}
 }

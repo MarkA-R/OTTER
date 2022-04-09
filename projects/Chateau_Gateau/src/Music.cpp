@@ -41,23 +41,35 @@ void Music::update(float dt)
 		if (usingVol < 0.01f && isPlaying) {
 			song->StopEvent("event:/" + name);
 			isPlaying = false;
-			
+			secondsCounter = seconds + 1;
 		}
-		else if(usingVol > 0.01f && !isPlaying)
+		else if(usingVol > 0.01f && !isPlaying && (secondsCounter <= seconds || shouldLoop))
 		{
 			song->PlayEvent("event:/" + name);
 			isPlaying = true;
 			secondsCounter = 0;
+			if (shouldLog) {
+				std::cout << "USING VOL" << std::endl;
+			}
+			
+
 		}
 		//std::cout << newVol << std::endl;
 	}
 	bool looping = false;
-	if (shouldLoop) {
+	
 		if (secondsCounter >= seconds) {
-			secondsCounter = 0;
-			looping = true;
+			
+			volumeT = 0.f;
+			isPlaying = false;
+			if (shouldLoop) {
+				secondsCounter = 0;
+				looping = true;
+				
+			}
+			
 		}
-	}
+		
 	
 	if (volumeT == 0.f) {
 		song->StopEvent("event:/" + name);
@@ -67,6 +79,11 @@ void Music::update(float dt)
 	else
 	{
 		isPlaying = true;
+		if (shouldLog) {
+			std::cout << "VOLT" << std::endl;
+		}
+		
+
 	}
 
 	if (looping) {
@@ -74,7 +91,11 @@ void Music::update(float dt)
 		volumeMulti = 1;
 
 		song->PlayEvent("event:/" + name);
-
+		isPlaying = true;
+		if (shouldLog) {
+			std::cout << "LOOPING" << std::endl;
+		}
+		
 	}
 	
 }
@@ -84,6 +105,7 @@ void Music::fadeIn(float time)
 	
 		volumeMulti = 1;
 		volChangeTime = time;
+		secondsCounter = 0;
 		song->PlayEvent("event:/" + name);
 	
 	
